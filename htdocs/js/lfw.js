@@ -42,14 +42,6 @@ var app = $.sammy(function() {
         $('#main').text('Welcome @ ' + this.params['page']);
     });
 
-    this.bind('label-search', function(e, data) {
-        this.log('label-search redirect');
-        this.redirect('#/' + getSpace() + '?search=' + escape(data['query']));
-    });
-    this.bind('title-search', function(e, data) {
-        this.log('title-searcj redirect');
-        this.redirect('#/' + getSpace() + '/' + data['title']);
-    });
     this.bind('change-space', function(e, data) {
         this.log('change-space');
         this.redirect('#/' + data['space']);
@@ -122,7 +114,7 @@ $(function() {
                 alert('No text');
             }
             else {
-                app.trigger('title-search', {title: title});
+                $('form#title-search').submit();
             }
 
             return false;

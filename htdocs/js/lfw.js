@@ -1,7 +1,7 @@
 var app = $.sammy(function() {
     var _space = null;
 
-    setSpace = function(space) {
+    var setSpace = function(space) {
         _space = space;
 
         var spaces = $('#space option');
@@ -14,10 +14,10 @@ var app = $.sammy(function() {
         $('form#title-search').attr('action', '#/' + space);
         $('form#label-search').attr('action', '#/' + space);
         $('form#fulltext-search').attr('action', '#/' + space);
-    }
-    getSpace = function() {
+    };
+    var getSpace = function() {
         return _space;
-    }
+    };
 
     this.get('#/:space', function() {
         setSpace(this.params['space']);

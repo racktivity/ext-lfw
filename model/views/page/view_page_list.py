@@ -12,7 +12,7 @@ if not connection.viewExists(rootobject, viewname):
     view.setCol('space', q.enumerators.OsisType.STRING, True)
     view.setCol('category', q.enumerators.OsisType.STRING, True)
     view.setCol('parent', q.enumerators.OsisType.UUID, True)
-    view.setCol('content', q.enumerators.OsisType.STRING, False)
+    view.setCol('content', q.enumerators.OsisType.TEXT, False)
     connection.viewAdd(view)
 
 indexes = ['name', 'space', 'category', 'parent', 'content']

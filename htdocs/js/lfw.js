@@ -14,20 +14,80 @@ var app = $.sammy(function() {
         $('form#title-search').attr('action', '#/' + space);
         $('form#label-search').attr('action', '#/' + space);
         $('form#fulltext-search').attr('action', '#/' + space);
+
+        var completionUri = LFW_CONFIG['uris']['completion'];
+
+        $('#title').autocomplete('option', 'source',
+            function(request, response) {
+                var term = request.term;
+
+                $.getJSON(completionUri, {
+                    'space': space,
+                    'type': 'title',
+                    'term': term
+                }, response);
+            }
+        );
+
+        $('#labels').autocomplete('option', 'source',
+            function(request, response) {
+                var term = request.term.split(/,\s*/).pop();
+
+                $.getJSON(completionUri, {
+                    'space': space,
+                    'type': 'labels',
+                    'term': term
+                }, response);
+            }
+        );
     };
     var getSpace = function() {
+        if(!_space) {
+            throw new Error('Space requested whilst it\'s not set');
+        }
+
         return _space;
     };
 
     this.get('#/:space', function() {
         setSpace(this.params['space']);
 
-        if(this.params['search'] && this.params['type']) {
+        if(this.params['q'] && this.params['type']) {
             // This is a search request
-            alert('Search request');
+            var type = this.params['type'],
+                query = this.params['q'],
+
+                searchUri = LFW_CONFIG['uris']['search'];
+
+           $.getJSON(searchUri, {
+               'type': type,
+               'space': getSpace(),
+               'q': query
+           }, function(data) {
+               //TODO Template-based
+
+               var canvas = $('#main'),
+                   list = $('<ul>');
+
+               for(var i = 0; i < data.length; i++) {
+                   var item = data[i],
+                       space = item[0],
+                       page = item[1],
+
+                       itemHref = '#/' + space + '/' + page,
+
+                       link = $('<a>').attr('href', itemHref)
+                                     .text(page);
+
+                   $('<li>').append(link).appendTo(list);
+               }
+
+               canvas.empty().append(list);
+           });
+
         }
-        else if(this.params['title']) {
-            var page = this.params['title'];
+        else if(this.params['q']) {
+            var page = this.params['q'];
 
             this.redirect('#/' + getSpace() + '/' + page);
         }
@@ -39,27 +99,61 @@ var app = $.sammy(function() {
     this.get('#/:space/:page', function() {
         setSpace(this.params['space']);
 
-        $('#main').text('Welcome @ ' + this.params['page']);
+        var space = this.params['space'],
+            page = this.params['page'],
+            pageUri = LFW_CONFIG['uris']['pages'] + '/' + space + '/' + page;
+
+        var context = this;
+
+        $.ajax({
+            url: pageUri,
+            success: function(data) {
+                $('#main').html(data['content']);
+            },
+            cache: false,
+            dataType: 'json',
+            error: function(xhr, text) {
+                if(xhr.status == 404) {
+                    context.notFound();
+                }
+                else {
+                    alert('Unknown error: ' + text);
+                }
+            }
+        });
     });
 
     this.bind('change-space', function(e, data) {
         this.log('change-space');
         this.redirect('#/' + data['space']);
     });
+
+    this.bind('error', function(e, data) {
+        $('#main').empty()
+                  .html(data.message);
+    });
 });
 
 $(function() {
     // Set up spaces dropdown
-    var spaces = $('#space');
-    for(var i = 0; i < demodata['spaces'].length; i++) {
-        $('<option>')
-            .attr('value', demodata['spaces'][i])
-            .text(demodata['spaces'][i])
-            .appendTo(spaces);
+    if(typeof(LFW_CONFIG) === 'undefined' || !LFW_CONFIG) {
+        throw new Error('No LFW_CONFIG defined');
     }
 
-    spaces.change(function() {
-        app.trigger('change-space', {space: $(this).val()});
+    $.getJSON(LFW_CONFIG['uris']['listSpaces'], function(data) {
+        var spaces = $('#space');
+            for(var i = 0; i < data.length; i++) {
+                $('<option>')
+                    .attr('value', data[i])
+                    .text(data[i])
+                    .appendTo(spaces);
+            }
+
+            spaces.change(function() {
+                app.trigger('change-space', {space: $(this).val()});
+            });
+
+            app.run('#/' + $('#space').val());
     });
 
     // Set up search boxes
@@ -82,10 +176,7 @@ $(function() {
         })
         .autocomplete({
             minLength: 0,
-            source: function(request, response) {
-                response($.ui.autocomplete.filter(
-                    demodata['labels'], request.term.split(/,\s*/).pop()));
-            },
+            source: [],
             focus: function() {
                 return false;
             },
@@ -120,8 +211,6 @@ $(function() {
             return false;
         })
         .autocomplete({
-            source: demodata['titles']
+            source: []
         });
-
-    app.run('#/' + $('#space').val());
 });

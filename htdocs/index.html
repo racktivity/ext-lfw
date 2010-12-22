@@ -33,7 +33,7 @@
                 type='text/css' media='screen, projection' />
         <![endif]-->
 
-        <script type='text/javascript' src='js/demo.js'></script>
+        <script type='text/javascript' src='js/config.js'></script>
         <script type='text/javascript' src='js/lfw.js'></script>
 
         <link rel='stylesheet' href='style/screen.css' type='text/css'
@@ -51,20 +51,20 @@
                     <form name='title-search' id='title-search'
                         action='' method='get'>
                         <label for='title'>Title: </label>
-                        <input id='title' name='title' />
+                        <input id='title' name='q' />
                     </form>
 
                     <form name='label-search' id='label-search'
                         action='' method='get'>
                         <label for='labels'>Labels: </label>
-                        <input name='search' id='labels' />
+                        <input name='q' id='labels' />
                         <input type='hidden' name='type' value='labels' />
                     </form>
 
                     <form name='fulltext-search' id='fulltext-search'
                         action='' method='get'>
                         <label for='text'>Search: </label>
-                        <input name='search' id='text' />
+                        <input name='q' id='text' />
                         <input type='hidden' name='type' value='fulltext' />
                     </form>
                 </div>

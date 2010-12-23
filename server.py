@@ -1,5 +1,6 @@
 import os
 import os.path
+import re
 import urllib
 import urlparse
 
@@ -47,6 +48,8 @@ DATA = {
         },
     },
 }
+
+LABELS_Q_RE = re.compile('q\[\d+\]')
 
 class LFSHTTPRequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
     def do_GET(self):
@@ -118,17 +121,20 @@ class LFSHTTPRequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
 
         space = query['space'][0]
         type_ = query['type'][0]
-        term = query['q'][0]
 
         pages = DATA[space]
 
         if type_ == 'labels':
-            labels = tuple(t.replace('+', ' ').strip()
-                for t in term.split(',') if t.replace('+', ' ').strip())
+            labels = set()
+
+            for key, value in query.iteritems():
+                if LABELS_Q_RE.match(key):
+                    labels.add(value[0])
 
             matches = tuple(name for name, data in pages.iteritems()
                 if all(label in data['labels'] for label in labels))
         elif type_ == 'fulltext':
+            term = query['q'][0]
             matches = tuple(name for name, data in pages.iteritems()
                 if term.lower() in data['content'].lower())
         else:

@@ -115,6 +115,12 @@ var app = $.sammy(function(app) {
 
                 searchUri = LFW_CONFIG['uris']['search'];
 
+           if(type === 'labels') {
+               query = $(query.split(LABELS_RE)).map(function(_, s) {
+                   return s.replace(/\+/g, ' ').trim();
+               });
+           }
+
            $.getJSON(searchUri, {
                'type': type,
                'space': getSpace(),

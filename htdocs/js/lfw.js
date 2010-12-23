@@ -19,10 +19,16 @@ var DEFAULT_PAGE_NAME = 'Home',
     LABELS_RE = /,\s*/,
     LOCATION_PREFIX = '#/';
 
-var app = $.sammy('#main', function(app) {
+var app = $.sammy(function(app) {
     this.use(Sammy.Mustache);
 
     var _space = null;
+
+    var swap = function(html) {
+        $('#main')
+            .empty()
+            .html(html);
+    };
 
     var buildUri = function(space, page) {
         if(!space) {
@@ -109,7 +115,7 @@ var app = $.sammy('#main', function(app) {
                'space': getSpace(),
                'q': query
            }, function(data) {
-               context.swap(
+               swap(
                    context.mustache(
                        $('#search-result-template').html(),
                        {'results': data}
@@ -136,7 +142,7 @@ var app = $.sammy('#main', function(app) {
         $.ajax({
             url: pageUri,
             success: function(data) {
-                context.swap(data['content']);
+                swap(data['content']);
             },
             cache: false,
             dataType: 'json',
@@ -160,7 +166,7 @@ var app = $.sammy('#main', function(app) {
     this.bind('error', function(e, data) {
         var error_template = $('#error-template').html();
 
-        this.swap(this.mustache(error_template, data));
+        swap(this.mustache(error_template, data));
     });
 
     this.bind('change-page', function(e, data) {

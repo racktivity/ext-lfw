@@ -175,6 +175,7 @@ var app = $.sammy(function(app) {
     this.bind('error', function(e, data) {
         var error_template = $('#error-template').html();
 
+        this.title('Error');
         swap(this.mustache(error_template, data));
     });
 
@@ -266,4 +267,13 @@ $(function() {
         .autocomplete({
             source: []
         });
+
+    $('#spinner')
+        .ajaxStart(function() {
+            $(this).show();
+        })
+        .ajaxStop(function() {
+            $(this).hide();
+        })
+        .hide();
 });

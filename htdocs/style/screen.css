@@ -5,3 +5,10 @@
     width: 200px;
     padding: 2px;
 }
+
+#spinner {
+    display: block;
+    width: 16px;
+    height: 16px;
+    background-image: url(../img/ajax-loader.gif);
+}

@@ -23,6 +23,9 @@
         <script type='text/javascript'
             src='js/vendor/sammy-0.6.2/min/sammy-0.6.2.min.js'>
         </script>
+        <script type='text/javascript'
+            src='js/vendor/sammy-0.6.2/min/plugins/sammy.mustache-0.6.2.min.js'>
+        </script>
 
         <link rel='stylesheet' href='style/vendor/blueprint-1.0/screen.css'
             type='text/css' media='screen, projection' />
@@ -48,23 +51,23 @@
                     </select>
                 </div>
                 <div class='span-19 last' id='search'>
-                    <form name='title-search' id='title-search'
-                        action='' method='get'>
-                        <label for='title'>Title: </label>
-                        <input id='title' name='q' />
-                    </form>
+                    <label for='title'>Title: </label>
+                    <input id='title' name='q' placeholder='PageTitle'
+                        class='text' />
 
                     <form name='label-search' id='label-search'
                         action='' method='get'>
                         <label for='labels'>Labels: </label>
-                        <input name='q' id='labels' />
+                        <input type='search' name='q' id='labels' required
+                            placeholder='label, label' class='text' />
                         <input type='hidden' name='type' value='labels' />
                     </form>
 
                     <form name='fulltext-search' id='fulltext-search'
                         action='' method='get'>
                         <label for='text'>Search: </label>
-                        <input name='q' id='text' />
+                        <input type='search' name='q' id='text' required
+                            placeholder='Search Text' class='text' />
                         <input type='hidden' name='type' value='fulltext' />
                     </form>
                 </div>
@@ -74,8 +77,23 @@
             <div id='content' class='span-19 last'>
                 <div id='main'>&nbsp;</div>
             </div>
-
-            <div id='footer' class='span-24'>&nbsp;</div>
         </div>
+
+        <!-- Templates go here -->
+        <script type='text/mustache' id='error-template'>
+            <h1>Error</h1>
+            <p>{{ message }}</p>
+        </script>
+
+        <script type='text/mustache' id='search-result-template'>
+            <h1>Search results</h1>
+            <ul>
+                {{#results}}
+                    <li>
+                        <a href="#/{{0}}/{{1}}">{{1}}</a>
+                    </li>
+                {{/results}}
+            </ul>
+        </script>
     </body>
 </html>

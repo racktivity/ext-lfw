@@ -1,3 +1,7 @@
 #search form {
     display: inline;
 }
+#search input.text {
+    width: 200px;
+    padding: 2px;
+}

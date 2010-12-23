@@ -1,19 +1,53 @@
-var app = $.sammy(function() {
+/* Locations
+ * =========
+ * #/
+ * --
+ * Doesn't exits
+ *
+ * #/space
+ * -------
+ * Perform search request on GET when 'q' and 'type' query arguments are
+ * provided.
+ * Redirect to DEFAULT_PAGE_NAME otherwise.
+ *
+ * #/space/page
+ * ------------
+ * Display page content on GET
+ */
+
+var DEFAULT_PAGE_NAME = 'Home',
+    LABELS_RE = /,\s*/,
+    LOCATION_PREFIX = '#/';
+
+var app = $.sammy('#main', function(app) {
+    this.use(Sammy.Mustache);
+
     var _space = null;
+
+    var buildUri = function(space, page) {
+        if(!space) {
+            return LOCATION_PREFIX;
+        }
+        else if(!page) {
+            return LOCATION_PREFIX + space;
+        }
+        else {
+            return LOCATION_PREFIX + space + '/' + page;
+        }
+    };
 
     var setSpace = function(space) {
         _space = space;
 
         var spaces = $('#space option');
         for(var i = 0; i < spaces.length; i++) {
-            if(spaces[i].value == space) {
+            if(spaces[i].value === space) {
                 $(spaces[i]).attr('selected', '1');
             }
         }
 
-        $('form#title-search').attr('action', '#/' + space);
-        $('form#label-search').attr('action', '#/' + space);
-        $('form#fulltext-search').attr('action', '#/' + space);
+        $('form#label-search').attr('action', buildUri(space));
+        $('form#fulltext-search').attr('action', buildUri(space));
 
         var completionUri = LFW_CONFIG['uris']['completion'];
 
@@ -31,7 +65,7 @@ var app = $.sammy(function() {
 
         $('#labels').autocomplete('option', 'source',
             function(request, response) {
-                var term = request.term.split(/,\s*/).pop();
+                var term = request.term.split(LABELS_RE).pop();
 
                 $.getJSON(completionUri, {
                     'space': space,
@@ -49,8 +83,19 @@ var app = $.sammy(function() {
         return _space;
     };
 
+    var clearFields = function() {
+        var fields = ['title', 'labels', 'text'];
+
+        for(var i = 0; i < fields.length; i++) {
+            $('#' + fields[i]).val('').blur();
+        }
+    };
+
     this.get('#/:space', function() {
         setSpace(this.params['space']);
+        clearFields();
+
+        var context = this;
 
         if(this.params['q'] && this.params['type']) {
             // This is a search request
@@ -64,40 +109,23 @@ var app = $.sammy(function() {
                'space': getSpace(),
                'q': query
            }, function(data) {
-               //TODO Template-based
-
-               var canvas = $('#main'),
-                   list = $('<ul>');
-
-               for(var i = 0; i < data.length; i++) {
-                   var item = data[i],
-                       space = item[0],
-                       page = item[1],
-
-                       itemHref = '#/' + space + '/' + page,
-
-                       link = $('<a>').attr('href', itemHref)
-                                     .text(page);
-
-                   $('<li>').append(link).appendTo(list);
-               }
-
-               canvas.empty().append(list);
+               context.swap(
+                   context.mustache(
+                       $('#search-result-template').html(),
+                       {'results': data}
+                   )
+               );
            });
 
         }
-        else if(this.params['q']) {
-            var page = this.params['q'];
-
-            this.redirect('#/' + getSpace() + '/' + page);
-        }
         else {
-            this.redirect('#/' + getSpace() + '/Home');
+            this.trigger('change-page', {'title': DEFAULT_PAGE_NAME});
         }
     });
 
     this.get('#/:space/:page', function() {
         setSpace(this.params['space']);
+        clearFields();
 
         var space = this.params['space'],
             page = this.params['page'],
@@ -108,16 +136,16 @@ var app = $.sammy(function() {
         $.ajax({
             url: pageUri,
             success: function(data) {
-                $('#main').html(data['content']);
+                context.swap(data['content']);
             },
             cache: false,
             dataType: 'json',
-            error: function(xhr, text) {
-                if(xhr.status == 404) {
+            error: function(xhr, text, exc) {
+                if(xhr.status === 404) {
                     context.notFound();
                 }
                 else {
-                    alert('Unknown error: ' + text);
+                    app.error('Unknown error: ' + text, exc);
                 }
             }
         });
@@ -125,21 +153,28 @@ var app = $.sammy(function() {
 
     this.bind('change-space', function(e, data) {
         this.log('change-space');
-        this.redirect('#/' + data['space']);
+        setSpace(data['space']);
+        this.trigger('change-page', {'title': DEFAULT_PAGE_NAME});
     });
 
     this.bind('error', function(e, data) {
-        $('#main').empty()
-                  .html(data.message);
+        var error_template = $('#error-template').html();
+
+        this.swap(this.mustache(error_template, data));
+    });
+
+    this.bind('change-page', function(e, data) {
+        this.log('change-page');
+        this.redirect(buildUri(getSpace(), data['title']));
     });
 });
 
 $(function() {
-    // Set up spaces dropdown
     if(typeof(LFW_CONFIG) === 'undefined' || !LFW_CONFIG) {
         throw new Error('No LFW_CONFIG defined');
     }
 
+    // Set up spaces dropdown
     $.getJSON(LFW_CONFIG['uris']['listSpaces'], function(data) {
         var spaces = $('#space');
             for(var i = 0; i < data.length; i++) {
@@ -153,7 +188,7 @@ $(function() {
                 app.trigger('change-space', {space: $(this).val()});
             });
 
-            app.run('#/' + $('#space').val());
+            app.run('#/' + $('#space').val() + '/' + DEFAULT_PAGE_NAME);
     });
 
     // Set up search boxes
@@ -167,7 +202,10 @@ $(function() {
             if(event.keyCode === $.ui.keyCode.ENTER &&
                 !$(this).data('autocomplete').menu.active) {
                 event.preventDefault();
-                $('form#label-search').submit();
+
+                if(this.value && this.value !== '') {
+                    $('form#label-search').submit();
+                }
 
                 return false;
             }
@@ -181,7 +219,7 @@ $(function() {
                 return false;
             },
             select: function(event, ui) {
-                var terms = this.value.split(/,\s*/);
+                var terms = this.value.split(LABELS_RE);
                 terms.pop();
                 terms.push(ui.item.value);
                 terms.push('');
@@ -201,11 +239,11 @@ $(function() {
 
             var title = this.value;
 
-            if(!title || title == '') {
-                alert('No text');
+            if(!title || title === '') {
+                app.log('No title provided');
             }
             else {
-                $('form#title-search').submit();
+                app.trigger('change-page', {'title': title});
             }
 
             return false;

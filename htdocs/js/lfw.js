@@ -20,7 +20,8 @@ var DEFAULT_PAGE_NAME = 'Home',
     LOCATION_PREFIX = '#/';
 
 var app = $.sammy(function(app) {
-    this.use(Sammy.Mustache);
+    this.use('Title');
+    this.use('Mustache');
 
     var _space = null;
 
@@ -89,6 +90,10 @@ var app = $.sammy(function(app) {
         return _space;
     };
 
+    this.setTitle(function(title) {
+        return [title, getSpace(), 'LFW'].join(' / ');
+    });
+
     var clearFields = function() {
         var fields = ['title', 'labels', 'text'];
 
@@ -115,6 +120,8 @@ var app = $.sammy(function(app) {
                'space': getSpace(),
                'q': query
            }, function(data) {
+               context.title('Search Results');
+
                swap(
                    context.mustache(
                        $('#search-result-template').html(),
@@ -142,6 +149,8 @@ var app = $.sammy(function(app) {
         $.ajax({
             url: pageUri,
             success: function(data) {
+                context.title(page);
+
                 swap(data['content']);
             },
             cache: false,

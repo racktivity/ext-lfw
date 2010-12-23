@@ -56,7 +56,7 @@
                         class='text' />
 
                     <form name='label-search' id='label-search'
-                        action='' method='get'>
+                        method='get'>
                         <label for='labels'>Labels: </label>
                         <input type='search' name='q' id='labels' required
                             placeholder='label, label' class='text' />
@@ -64,7 +64,7 @@
                     </form>
 
                     <form name='fulltext-search' id='fulltext-search'
-                        action='' method='get'>
+                        method='get'>
                         <label for='text'>Search: </label>
                         <input type='search' name='q' id='text' required
                             placeholder='Search Text' class='text' />
@@ -94,6 +94,7 @@
                     </li>
                 {{/results}}
             </ul>
+            {{^results}}No results found{{/results}}
         </script>
     </body>
 </html>

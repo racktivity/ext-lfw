@@ -5,7 +5,7 @@ from osis.client.xmlrpc import XMLRPCTransport
 from osis.model.serializers import ThriftSerializer
 
 
-# @TODO: use sqlalchemy to construct queries
+# @TODO: use sqlalchemy to construct queries - escape values 
 # @TODO: add space to filter criteria
 
 SQL_PAGES = 'SELECT DISTINCT page.view_page_list.%(prop)s FROM page.view_page_list'
@@ -43,15 +43,29 @@ class LFWService(object):
  
     @q.manage.applicationserver.expose 
     def search(self, text=None, space=None, category=None, tags=None):
+        # ignore tags for now
+
+        if not any([text, space, category, tags]):
+            return []
+
+        sql = ['SELECT view_page_list.category, view_page_list."name", view_page_list.space, view_page_list.guid FROM page.view_page_list WHERE 1=1']
         
+        if space:
+            sql.append('view_page_list.space = \'%s\'' % space)
+  
+        if category:
+            sql.append('view_page_list.category = \'%s\'', category)
+
+        if text:
+            sql.append('view_page_list.content LIKE \'%%%s%%\'' % text)
+ 
+        query = ' AND '.join(sql)
+
+        result = self.connection.page.query(query)
+
+        return result
 	
 		
-        pass
-
-    
-
-    
-
     def get_items(self, prop, term=None):
 
         t = term.split(', ')[-1] if term else ''

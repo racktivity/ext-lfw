@@ -48,23 +48,56 @@ class LFWService(object):
         if not any([text, space, category, tags]):
             return []
 
-        sql = ['SELECT view_page_list.category, view_page_list."name", view_page_list.space, view_page_list.guid FROM page.view_page_list WHERE 1=1']
-        
+        sql_select = 'view_page_list.category, view_page_list."name", view_page_list.space'
+        sql_from = ['page.view_page_list']
+        sql_where = ['1=1']
+
+        if tags:
+            taglist = tags.split(', ') or []
+            
+            for x, tag in enumerate(taglist):
+               sql_from.append('INNER JOIN page.view_page_tag_list tl%(x)s ON tl%(x)s.guid = view_page_list.guid AND tl%(x)s.tag = \'%(tag)s\'' % {'tag': tag, 'x': x})
+
         if space:
-            sql.append('view_page_list.space = \'%s\'' % space)
+            sql_where.append('view_page_list.space = \'%s\'' % space)
   
         if category:
-            sql.append('view_page_list.category = \'%s\'', category)
+            sql_where.append('view_page_list.category = \'%s\'' % category)
 
         if text:
-            sql.append('view_page_list.content LIKE \'%%%s%%\'' % text)
+            sql_where.append('view_page_list.content LIKE \'%%%s%%\'' % text)
  
-        query = ' AND '.join(sql)
+        query = 'SELECT %s FROM %s WHERE %s' % (sql_select, ' '.join(sql_from), ' AND '.join(sql_where))
 
         result = self.connection.page.query(query)
 
         return result
-	
+
+    @q.manage.applicationserver.expose
+    def page(self, space, name):
+        sql = """
+              SELECT 
+                  view_page_list.guid 
+              FROM 
+                  page.view_page_list 
+              WHERE 
+                  page.view_page_list.space = \'%(space)s\' 
+                  AND 
+                  page.view_page_list."name" = \'%(name)s\'""" % {'space': space, 'name': name}
+
+
+        qr = self.connection.page.query(sql)
+  
+        if not qr:
+            return {}
+
+        page = self.connection.page.get(qr[0]['guid'])
+        props = ['name', 'space', 'category', 'content', 'creationdate']
+
+        result = dict([(prop, getattr(page, prop)) for prop in props]) 
+        result['tags'] = page.tags.split(' ') 
+
+        return result
 		
     def get_items(self, prop, term=None):
 
@@ -77,8 +110,6 @@ class LFWService(object):
         else:
             sql = SQL_PAGES_FILTER % d if t else SQL_PAGES % d
    
-        q.logger.log('[LFW] sql: %s' % sql, 1)
-
         qr = self.connection.page.query(sql)
 
         result = map(lambda _: _[prop], qr)

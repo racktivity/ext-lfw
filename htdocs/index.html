@@ -1,104 +1,197 @@
-<!DOCTYPE html>
-<html lang='en'>
-    <head>
-        <meta charset='utf-8' />
-        <title>LFW</title>
+<!doctype html>  
 
-        <!--[if lt IE 9]>
-            <script src='http://html5shiv.googlecode.com/svn/trunk/html5.js'>
-            </script>
-        <![endif]-->
+<!-- paulirish.com/2008/conditional-stylesheets-vs-css-hacks-answer-neither/ --> 
+<!--[if lt IE 7 ]> <html lang="en" class="no-js ie6"> <![endif]-->
+<!--[if IE 7 ]>    <html lang="en" class="no-js ie7"> <![endif]-->
+<!--[if IE 8 ]>    <html lang="en" class="no-js ie8"> <![endif]-->
+<!--[if IE 9 ]>    <html lang="en" class="no-js ie9"> <![endif]-->
+<!--[if (gt IE 9)|!(IE)]><!--> <html lang="en" class="no-js"> <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
 
-        <script type='text/javascript'
-            src='https://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.js'>
-        </script>
-        <script type='text/javascript'
-            src='https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.7/jquery-ui.js'>
-        </script>
-        <link rel='stylesheet'
-            href='http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.7/themes/smoothness/jquery-ui.css'
-            type='text/css' media='screen, projection' />
+  <!-- Always force latest IE rendering engine (even in intranet) & Chrome Frame 
+       Remove this if you use the .htaccess -->
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+  <title>LFW</title>
+  <meta name="description" content="A Lightning Fast Wiki">
+
+  <!--  Mobile viewport optimized: j.mp/bplateviewport -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Place favicon.ico & apple-touch-icon.png in the root of your domain and delete these references -->
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+
+  <!-- link rel='stylesheet'
+    href='http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.7/themes/smoothness/jquery-ui.css'
+    type='text/css' media='screen, projection' / -->
+    
+  <link rel='stylesheet'
+    href='http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.7/themes/smoothness/jquery-ui.css'
+    type='text/css' media='screen, projection' />
+    
+  <!-- link rel='stylesheet'
+    href='css/vendor/aristo/jquery-ui-1.8.7.custom.css'
+    type='text/css' media='screen, projection' / -->
+
+  <link rel='stylesheet' href='css/vendor/blueprint-1.0/screen.css'
+    type='text/css' media='screen, projection' />
+  <!-- link rel='stylesheet' href='css/vendor/blueprint-1.0/print.css'
+    type='text/css' media='print' / -->
+  <!--[if lt IE 8]>
+    <link rel='stylesheet' href='css/vendor/blueprint-1.0/ie.css'
+      type='text/css' media='screen, projection' />
+  <![endif]-->
+
+  <!-- CSS : implied media="all" -->
+  <link rel="stylesheet" href="css/style.css?v=2">
+
+  <!-- All JavaScript at the bottom, except for Modernizr which enables HTML5 elements & feature detects -->
+  <script src="js/libs/modernizr-1.6.min.js"></script>
+  
+  <!-- Test code macro -->
+  <link rel="stylesheet" href="http://yandex.st/highlightjs/5.16/styles/default.min.css">
+  
+  <!-- customizations -->  
+  <link rel='stylesheet' href='style/screen.css'
+    type='text/css' media='screen, projection' />
+  <link rel='stylesheet' href='style/print.css'
+    type='text/css' media='print' />
+    
+  <style>
+  .dashboard { margin: 0 1em 1em 0; }
+  .dashboard-header { margin: 0.3em; padding-bottom: 4px; padding-left: 0.2em; }
+  .dashboard-header .ui-icon { float: right; }
+  .column { width: 300px; float: left; padding: 10px; }
+  .portlet { margin: 0 1em 1em 0; }
+  .portlet-header { margin: 0.3em; padding-bottom: 4px; padding-left: 0.2em; }
+  .portlet-header .ui-icon { float: right; }
+  .portlet-content { padding: 0.4em; }
+  .ui-sortable-placeholder { border: 1px dotted black; visibility: visible !important; height: 50px !important; }
+  .ui-sortable-placeholder * { visibility: hidden; }
+  </style>
+
+</head>
+
+<body>
+
+  <div id="container">
+    <div id='header' class='span-24 last'>
+      <div class='span-5' id='spaces'>
+        <span id='spinner'>&nbsp;</span>
+        <label for='space'>Space:</label>
+        <select name='space' id='space' class='text'></select>
+        <img src='../img/pixel.gif'/>
+      </div>
+      <div class='span-19 last' id='search'>
+      
+        
+        
+        <label for='title'>Title:</label>
+        <input id='title' name='q' placeholder='PageTitle' class='text' />
+
+        <form name='label-search' id='label-search' method='get'>
+          <label for='labels'>Labels:</label>
+          <input type='search' name='q' id='labels' required
+            placeholder='label, label' class='text' />
+          <input type='hidden' name='type' value='labels' />
+        </form>
+
+        <form name='fulltext-search' id='fulltext-search' method='get'>
+          <label for='text'>Search:</label>
+          <input type='search' name='q' id='text' required
+            placeholder='Search Text' class='text' />
+          <input type='hidden' name='type' value='fulltext' />
+        </form>
+      </div>
+    </div>
+    
+    <div class='span-24'>
+      <div id='sidebar' class='span-5'>
+        
+        <div id='tree'>&nbsp;</div>
+      </div>
+      
+      <div id='content' class='span-19 last'>
+        <div id='main'>&nbsp;</div>      
+      </div>    
+    </div>
+    
+    <div id='footer' class='span-24 last'>
+      &nbsp;
+    </div>
+    
+  </div> <!--! end of #container -->
+
+  <!-- Templates go here -->
+  <script type='text/mustache' id='error-template'>
+  /*! YUI Compressor fix
+    <h1>Error</h1>
+    <p>{{ message }}</p>
+  YUI Compressor fix */
+  </script>
+
+  <script type='text/mustache' id='search-result-template'>
+  /*! YUI Compressor fix
+    <h1>Search results</h1>
+    <ul>
+      {{#results}}
+        <li>
+          <a href="#/{{0}}/{{1}}">{{1}}</a>
+        </li>
+      {{/results}}
+    </ul>
+    {{^results}}No results found{{/results}}
+  YUI Compressor fix */
+  </script>
 
 
-        <script type='text/javascript'
-            src='js/vendor/sammy-0.6.2/min/sammy-0.6.2.min.js'>
-        </script>
-        <script type='text/javascript'
-            src='js/vendor/sammy-0.6.2/min/plugins/sammy.mustache-0.6.2.min.js'>
-        </script>
-        <script type='text/javascript'
-            src='js/vendor/sammy-0.6.2/min/plugins/sammy.title-0.6.2.min.js'>
-        </script>
+  <!-- Javascript at the bottom for fast page loading -->
 
-        <link rel='stylesheet' href='style/vendor/blueprint-1.0/screen.css'
-            type='text/css' media='screen, projection' />
-        <link rel='stylesheet' href='style/vendor/blueprint-1.0/print.css'
-            type='text/css' media='print' />
-        <!--[if lt IE 8]>
-            <link rel='stylesheet' href='style/vendor/blueprint-1.0/ie.css'
-                type='text/css' media='screen, projection' />
-        <![endif]-->
+  <!-- Grab Google CDN's jQuery. fall back to local if necessary -->
+  <!-- script src="//ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.js"></script -->
+  <!-- script>!window.jQuery && document.write(unescape('%3Cscript src="js/libs/jquery-1.4.4.js"%3E%3C/script%3E'))</script -->
+  
+  <script src="//ajax.aspnetcdn.com/ajax/jQuery/jquery-1.5.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="js/libs/jquery-1.5.js"%3E%3C/script%3E'))</script>
+  
+  
+  <script src='//ajax.googleapis.com/ajax/libs/jqueryui/1.8.7/jquery-ui.js'></script>
+  <script>!window.jQuery.ui && document.write(unescape('%3Cscript src="js/libs/jquery-ui-1.8.7.js"%3E%3C/script%3E'))</script>
+  <script src='//ajax.microsoft.com/ajax/jquery.templates/beta1/jquery.tmpl.js'></script>
+  <script src='js/libs/jquery.json-2.2.js'></script>
+  
+  <!-- Test code Macro -->
+  <script src="http://yandex.st/highlightjs/5.16/highlight.min.js"></script>
+  
+  
+  <!-- scripts concatenated and minified via ant build script-->
+  <script src='js/mylibs/sammy-0.6.2.min.js'></script>
+  <script src='js/mylibs/sammy.mustache-0.6.2.min.js'></script>
+  <script src='js/mylibs/sammy.title-0.6.2.min.js'></script>
+  <script src='js/mylibs/showdown-0.9.min.js'></script>
+  <script src="js/plugins.js"></script>
+  <script src='js/config.js'></script>
+  <script src="js/script.js"></script>
+  <!-- end concatenated and minified scripts-->
+  
+  
+    
+  
+  
+  <!--[if lt IE 7 ]>
+    <script src="js/libs/dd_belatedpng.js"></script>
+    <script> DD_belatedPNG.fix('img, .png_bg'); //fix any <img> or .png_bg background-images </script>
+  <![endif]-->
 
-        <script type='text/javascript' src='js/config.js'></script>
-        <script type='text/javascript' src='js/lfw.js'></script>
-
-        <link rel='stylesheet' href='style/screen.css' type='text/css'
-            media='screen, projection' />
-    </head>
-
-    <body>
-        <div class='container'>
-            <div id='header' class='span-24'>
-                <div class='span-5'>
-                    <select name='space' id='space'>
-                    </select>
-                    <span id='spinner'>&nbsp;</span>
-                </div>
-                <div class='span-19 last' id='search'>
-                    <label for='title'>Title: </label>
-                    <input id='title' name='q' placeholder='PageTitle'
-                        class='text' />
-
-                    <form name='label-search' id='label-search'
-                        method='get'>
-                        <label for='labels'>Labels: </label>
-                        <input type='search' name='q' id='labels' required
-                            placeholder='label, label' class='text' />
-                        <input type='hidden' name='type' value='labels' />
-                    </form>
-
-                    <form name='fulltext-search' id='fulltext-search'
-                        method='get'>
-                        <label for='text'>Search: </label>
-                        <input type='search' name='q' id='text' required
-                            placeholder='Search Text' class='text' />
-                        <input type='hidden' name='type' value='fulltext' />
-                    </form>
-                </div>
-            </div>
-
-            <div id='sidebar' class='span-5'>&nbsp;</div>
-            <div id='content' class='span-19 last'>
-                <div id='main'>&nbsp;</div>
-            </div>
-        </div>
-
-        <!-- Templates go here -->
-        <script type='text/mustache' id='error-template'>
-            <h1>Error</h1>
-            <p>{{ message }}</p>
-        </script>
-
-        <script type='text/mustache' id='search-result-template'>
-            <h1>Search results</h1>
-            <ul>
-                {{#results}}
-                    <li>
-                        <a href="#/{{0}}/{{1}}">{{1}}</a>
-                    </li>
-                {{/results}}
-            </ul>
-            {{^results}}No results found{{/results}}
-        </script>
-    </body>
+  <!-- yui profiler and profileviewer - remove for production -->
+  <!--
+  <script src="js/profiling/yahoo-profiling.min.js"></script>
+  <script src="js/profiling/config.js"></script>
+  -->
+  <!-- end profiling code -->
+</body>
 </html>
+<!-- vim: tabstop=4:shiftwidth=4:expandtab
+-->

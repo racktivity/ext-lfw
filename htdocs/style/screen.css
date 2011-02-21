@@ -1,14 +1,51 @@
-#search form {
+/** customizations **/
+#header {
+    /*background-color: gray;*/
+}
+#header form {
     display: inline;
 }
-#search input.text {
-    width: 200px;
+#header input.text{
+    width: 125px;
     padding: 2px;
 }
-
 #spinner {
+	position: absolute;
     display: block;
     width: 16px;
     height: 16px;
     background-image: url(../img/ajax-loader.gif);
+    z-index: 10;
+}
+
+#spaces input{
+    padding: 2px;    
+}
+
+#sidebar {
+}
+#content {
+    display: inline;
+}
+#main {
+	border:1px solid #BBBBBB;
+	padding: 5px;
+}
+#actions {
+    /** display: inline; **/
+    float: right;
+    width: 200px;
+    margin: 10px 10px 10px 10px;
+}
+
+#actions ul {
+    width:200px;
+    list-style-type: none;
+    padding: 0px;
+    margin: 0px;
+}
+
+#actions button.text {
+    display: inline;
+    
 }

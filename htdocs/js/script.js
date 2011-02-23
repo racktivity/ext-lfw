@@ -100,7 +100,7 @@ var app = $.sammy(function(app) {
                 var options = {
                     'space': getSpace(),
                     'page': getPage(),
-                    'options': data
+                    'body': data
                 };
 
                 console.log('Start rendering macro ' + name + ' - ' + data);

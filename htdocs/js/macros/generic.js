@@ -2,7 +2,7 @@ var render = function(options) {
 
     var $this = $(this);
   
-    tagstring = $.trim(options.options);
+    tagstring = $.trim(options.body);
     
     tagstring = tagstring + ' page:' + options.page;
     tagstring = tagstring + ' space:' + options.space;

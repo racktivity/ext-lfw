@@ -47,7 +47,7 @@ var render = function(options) {
     };
 
     // Get config
-    var config = $.parseJSON(options.options);
+    var config = $.parseJSON(options.body);
 
     // @hack: config to json string
     for (var column in config.columns)

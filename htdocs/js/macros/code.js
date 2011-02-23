@@ -2,7 +2,7 @@ var render = function(options) {
   $this = $(this);
   
   $.template('plugin.code.highlight', '<div><pre><code>${options}</code></pre></div>');
-  var c = $.tmpl('plugin.code.highlight', {'options': options.options});
+  var c = $.tmpl('plugin.code.highlight', {'options': options.body});
   
   $this.append(c);
 

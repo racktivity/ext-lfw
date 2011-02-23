@@ -1,7 +1,7 @@
 var render = function(options) {
 
     var me = this;    
-    config = $.parseJSON(options.options)
+    config = $.parseJSON(options.body)
     var space = config['space'] || options.space;
     var name = config['name'];
     

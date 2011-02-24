@@ -4,6 +4,17 @@ var render = function(options) {
     var space = options.space;
     var name = options.name;
 
+    options.addCss({'id': 'dashboardmacro', 'tag': 'style', 'params': '.dashboard { margin: 0 1em 1em 0; }\
+.dashboard-header { margin: 0.3em; padding-bottom: 4px; padding-left: 0.2em; }\
+.dashboard-header .ui-icon { float: right; }\
+.column { width: 300px; float: left; padding: 10px; }\
+.portlet { margin: 0 1em 1em 0; }\
+.portlet-header { margin: 0.3em; padding-bottom: 4px; padding-left: 0.2em; }\
+.portlet-header .ui-icon { float: right; }\
+.portlet-content { padding: 0.4em; }\
+.ui-sortable-placeholder { border: 1px dotted black; visibility: visible !important; height: 50px !important; }\
+.ui-sortable-placeholder * { visibility: hidden; }'});
+
     var default_config = {
         id: "dashboard1",
         title: "My Dashboard",

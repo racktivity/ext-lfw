@@ -42,7 +42,11 @@ var app = $.sammy(function(app) {
 
     var _space = null,
         _page = null;
-
+    var sources = new Array();
+    var csses = new Array();
+    var sourcesloaded = false;
+	var cssLoaded = false;
+	
     var swap = function(html, base, root) {
          
         base = base || ''; // location #/space/page
@@ -100,9 +104,14 @@ var app = $.sammy(function(app) {
                 var options = {
                     'space': getSpace(),
                     'page': getPage(),
-                    'body': data
+                    'body': data,
+                    'addDependency': function(callback, dependencies) {
+                    	addDependency(callback, dependencies);
+                    },
+                    'addCss': function(cssobject) {
+                    	addCss(cssobject);
+                    }
                 };
-
                 console.log('Start rendering macro ' + name + ' - ' + data);
                 LFW.macros[name].call(context, options);
                 console.log('Stop rendering macro ' + name + ' - ' + data);
@@ -263,6 +272,106 @@ data;
         return _page;
     }
 
+	function inArray(element, array) {
+		for (index in array) {
+			if (array[index] == element) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	var addSource = function(source) {
+		if (!inArray(source, sources)) {
+			sources.push(source);
+			return true;
+		}
+		return false;
+	}
+	
+	function loadSources() {
+		scripts = $('head > script');
+    	$.each(scripts, function(idx, script) {
+    		source = script.src;
+    		addSource(source);
+    	});
+    	sourcesloaded = true;
+	}
+		
+    var addDependency = function(callback, dependencies) {
+    	console.log('in adddependency');
+    	if (sourcesloaded == false) {
+    		loadSources();
+    	}
+    	$.each(dependencies, function(depindex, dependency) {
+    		console.log('dependency: ' + dependency);
+			var head = document.getElementsByTagName( "head" )[ 0 ] || document.documentElement;
+			script = document.createElement( "script" );
+    		if (addSource(dependency) == true) {
+    			console.log('adding dependency: ' + dependency);
+				script.src = dependency;
+				script.type = 'text/javascript';
+				head.insertBefore( script, head.firstChild );
+				// Use insertBefore instead of appendChild  to circumvent an IE6 bug.
+				// This arises when a base node is used (#2709 and #4378).
+    		}
+    		script.onload = callback;
+    	});
+    }
+    
+    function loadCss() {
+    	csslinks = $('link');
+    	$.each(csslinks, function(index, csslink) {
+    		id = csslink.id;
+    		if (id != undefined) addCssId(id);
+    	});
+    	cssStyles = $('style');
+    	$.each(cssStyles, function(index, cssStyle) {
+    		id = cssStyle.id;
+    		if (id != undefined) addCssId(id);
+    	})
+    	cssLoaded = true;
+    };
+    
+	var addCssId = function(id) {
+		console.log('adding cdd with id: ' + id);
+		if (!inArray(id, csses)) {
+			csses.push(id);
+			return true;
+		}
+		return false;
+	};
+
+	var addCss = function(cssobject) {
+		console.log('in addCss');
+    	if (cssLoaded == false) {
+    		loadCss();
+    	}
+    	id = cssobject['id'];
+    	if (addCssId(id) == true) {
+    		tagname = cssobject['tag'];
+    		params = cssobject['params'];
+			var head = document.getElementsByTagName("head")[0] || document.documentElement;
+			var cssNode = document.createElement(tagname);
+			cssNode.id = id;
+
+    		if (tagname == 'link'){
+				//To add a css link i.e. <link rel="stylesheet" href="mystyle.css">
+				cssNode.type = 'text/css';
+				cssNode.rel = params['rel'];
+				cssNode.href = params['href'];
+    		}
+    		else {
+    			// To add a css style i.e.   <style type="text/css">
+    										//html { height: 100% }
+    										//body { height: 100%; margin: 0px; padding: 0px }
+    										//#map_canvas { height: 100% }
+  											//</style>
+				cssNode.innerHTML += params;
+    		}
+    		head.insertBefore( cssNode, head.firstChild );
+    	}
+    }
 
     this.setTitle(function(title) {
         return [title, getSpace(), 'LFW'].join(' / ');

@@ -4,7 +4,7 @@ from osis.store.OsisDB import OsisDB
 rootobject = 'page'
 viewname = 'view_page_tag_list'
 
-connection = OsisDB().getConnection('main')
+connection = OsisDB().getConnection('portal')
 
 if not connection.viewExists(rootobject, viewname):
     view = connection.viewCreate(rootobject, viewname)

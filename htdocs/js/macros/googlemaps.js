@@ -2,7 +2,6 @@ var render = function(options) {
     var $this = $(this);
  
 	var cb = function(){
-		console.log('in the callback');
 		var latlng = new google.maps.LatLng(51.1, 3.833333);
 		var myOptions = {
 		  zoom: 8,

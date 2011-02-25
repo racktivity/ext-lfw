@@ -110,6 +110,12 @@ var app = $.sammy(function(app) {
                     },
                     'addCss': function(cssobject) {
                     	addCss(cssobject);
+                    },
+                    'swap': function(html) {
+                    	swap(html, base, $this);
+                    },
+                    'renderWiki': function(mdstring) {
+                    	return renderWiki(mdstring);
                     }
                 };
                 console.log('Start rendering macro ' + name + ' - ' + data);
@@ -197,10 +203,6 @@ data;
             
         console.log('SWAP END: base ' + base); 
     };
-    
-    
-    // @hack: should be a better way
-    $.swap = swap;
 
     var buildUri = function(space, page) {
         if(!space) {
@@ -270,6 +272,12 @@ data;
     },
         getPage = function() {
         return _page;
+    }
+    
+    var renderWiki = function(mdstring) {
+    	var compiler = new Showdown.converter(),
+                    rendered = compiler.makeHtml(mdstring || '');
+        return rendered;
     }
 
 	function inArray(element, array) {

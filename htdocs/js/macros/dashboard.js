@@ -1,6 +1,5 @@
 var render = function(options) {
 
-    var $this = $(this);
     var space = options.space;
     var name = options.name;
 
@@ -73,11 +72,10 @@ var render = function(options) {
     var c = $.tmpl('plugin.dashboard.main', config);
 
     console.log('Dashboard Rendered: ' + c.html());
-    $.swap($(c).html(), '', $this);
-    //$this.append(c.html());
+    options.swap($(c).html());
 
     $( function() {
-        $( $this )
+        $(this)
         .find( ".dashboard" )
         .addClass( "ui-widget ui-widget-content ui-helper-clearfix ui-corner-all" )
         .find( ".dashboard-header" )
@@ -87,24 +85,27 @@ var render = function(options) {
         .prepend( "<span class='ui-icon ui-icon-plusthick'></span>")
         .end();
 
-        $( $this )
+        $(this)
         .find( ".dashboard-header .ui-icon-plusthick" ).click( function() {
             alert('Add widget');
         });
-        $( $this )
+
+        $(this)
         .find( ".dashboard-header .ui-icon-disk" ).click( function() {
             alert('Save dashboard');
         });
-        $( $this )
+
+        $(this)
         .find( ".dashboard-header .ui-icon-wrench" ).click( function() {
             alert('Configure dashboard');
         });
-        $( $this )
+
+        $(this)
         .find( ".column" ).sortable({
             connectWith: ".column"
         });
 
-        $( $this )
+        $(this)
         .find( ".portlet" ).addClass( "ui-widget ui-widget-content ui-helper-clearfix ui-corner-all" )
         .find( ".portlet-header" )
         .addClass( "ui-widget-header ui-corner-all" )
@@ -113,18 +114,20 @@ var render = function(options) {
         .end()
         .find( ".portlet-content" );
 
-        $( $this )
+        $(this)
         .find( ".portlet-header .ui-icon-minusthick" ).click( function() {
             $( this ).toggleClass( "ui-icon-minusthick" ).toggleClass( "ui-icon-plusthick" );
             $( this ).parents( ".portlet:first" ).find( ".portlet-content" ).toggle();
         });
-        $( $this )
+
+        $(this)
         .find( ".portlet-header .ui-icon-wrench" ).click( function() {
 
             var widget = $( this ).parents( ".portlet:first" )[0];
             alert('Configure widget ' + widget.id);
         });
-        $( $this )
+
+        $(this)
         .find( ".column" ).disableSelection();
     });
 };

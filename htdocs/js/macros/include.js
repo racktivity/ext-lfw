@@ -15,13 +15,9 @@ var render = function(options) {
         },
         function(data) {
             $this = $(me);
-            
-            /** @todo: Should be handled by framework or utility function **/         
-            var compiler = new Showdown.converter(),
-                    rendered = compiler.makeHtml(data.content || '');
-            /** /@todo **/
-                    
-            $this.append(rendered);
+
+            rendered = options.renderWiki(data.content);
+            options.swap(rendered);
     });
 }
 

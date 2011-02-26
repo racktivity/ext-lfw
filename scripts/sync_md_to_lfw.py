@@ -11,8 +11,7 @@ osis.init(q.system.fs.joinPaths(q.dirs.baseDir, 'libexec', 'osis'))
 transport = XMLRPCTransport('http://127.0.0.1/appserver/xmlrpc/', 'osis_service')
 serializer = ThriftSerializer()
 connection = OsisConnection(transport, serializer)
-
-MD_PATH = q.system.fs.joinPaths(q.dirs.tmpDir, 'lfw', '1.0', 'docs')
+MD_PATH = q.system.fs.joinPaths(q.dirs.varDir, 'qpackages4', 'files', 'pylabs.org', 'lfw', '1.0', 'generic', 'docs')
 
 for folder in q.system.fs.listDirsInDir(MD_PATH):
     files = q.system.fs.listFilesInDir(folder, filter='*.md')

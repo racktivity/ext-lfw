@@ -15,9 +15,13 @@ if not connection.viewExists(rootobject, viewname):
     view.setCol('content', q.enumerators.OsisType.TEXT, False)
     connection.viewAdd(view)
 
-    indexes = ['name', 'space', 'category', 'parent', 'content']
+    indexes = ['name', 'space', 'category', 'parent']
 
     for field in indexes:
         connection.runQuery("CREATE INDEX %(field)s_%(schema)s_%(view)s ON %(schema)s.%(view)s (%(field)s)"%{'schema':rootobject, 
                                                                                                              'view': viewname , 
                                                                                                              'field':field})
+        
+    connection.runQuery("CREATE INDEX %(field)s_%(schema)s_%(view)s ON %(schema)s.%(view)s USING hash (%(field)s)"%{'schema':rootobject, 
+                                                                                                             'view': viewname , 
+                                                                                                             'field':'content'})

@@ -1,0 +1,78 @@
+= How to create Macros =
+
+* Create a macro file under /opt/qbase3/www/js/macros/<macrofilename>.js (lets call the file macrotest.js)
+
+* Sample macro code for creating macro to show google map
+
+{{{
+var render = function(options) {
+    var $this = $(this);
+
+        var cb = function(){
+                var latlng = new google.maps.LatLng(51.1, 3.833333);
+                var myOptions = {
+                  zoom: 8,
+                  center: latlng,
+                  mapTypeId: google.maps.MapTypeId.ROADMAP
+                };
+
+            $.template('plugin.googlemaps.content', '<div><div id="map_canvas" style="width:250px; height:250px"></div></div>');
+            var result = $.tmpl('plugin.googlemaps.content', myOptions);
+            result.appendTo($this);
+
+                var map = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
+        };
+
+    options.addCss({'id': 'googlemaps', 'tag': 'style', 'params': 'html { height: 100% }\
+    body { height: 100%; margin: 0px; padding: 0px }\
+    #map_canvas { height: 100% }'})
+    options.addDependency(cb, ['http://maps.google.com/maps/api/js?sensor=false', "http://maps.gstatic.com/intl/en_us/mapfiles/api-3/4/2/main.js"]);
+};
+
+register(render);
+}}}
+
+* There must be a render function which takes options as parameters
+    options is an object with some parameters that we can use like:
+        options.space -> gets space name
+        options.page -> gets page name
+        options.body -> gets the page contents
+        options.addCss() -> function to set css style sheet either through a css file or a direct style code
+        options.addDependency() -> function to add a javascript library dependency if needed by the macro
+        options.swap() -> function to swap the old contents of a page with new ones
+        options.renderWiki() -> function to return the HTML element of given markdown syntax
+        
+* If your macro needs to add special style sheet, you need to use options.addCss function which takes object with:
+    id: a unique id for your macro (usually just the macro name since it should be unique)
+    tag: either "style" or "link" tag, where ...
+        style is used if you're giving it css dumped syntax
+        link is used if you're giving it a css file to load
+    params: if the tag is style, params is a dumped css string
+            if the tag is link, params is an object with key-value e.g.
+                'params': {'rel': 'stylesheet', 'href': 'http://yandex.st/highlightjs/5.16/styles/default.min.css'}
+             
+* If your macro needs to load first one or more javascript libraries that it depends on, then you need to load them with options.addDependency
+    options.addDependency(callback, dependencies)
+        callback: A callback function to be called after loading all dependency scripts
+        dependencies: Array of file links to be loaded
+        
+    In this case you have to put all code that depends on the loaded dependencies in a callback function which you give as first argument to the addDependency function call
+    as shown in the example code
+
+* Create a template using jquery
+    jQuery.template( name, template ) where:
+        name: A string naming the compiled template.
+        template: The HTML markup and/or text to be used as template. Can be a string, or an HTML element (or jQuery object wrapping an element) whose content is to be used as template
+
+* Render the specified HTML content as a template, using the specified data.
+    jQuery.tmpl( template, [ data ], [ options ] ) where:
+      template: The HTML markup or text to use as a template.
+      data: The data to render. This can be any JavaScript type, including Array or Object.
+      options: An optional map of user-defined key-value pairs. Extends the tmplItem data structure, available to the template during rendering.
+
+* Register the render function via register(render)
+
+* Define your macro in a markdown file using:
+    <div class="macro macro_macrotest">
+        macro body code goes here
+    </div>

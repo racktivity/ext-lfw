@@ -105,6 +105,7 @@ var app = $.sammy(function(app) {
                     'space': getSpace(),
                     'page': getPage(),
                     'body': data,
+                    'pagecontent': elem,
                     'addDependency': function(callback, dependencies) {
                     	addDependency(callback, dependencies);
                     },

@@ -4,9 +4,12 @@ This space is used to test the LFW!
 
 ## Macros
 
-The [Macros][].
+[Documentation][].
+[Documentation]: /#/Dev/Macros_HOWTO
 
-  [Macros]: /#/Dev/Macros
+
+The [Macros][].
+[Macros]: /#/Dev/Macros
 
 ## Functionality Testing
 

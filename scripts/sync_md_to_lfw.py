@@ -23,8 +23,8 @@ for folder in q.system.fs.listDirsInDir(MD_PATH):
 
         # Check if page exists
         f = connection.page.getFilterObject()
-        f.add('view_page_list', 'name', name)
-        f.add('view_page_list', 'space', space)
+        f.add('view_page_list', 'name', name, True)
+        f.add('view_page_list', 'space', space, True)
         page_info = connection.page.findAsView(f, 'view_page_list')
 
         if len(page_info) > 1:

@@ -1,3 +1,6 @@
+[Documentation]: /#/Dev/Macros_HOWTO
+[Macros]: /#/Dev/Macros
+
 # Dev Space
 
 This space is used to test the LFW!
@@ -5,11 +8,9 @@ This space is used to test the LFW!
 ## Macros
 
 [Documentation][].
-[Documentation]: /#/Dev/Macros_HOWTO
 
 
 The [Macros][].
-[Macros]: /#/Dev/Macros
 
 ## Functionality Testing
 
@@ -38,10 +39,6 @@ I currently can't test if images will have the same problem, because I get 'Perm
 _You have to make sure that the webserver's user (e.g. qbase) has access to the file_:
 
     chown qbase:qbase filename
-
-    ![Tux Chaplin](/testkurt/tux-chaplin.png)
-
-![Tux Chaplin](/testkurt/tux-chaplin.png)
 
 
 Other than that, the option of not being able to do anything than just add the images feels a bit restrictive. I don't have to be able to resize the image, but to insert it 'center' or 'right' would be handy.

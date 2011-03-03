@@ -55,6 +55,19 @@
     type='text/css' media='screen, projection' />
   <link rel='stylesheet' href='style/print.css'
     type='text/css' media='print' />
+    
+  <script>
+    //Call this function after body load  
+    function manageDebug(){  
+		// Define a cross-browser window.console.log method.
+		// For IE and FF without Firebug, fallback to using an alert.
+		if (!window.console) {
+		  var log = window.opera ? window.opera.postError : Sammy.log;
+		  window.console = { log: function(str) { log(str) } };
+		}
+   }; //manageDebug ends  
+     
+  </script>
 
 </head>
 
@@ -171,6 +184,11 @@
   <script src="js/profiling/config.js"></script>
   -->
   <!-- end profiling code -->
+  
+  <script>
+   manageDebug();  
+  </script> 
+
 </body>
 </html>
 <!-- vim: tabstop=4:shiftwidth=4:expandtab

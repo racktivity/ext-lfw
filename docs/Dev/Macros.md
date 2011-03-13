@@ -7,3 +7,4 @@ Macros
 *   [Generic](/#/Dev/MacroGeneric)
 *   [Include](/#/Dev/MacroInclude)
 *   [GoogleMaps](/#/Dev/MacroGoogleMaps)
+*   [WizardActions](/#/Dev/MacroWizardActions)

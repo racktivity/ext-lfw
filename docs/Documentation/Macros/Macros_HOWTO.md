@@ -1,6 +1,8 @@
-## How to create Macros
+# How to Create Macros
 
-###  Example macro to show google map
+This tutorial will walk you through creating an LFW macro while using the Google Maps macro as a reference.
+
+### Google Maps Macro Code
 
 <div class="macro macro_code">
 	var render = function(options) {
@@ -30,6 +32,7 @@
 	register(render);
 </div>
 
+### Steps to Creating a Macro
 
 1. Create a macro file under /opt/qbase3/www/js/macros/macrofilename.js (lets call the file macrotest.js)
 
@@ -63,7 +66,6 @@
     * __callback:__ A callback function to be called after loading all dependency scripts.
     * __dependencies:__ Array of file links to be loaded.
 
-
     In this case, you have to put all code that depends on the loaded dependencies in a callback function which you give as first argument to the addDependency function call as shown in the example code.
 
 5. Create a template using jquery; jQuery.template(name, template) where:
@@ -77,11 +79,24 @@
     * __name:__ A string naming the compiled template.
     * __options:__ An optional map of user-defined key-value pairs. Extends the tmplItem data structure, available to the template during rendering.  
       
-7. Register the render function via register(render).
+7. Register the render function using:
 
-8. Define your macro in a markdown file 
-##### Example:
+    * register(render);
 
-	    <div class="macro macro_macrotest">
-	        macro body code goes here
-	    </div>
+8. Define your macro in a markdown file.
+
+### How to Call the Macro in your Markdown File
+
+To call a macro in a Markdown file, you use the following format:
+
+    <div class="macro macro_macroname">
+        Macro body code goes here.
+    </div>
+
+Where macroname is the name of your macro. So for example if we want to add the Google Maps macro, since it does not contain a body, we use:
+
+    <div class="macro macro_googlemaps"></div>
+
+For another example, take a look at the [code highlighting][] macro which takes the code itself as a body.
+
+  [code highlighting]: /#/Documentation/MacroCode

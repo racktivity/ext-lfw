@@ -1,0 +1,5 @@
+
+
+/*-------------------layout------------------*/
+
+#container  { position:relative; width:1002px; margin-left:-501px; left:50%; float:left;}	

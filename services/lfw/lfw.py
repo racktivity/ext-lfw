@@ -98,7 +98,7 @@ class LFWService(object):
         result['tags'] = page.tags.split(' ') 
 
         return result
-		
+
     def get_items(self, prop, term=None):
 
         t = term.split(', ')[-1] if term else ''
@@ -109,18 +109,36 @@ class LFWService(object):
             sql = SQL_PAGE_TAGS_FILTER % d if t else SQL_PAGE_TAGS % d
         else:
             sql = SQL_PAGES_FILTER % d if t else SQL_PAGES % d
-   
+
         qr = self.connection.page.query(sql)
 
         result = map(lambda _: _[prop], qr)
 
         return result
 
-        
+    @q.manage.applicationserver.expose
+    def pageTree(self, space):
+        sql = """
+        SELECT DISTINCT pagelist.guid,
+                pagelist.name,
+                pagelist.content,
+                pagelist.parent,
+                pagelist.category,
+                pagelist.tags,
+                FROM ONLY page.view_page_list pagelist
+                WHERE page.view_page_list.space = '%(space)s'
+                    AND pagelist.guid in (
+                                            WITH RECURSIVE childpages AS
+                                            (
+                                                SELECT pl.guid
+                                                FROM page.view_page_list AS pl
+                                                JOIN
+                                                    childpages AS cp
+                                                    ON (pl.parent = cp.guid)
+                                            )
+                                            SELECT guid FROM childpages
+                                         );
+        """ % {'space': space}
 
-    
+        return self.connection.page.query(sql)
 
-    
-
-
-    

@@ -14,7 +14,7 @@ connection = OsisConnection(transport, serializer)
 MD_PATH = q.system.fs.joinPaths(q.dirs.varDir, 'qpackages4', 'files', 'pylabs.org', 'lfw', '1.0', 'generic', 'docs')
 
 for folder in q.system.fs.listDirsInDir(MD_PATH):
-    files = q.system.fs.listFilesInDir(folder, filter='*.md')
+    files = q.system.fs.listFilesInDir(folder, filter='*.md', recursive=False)
     space = folder.split(os.sep)[-1]
 
     for f in files:

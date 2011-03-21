@@ -1,0 +1,9 @@
+
+/*-------------------overwrite------------------*/
+.span-24 { width:auto !important; }
+
+
+/*-------------------layout------------------*/
+
+#container  { position:relative; width:1002px; margin-left:-501px; left:50%; float:left;}	
+#header {  background: url(../img/nav-bg.png)}

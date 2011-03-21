@@ -48,6 +48,8 @@ For example, your file should look like this:
     <a href="javascript:start('bla','hellowizard','172.19.6.163',success)" target='#'>Hello Wizard</a>
     <a href="javascript:start('bla','hellowizardname','172.19.6.163',success)" target='#'>Hello Wizard with Name</a>
 
+__Note:__ You should change the IP in the examples above to the IP of your machine in order for them to work.
+
 ## Wizard Samples
 
 <div class="macro macro_wizardactions"/>

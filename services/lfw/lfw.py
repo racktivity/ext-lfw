@@ -123,13 +123,19 @@ class LFWService(object):
                 pagelist.name,
                 pagelist.content,
                 pagelist.parent,
-                pagelist.category,
-                pagelist.tags,
+                pagelist.category
                 FROM ONLY page.view_page_list pagelist
-                WHERE page.view_page_list.space = '%(space)s'
+                WHERE pagelist.space = '%(space)s'
                     AND pagelist.guid in (
                                             WITH RECURSIVE childpages AS
                                             (
+                                                    -- non-recursive term
+                                                    SELECT page.view_page_list.guid
+                                                    FROM page.view_page_list
+
+                                                    UNION ALL
+
+                                                -- recursive term
                                                 SELECT pl.guid
                                                 FROM page.view_page_list AS pl
                                                 JOIN

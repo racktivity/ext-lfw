@@ -13,6 +13,8 @@ serializer = ThriftSerializer()
 connection = OsisConnection(transport, serializer)
 MD_PATH = q.system.fs.joinPaths(q.dirs.varDir, 'qpackages4', 'files', 'pylabs.org', 'lfw', '1.0', 'generic', 'docs')
 
+macros_homepage = None
+
 for folder in q.system.fs.listDirsInDir(MD_PATH):
     files = q.system.fs.listFilesInDir(folder, filter='*.md', recursive=True)
     space = folder.split(os.sep)[-1]
@@ -37,6 +39,17 @@ for folder in q.system.fs.listDirsInDir(MD_PATH):
             p.name = name 
             p.space = space
             p.category = 'portal'
+
+        if name.startswith('Macro') and name not in ['Macros_Home', 'Macros']:
+            if not macros_homepage:
+                #check if Macros_Home page is already created, then get its guid to set it as parent guid to other macro pages
+                filter = connection.page.getFilterObject()
+                filter.add('view_page_list', 'name', 'Macros_Home', True)
+                filter.add('view_page_list', 'space', space, True)
+                macros_page_info = connection.page.findAsView(filter, 'view_page_list')
+                if len(macros_page_info) == 1:
+                    macros_homepage = connection.page.get(macros_page_info[0]['guid'])
+            p.parent = macros_homepage.guid
 
         # content
         p.content = content if content else 'empty'

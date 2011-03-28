@@ -4,30 +4,15 @@ var render = function(options) {
     var $this = $(this);    
     var space = options.space;
     var page = options.page;
-    
-    $.get(
-        '/appserver/rest/lfw/pageTree',
-        {
-            space: space,
-        },
-        'json'
-    )
-    .success(function (data, textStatus, jqXHR) {
-        processData(data);
-        
-        $.template(TEMPLATE_NAME, '<div></div>');
-        $.tmpl(TEMPLATE_NAME, {}).appendTo($this);
-    })
-    .error(function (data, textStatus, jqXHR) {
-        console.log('Failed to get page tree: ' + textStatus);
-    });
-    
+
+    options.addCss({'id': 'pagetree', 'tag': 'link', 'params': {'rel': 'stylesheet', 'href': '/js/libs/jquery.treeview/jquery.treeview.css'}});
+    options.addCss({'id': 'pagetree_', 'tag': 'link', 'params': {'rel': 'stylesheet', 'href': '/js/libs/jquery.treeview/demo/screen.css'}});
+
+
     var processData = function(data){
 	    children = new Object();
 	    dataitems = new Object();
 	    childrenitems = new Array();
-	    
-	    $('body').append('<iframe id="pagetreeframe" scrolling="auto" width="100%" height="100%" align="right"></iframe>');
 	    
 	    contents = '';
 		contents += '<ul id="treeview">';
@@ -42,14 +27,9 @@ var render = function(options) {
 	    	dataitems[datadict['guid']] = datadict;
 	    })
 	    
-	    console.log(children);
-	    console.log(dataitems);
-	    console.log(childrenitems);
-	    
 	    $.each(data, function(index, datadict){
 	    	var isroot = inArray(datadict.guid, childrenitems);
 	    	if (isroot == false) {
-	    		console.log('Adding parent page ' + datadict.name);
 	    		href = '/#/' + options.space + '/' + datadict.name;
 	    		contents += '<li class="closed"><span><a href="' + href + '">' + datadict.name + '</a></span>';
 	    	}
@@ -60,16 +40,19 @@ var render = function(options) {
 	    	}
 	    })
 	    contents += '</ul>';
-	    $('#main').append(contents);
+	    //$('#main').append(contents);
+	    
+	    var unique = "pagetree_test";
+	    $.template(TEMPLATE_NAME, '<div id="${unique}"></div>');
+	    $.tmpl(TEMPLATE_NAME, {'unique': unique}).appendTo($this);
+	    $('#pagetree_test').append(contents);
     };
 
     var formRecursiveTree = function(data, elementguid, children){
     	var contents = "";
     	if (elementguid in children) {
-    		console.log('in formrecursivetree element ' + data[elementguid].name);
     		contents += '<ul>';
     		$.each(children[elementguid], function(index, child) {
-    			console.log('adding child ' + data[child].name);
     			href = '/#/' + options.space + '/' + data[child].name;
     			contents += '<li class="closed"><span><a href="' + href + '">' + data[child].name + '</a></span>';
     			contents += formRecursiveTree(data, child, children);
@@ -91,12 +74,26 @@ var render = function(options) {
 	}
 
     var cb = function(){
-    	$('#treeview').treeview();
+	    $.get(
+	        '/appserver/rest/lfw/pageTree',
+	        {
+	            space: space,
+	        },
+	        'json'
+	    )
+	    .success(function (data, textStatus, jqXHR) {
+	        processData(data);
+	        $('#treeview').treeview();
+	        
+	        //$.template(TEMPLATE_NAME, '<div></div>');
+	    })
+	    .error(function (data, textStatus, jqXHR) {
+	        console.log('Failed to get page tree: ' + textStatus);
+	    });
+    	
     }
 
-    options.addCss({'id': 'pagetree', 'tag': 'link', 'params': {'rel': 'stylesheet', 'href': 'http://jquery.bassistance.de/treeview/jquery.treeview.css'}});
-    options.addCss({'id': 'pagetree_', 'tag': 'link', 'params': {'rel': 'stylesheet', 'href': 'http://jquery.bassistance.de/treeview/demo/screen.css'}});
-    options.addDependency(cb, ["http://jquery.bassistance.de/treeview/jquery.treeview.js"]);
+	options.addDependency(cb, ["/js/libs/jquery.treeview/jquery.treeview.js"]);	
 };
 
 register(render); 

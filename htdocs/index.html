@@ -57,6 +57,40 @@
     type='text/css' media='print' />
      <link rel='stylesheet' href='css/theme.css' type='text/css' media='screen, projection' />
 
+  <script>
+
+
+	//Call this function after body load
+	function manageDebug(){
+	// Define a cross-browser window.console.log method.
+	// For IE and FF without Firebug, fallback to using an alert.
+	if (!window.console) {
+	var log = window.opera ? window.opera.postError : Sammy.log;
+	window.console = { log: function(str) { log(str) } };
+	}
+	}; //manageDebug ends
+		
+  </script>
+  
+  <meta http-equiv="pragma" content="no-cache">
+  <meta http-equiv="cache-control" content="no-cache">
+  <meta http-equiv="expires" content="0">
+ 
+	  
+	<input type="hidden" id="refreshed" value="no">
+	<!--
+	<script type="text/javascript">
+	onload=function(){
+	var e=document.getElementById("refreshed");
+	if(e.value=="no")e.value="yes";
+	else{
+		e.value="no";
+		location.reload();}
+	}
+	</script>
+
+	-->
+
 </head>
 
 <body>
@@ -156,11 +190,7 @@
   <script src="js/plugins.js"></script>
   <script src='js/config.js'></script>
   <script src="js/script.js"></script>
-  <!-- end concatenated and minified scripts-->
-  
-  
-    
-  
+  <!-- end concatenated and minified scripts-->  
   
   <!--[if lt IE 7 ]>
     <script src="js/libs/dd_belatedpng.js"></script>
@@ -173,6 +203,10 @@
   <script src="js/profiling/config.js"></script>
   -->
   <!-- end profiling code -->
+  
+  <script>
+  manageDebug();
+  </script>
 </body>
 </html>
 <!-- vim: tabstop=4:shiftwidth=4:expandtab

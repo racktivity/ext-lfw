@@ -148,3 +148,35 @@ class LFWService(object):
 
         return self.connection.page.query(sql)
 
+    @q.manage.applicationserver.expose
+    def query(self, sql, rows, dbname, applicationserver_request='', *args, **kwargs):
+        cfgfilepath = q.system.fs.joinPaths(q.dirs.cfgDir, 'qconfig', 'dbconnections.cfg')
+        if q.system.fs.exists(cfgfilepath):
+            inifile = q.tools.inifile.open(cfgfilepath)
+            section = 'db_%s' % dbname
+            if inifile.checkSection(section):
+                dbserver = inifile.getValue(section, 'dbserver')
+                dblogin = inifile.getValue(section, 'dblogin')
+                dbpassword = inifile.getValue(section, 'dbpassword')
+                dbname = inifile.getValue(section, 'dbname')
+                if dbname not in q.manage.postgresql8.cmdb.databases:
+                    q.manage.postgresql8.startChanges()
+                    q.manage.postgresql8.cmdb.addDatabase(dbname, 'qbase')
+                    if dblogin not in q.manage.postgresql8.cmdb.databases:
+                        q.manage.postgresql8.cmdb.addLogin(dblogin, cidr_address=dbserver)
+                    q.manage.postgresql8.applyConfig()
+                    sqldata = q.cmdtools.postgresql8.query._executeSQL(dblogin, sql, database=dbname)
+        else:
+            connection = self.connection
+        sqldata = connection.page.query(sql)
+        data = dict()
+        
+        data['columns'] = sqldata[0].keys()
+        data['page'] = 1
+        data['total'] = len(sqldata) / rows
+        data['records'] = rows
+        data['rows'] = list()
+        for index, page in enumerate(sqldata):
+            data['rows'].append({'id': index + 1, 'cell': page.values()})
+        return data
+

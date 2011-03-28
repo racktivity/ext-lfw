@@ -16,4 +16,5 @@ A [How to Create a Macro][] page has also been written to explain and ease the d
 *   [Include](/#/Documentation/MacroInclude)
 *   [GoogleMaps](/#/Documentation/MacroGoogleMaps)
 *   [WizardActions](/#/Documentation/MacroWizardActions)
-
+*   [PageTree](/#/Documentation/MacroPageTree)
+*   [SQLGrid](/#/Documentation/MacroSqlGrid)

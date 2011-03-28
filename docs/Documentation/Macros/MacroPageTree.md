@@ -1,3 +1,3 @@
 # Page Tree Macro
 
-<div class="macro macro_pagetree"></div>
+<div id="pagetree" class="macro macro_pagetree"></div>

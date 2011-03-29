@@ -325,7 +325,7 @@ data;
 				// This arises when a base node is used (#2709 and #4378).
     		};
     	});
-    	script.onload = callback;
+    	$(script).ready(callback);
     }
     
     function loadCss() {

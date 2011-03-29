@@ -308,12 +308,10 @@ data;
 	}
 		
     var addDependency = function(callback, dependencies) {
-    	console.log('in adddependency');
     	if (sourcesloaded == false) {
     		loadSources();
     	}
     	$.each(dependencies, function(depindex, dependency) {
-    		console.log('dependency: ' + dependency);
 			var head = document.getElementsByTagName( "head" )[ 0 ] || document.documentElement;
 			script = document.createElement( "script" );
     		if (addSource(dependency) == true) {
@@ -343,7 +341,6 @@ data;
     };
     
 	var addCssId = function(id) {
-		console.log('adding cdd with id: ' + id);
 		if (!inArray(id, csses)) {
 			csses.push(id);
 			return true;
@@ -352,7 +349,6 @@ data;
 	};
 
 	var addCss = function(cssobject) {
-		console.log('in addCss');
     	if (cssLoaded == false) {
     		loadCss();
     	}

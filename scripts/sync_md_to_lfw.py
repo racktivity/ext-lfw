@@ -1,5 +1,5 @@
 #!/opt/qbase3/bin/python
-from pymonkey.InitBase import q
+from pylabs.InitBase import q
 
 import os, re
 import osis

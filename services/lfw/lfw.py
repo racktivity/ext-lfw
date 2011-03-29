@@ -149,7 +149,7 @@ class LFWService(object):
         return self.connection.page.query(sql)
 
     @q.manage.applicationserver.expose
-    def query(self, sql, rows, dbname, applicationserver_request='', *args, **kwargs):
+    def query(self, sql, rows, dbname='', link='', _search='', nd='', page=1, sidx='', sord='', applicationserver_request='', *args, **kwargs):
         cfgfilepath = q.system.fs.joinPaths(q.dirs.cfgDir, 'qconfig', 'dbconnections.cfg')
         if q.system.fs.exists(cfgfilepath):
             inifile = q.tools.inifile.open(cfgfilepath)
@@ -170,13 +170,15 @@ class LFWService(object):
             connection = self.connection
         sqldata = connection.page.query(sql)
         data = dict()
-        
+
         data['columns'] = sqldata[0].keys()
-        data['page'] = 1
+        data['page'] = page
         data['total'] = len(sqldata) / rows
         data['records'] = rows
         data['rows'] = list()
-        for index, page in enumerate(sqldata):
-            data['rows'].append({'id': index + 1, 'cell': page.values()})
+        start = (int(page) - 1) * int(rows)
+        end = (int(page) - 1) * (rows) + (rows)
+        for index, pageobj in enumerate(sqldata[start:end]):
+            data['rows'].append({'id': index + 1, 'cell': pageobj.values()})
         return data
 

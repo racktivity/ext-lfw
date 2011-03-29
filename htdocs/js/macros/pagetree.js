@@ -84,8 +84,6 @@ var render = function(options) {
 	    .success(function (data, textStatus, jqXHR) {
 	        processData(data);
 	        $('#treeview').treeview();
-	        
-	        //$.template(TEMPLATE_NAME, '<div></div>');
 	    })
 	    .error(function (data, textStatus, jqXHR) {
 	        console.log('Failed to get page tree: ' + textStatus);

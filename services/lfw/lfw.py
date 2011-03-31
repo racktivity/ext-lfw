@@ -4,6 +4,8 @@ from osis.client import OsisConnection
 from osis.client.xmlrpc import XMLRPCTransport
 from osis.model.serializers import ThriftSerializer
 
+import time
+
 
 # @TODO: use sqlalchemy to construct queries - escape values 
 # @TODO: add space to filter criteria
@@ -170,7 +172,7 @@ class LFWService(object):
             connection = self.connection
         sqldata = connection.page.query(sql)
         data = dict()
-
+        
         data['columns'] = sqldata[0].keys()
         data['page'] = page
         data['total'] = len(sqldata) / rows
@@ -181,4 +183,20 @@ class LFWService(object):
         for index, pageobj in enumerate(sqldata[start:end]):
             data['rows'].append({'id': index + 1, 'cell': pageobj.values()})
         return data
+
+
+    @q.manage.applicationserver.expose
+    def graphviz(self, graphDot_str, applicationserver_request=''):
+        import pygraphviz as pgv
+
+        graphDot_str = graphDot_str.replace("&gt;", ">")
+        G = pgv.AGraph(graphDot_str)
+        G.layout(prog='dot')
+        filename = "%s.gif" % (int(time.time()))
+        path = q.system.fs.joinPaths(q.dirs.baseDir, "www", "img", filename)
+        G.draw(path)
+        q.system.unix.chmod(q.system.fs.getDirName(path), 0755, filePattern="*.gif")
+        path_uri = path.replace("/opt/qbase3/www/", "")
+        return path_uri
+
 

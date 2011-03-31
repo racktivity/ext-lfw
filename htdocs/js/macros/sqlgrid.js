@@ -6,7 +6,6 @@ var render = function(options) {
     var body = JSON.parse(options.body);
     var links = body.link;
   
-    console.log('**********', JSON.parse(options.body));
     var colNames = new Array();
     var colModel = new Array();
 
@@ -46,13 +45,18 @@ var render = function(options) {
 
     function setColModel(colNames) {
     	if (links != undefined && links != "") {
-			console.log('Links: ');
-			console.log(links);
 			links = links.split(",");
 			}
 		$.each(colNames, function(index, colname) {
-			colModel.push({name: colname, index: colname, width: 80, align: 'left'});
+			if (inArray(colname, links)) {
+				colModel.push({name: colname, edittype: 'select', formatter: linkFormatter});
+			}
+			else colModel.push({name: colname, index: colname, width: 80, align: 'left'});
 		})
+    }
+    
+    function linkFormatter(cellvalue, options, rowObject) {
+    	return '<a href= /#/' + space + '/' + cellvalue + '>' + cellvalue + '</a>';
     }
     
     function getColModel() {
@@ -64,7 +68,6 @@ var render = function(options) {
     }
     
     function makeGrid(data){
-    	console.log('In make grid');
     	console.log(data);
     	jQuery('#sqlgrid').jqGrid({
     		url: '/appserver/rest/lfw/query?sql=' + body.sql + '&dbname=' + body.dbname,
@@ -74,7 +77,7 @@ var render = function(options) {
             pager: '#gridpager',
             rowNum: body.pagesize,
             sortname: body.sort,
-            sortorder: 'desc',
+            sortorder: 'asc',
             viewrecords: false,
             caption: 'sql Grid',
             width: 600
@@ -83,7 +86,6 @@ var render = function(options) {
     }
 
     function getData() {
-    	console.log('In getData');
     	$.ajax({
     		url: '/appserver/rest/lfw/query?sql=' + body.sql + '&rows=' + body.pagesize + '&dbname=' + body.dbname,
     		data: "{}",
@@ -104,3 +106,4 @@ var render = function(options) {
     options.addDependency(cb, ["/js/libs/jquery.jqGrid-3.8.2/src/i18n/grid.locale-en.js", "/js/libs/jquery.jqGrid-3.8.2/js/jquery.jqGrid.min.js","/js/libs/jquery.jqGrid-3.8.2/src/jqModal.js", "/js/libs/jquery.jqGrid-3.8.2/src/jqDnR.js"]);
 }
 register(render);
+

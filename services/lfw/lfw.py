@@ -127,31 +127,16 @@ class LFWService(object):
                 pagelist.parent,
                 pagelist.category
                 FROM ONLY page.view_page_list pagelist
-                WHERE pagelist.space = '%(space)s'
-                    AND pagelist.guid in (
-                                            WITH RECURSIVE childpages AS
-                                            (
-                                                    -- non-recursive term
-                                                    SELECT page.view_page_list.guid
-                                                    FROM page.view_page_list
-
-                                                    UNION ALL
-
-                                                -- recursive term
-                                                SELECT pl.guid
-                                                FROM page.view_page_list AS pl
-                                                JOIN
-                                                    childpages AS cp
-                                                    ON (pl.parent = cp.guid)
-                                            )
-                                            SELECT guid FROM childpages
-                                         );
+                WHERE pagelist.space = '%(space)s';
         """ % {'space': space}
 
         return self.connection.page.query(sql)
 
     @q.manage.applicationserver.expose
-    def query(self, sql, rows, dbname='', link='', _search='', nd='', page=1, sidx='', sord='', applicationserver_request='', *args, **kwargs):
+    def query(self, sql, rows, dbname='', link='', remoteserver=False, _search='', nd='', page=1, sidx='', sord='', applicationserver_request='', *args, **kwargs):
+        from pymonkey.db.DBConnection import DBConnection
+
+        localdb = False
         cfgfilepath = q.system.fs.joinPaths(q.dirs.cfgDir, 'qconfig', 'dbconnections.cfg')
         if q.system.fs.exists(cfgfilepath):
             inifile = q.tools.inifile.open(cfgfilepath)
@@ -159,20 +144,23 @@ class LFWService(object):
             if inifile.checkSection(section):
                 dbserver = inifile.getValue(section, 'dbserver')
                 dblogin = inifile.getValue(section, 'dblogin')
-                dbpassword = inifile.getValue(section, 'dbpassword')
+                dbpassword = inifile.getValue(section, 'dbpasswd')
                 dbname = inifile.getValue(section, 'dbname')
-                if dbname not in q.manage.postgresql8.cmdb.databases:
-                    q.manage.postgresql8.startChanges()
-                    q.manage.postgresql8.cmdb.addDatabase(dbname, 'qbase')
-                    if dblogin not in q.manage.postgresql8.cmdb.databases:
-                        q.manage.postgresql8.cmdb.addLogin(dblogin, cidr_address=dbserver)
-                    q.manage.postgresql8.applyConfig()
-                    sqldata = q.cmdtools.postgresql8.query._executeSQL(dblogin, sql, database=dbname)
+            else:
+                localdb = True
         else:
-            connection = self.connection
-        sqldata = connection.page.query(sql)
+            localdb = True
+        if localdb:
+            dbserver = '127.0.0.1'
+            dblogin = q.manage.postgresql8.cmdb.rootLogin
+            dbpassword = q.manage.postgresql8.cmdb.rootPasswd
+
+        dbConn = DBConnection(dbserver, dbname, dblogin, dbpassword)
+        if sidx and sord:
+            sql += ' order by "%s" %s' % (sidx, sord)
+        sqldata = dbConn.sqlexecute(sql).dictresult()
+
         data = dict()
-        
         data['columns'] = sqldata[0].keys()
         data['page'] = page
         data['total'] = len(sqldata) / rows
@@ -183,7 +171,6 @@ class LFWService(object):
         for index, pageobj in enumerate(sqldata[start:end]):
             data['rows'].append({'id': index + 1, 'cell': pageobj.values()})
         return data
-
 
     @q.manage.applicationserver.expose
     def graphviz(self, graphDot_str, applicationserver_request=''):
@@ -196,7 +183,7 @@ class LFWService(object):
         path = q.system.fs.joinPaths(q.dirs.baseDir, "www", "img", filename)
         G.draw(path)
         q.system.unix.chmod(q.system.fs.getDirName(path), 0755, filePattern="*.gif")
-        path_uri = path.replace("/opt/qbase3/www/", "")
+        path_uri = path.replace(q.system.fs.joinPaths(q.dirs.baseDir, "www"), "")
         return path_uri
 
 

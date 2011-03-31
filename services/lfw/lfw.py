@@ -133,14 +133,14 @@ class LFWService(object):
         return self.connection.page.query(sql)
 
     @q.manage.applicationserver.expose
-    def query(self, sql, rows, dbname='', link='', remoteserver=False, _search='', nd='', page=1, sidx='', sord='', applicationserver_request='', *args, **kwargs):
+    def query(self, sql, rows, dbconnection='', link='', _search='', nd='', page=1, sidx='', sord='', applicationserver_request='', *args, **kwargs):
         from pymonkey.db.DBConnection import DBConnection
 
         localdb = False
         cfgfilepath = q.system.fs.joinPaths(q.dirs.cfgDir, 'qconfig', 'dbconnections.cfg')
         if q.system.fs.exists(cfgfilepath):
             inifile = q.tools.inifile.open(cfgfilepath)
-            section = 'db_%s' % dbname
+            section = 'db_%s' % dbconnection
             if inifile.checkSection(section):
                 dbserver = inifile.getValue(section, 'dbserver')
                 dblogin = inifile.getValue(section, 'dblogin')

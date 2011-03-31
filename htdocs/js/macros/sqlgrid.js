@@ -70,7 +70,7 @@ var render = function(options) {
     function makeGrid(data){
     	console.log(data);
     	jQuery('#sqlgrid').jqGrid({
-    		url: '/appserver/rest/lfw/query?sql=' + body.sql + '&dbname=' + body.dbname,
+    		url: '/appserver/rest/lfw/query?sql=' + body.sql + '&dbconnection=' + body.dbconnection,
 			datatype: 'json',
 			colNames: getColNames(),
           	colModel: getColModel(),
@@ -87,7 +87,7 @@ var render = function(options) {
 
     function getData() {
     	$.ajax({
-    		url: '/appserver/rest/lfw/query?sql=' + body.sql + '&rows=' + body.pagesize + '&dbname=' + body.dbname,
+    		url: '/appserver/rest/lfw/query?sql=' + body.sql + '&rows=' + body.pagesize + '&dbconnection=' + body.dbconnection,
     		data: "{}",
     		dataType: 'json',
     		type: 'POST',

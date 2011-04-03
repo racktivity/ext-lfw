@@ -5,8 +5,7 @@ from osis.store.OsisDB import OsisDB
 
 def main(q, i, params, tags):
     osis = OsisDB().getConnection('main')
-    root = q.drp.cloud.get(params['rootobjectguid'])
-    osis.viewDelete('page', 'view_page_list', root.guid, root.version)
+    osis.viewDelete('page', 'view_page_list', params['rootobjectguid'], params['rootobjectversionguid'])
 
 def match(q, i, params, tags):
     return params['rootobjecttype'] == 'page'

@@ -175,15 +175,14 @@ class LFWService(object):
     @q.manage.applicationserver.expose
     def graphviz(self, graphDot_str, applicationserver_request=''):
         import pygraphviz as pgv
+        import base64
+        import StringIO
 
         graphDot_str = graphDot_str.replace("&gt;", ">")
         G = pgv.AGraph(graphDot_str)
         G.layout(prog='dot')
-        filename = "%s.gif" % (int(time.time()))
-        path = q.system.fs.joinPaths(q.dirs.baseDir, "www", "img", filename)
-        G.draw(path)
-        q.system.unix.chmod(q.system.fs.getDirName(path), 0755, filePattern="*.gif")
-        path_uri = path.replace(q.system.fs.joinPaths(q.dirs.baseDir, "www"), "")
-        return path_uri
-
+        rawimage = StringIO.StringIO()
+        G.draw(rawimage, 'gif')
+        img_b64 = base64.b64encode(rawimage.getvalue())
+        return img_b64
 

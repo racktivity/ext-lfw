@@ -8,7 +8,7 @@ var render = function(options) {
         data: {graphDot_str: options.body},
         success: function (data, textStatus, jqXHR) {
             console.log('Got data: ' + data);
-            $.template(TEMPLATE_NAME, '<div><img src="${data}" alt="some_text"/></div>');
+            $.template(TEMPLATE_NAME, '<div><img src="data:image/gif;base64,${data}" alt="Graphviz Image"/></div>');
             $.tmpl(TEMPLATE_NAME, {data:data}).appendTo($this);
         },
         error: function (data, textStatus, jqXHR) {

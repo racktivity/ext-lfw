@@ -5,10 +5,15 @@ This macro executes a given query and shows the result in a sql grid, supports p
 ## Parameters
 
 * __dbconnection:__ Name of the database connection (connection with this name must be configured on the server)
-* __sql:__ The sql statement to query (any select statement)
+* __table:__ Table name to select from
+* __schema:__ Name of schema this table exists
+* __fields:__ list of field names to select on
 * __link:__ Name of the field in query which links to $space_$pagename or $space_$type_$pagename, name to the link is name of field
 * __sort:__ Name of field that can be sorted
 * __pagesize:__ Maximum rows per page
+* __width:__ Width of the grid, if not given default is 600
+* __height:__ Height of the grid, if not given default is 400
+* __fieldwidth:__ Dict specifies width of each field specified if not given default width of each field is 80
 
 ## Remote database Configuration
 
@@ -28,10 +33,20 @@ To configure remote databases this configuration should be in file under locatio
 	<div class="macro macro_sqlgrid">
 		{
 			"dbconnection": "local",
-			"sql": "SELECT view_page_list.category, view_page_list.name, view_page_list.parent, view_page_list.space FROM page.view_page_list",
+			"table": "view_page_list",
+			"schema": "page",
+			"fields": ["category", "name", "parent", "space"],
 			"link": "name",
 			"sort": "name",
-			"pagesize": 10
+			"pagesize": 10,
+			"width": 600,
+			"height": 490,
+			"fieldwidth": {
+				"category": 40,
+				"name": 60,
+				"parent": 120,
+				"space": 70
+			}
 		}
 	
 	</div>
@@ -41,10 +56,20 @@ To configure remote databases this configuration should be in file under locatio
 <div class="macro macro_sqlgrid">
 	{
 		"dbconnection": "local",
-		"sql": "SELECT view_page_list.category, view_page_list.name, view_page_list.parent, view_page_list.space FROM page.view_page_list",
+		"table": "view_page_list",
+		"schema": "page",
+		"fields": ["category", "name", "parent", "space"],
 		"link": "name",
 		"sort": "name",
-		"pagesize": 10
+		"pagesize": 10,
+		"width": 600,
+		"height": 200,
+		"fieldwidth": {
+			"category": 40,
+			"name": 80,
+			"parent": 160,
+			"space": 60
+		}
 	}
 
 </div>

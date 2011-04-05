@@ -122,19 +122,22 @@ class LFWService(object):
     def pageTree(self, space):
         sql = """
         SELECT DISTINCT pagelist.guid,
-                pagelist.name,
-                pagelist.content,
                 pagelist.parent,
-                pagelist.category
+                pagelist.name
                 FROM ONLY page.view_page_list pagelist
                 WHERE pagelist.space = '%(space)s';
         """ % {'space': space}
 
-        return self.connection.page.query(sql)
+        result = self.connection.page.query(sql)
+        q.logger.log(result, 1)
+        return result
 
     @q.manage.applicationserver.expose
-    def query(self, sql, rows, dbconnection='', link='', _search='', nd='', page=1, sidx='', sord='', applicationserver_request='', *args, **kwargs):
-        from pymonkey.db.DBConnection import DBConnection
+    def query(self, fields, rows, table, schema, dbconnection='', link='', _search='', nd='', page=1, sidx='', sord='', applicationserver_request='', *args, **kwargs):
+        import sqlalchemy
+        from sqlalchemy import MetaData, Table, create_engine
+        from sqlalchemy.orm import sessionmaker
+        import math
 
         localdb = False
         cfgfilepath = q.system.fs.joinPaths(q.dirs.cfgDir, 'qconfig', 'dbconnections.cfg')
@@ -155,21 +158,37 @@ class LFWService(object):
             dblogin = q.manage.postgresql8.cmdb.rootLogin
             dbpassword = q.manage.postgresql8.cmdb.rootPasswd
 
-        dbConn = DBConnection(dbserver, dbname, dblogin, dbpassword)
-        if sidx and sord:
-            sql += ' order by "%s" %s' % (sidx, sord)
-        sqldata = dbConn.sqlexecute(sql).dictresult()
+        start = (int(page) - 1) * int(rows)
+        fields = fields.split(',')
+        pagefields = list()
+
+        #sqlalchemy stuff
+        engine = create_engine('postgresql://%s:%s@%s/%s' % (dblogin, dbpassword, dbserver, dbname))
+        Session = sessionmaker()
+        Session.configure(bind=engine)
+        session = Session(bind=engine)
+        metadata = MetaData(engine)
+        tableobj = Table(table, metadata, autoload=True, schema=schema)
+        totalrowcount = session.query(tableobj, getattr(tableobj.c, fields[0])).count()
+
+        for field in fields:
+            pagefields.append(getattr(tableobj.c, field))
+        if sidx:
+            selection = sqlalchemy.select(pagefields, limit=rows, offset=start, order_by=[getattr(tableobj.c.name, sord)()])
+        else:
+            selection = sqlalchemy.select(pagefields, limit=rows, offset=start)
+        output = selection.execute()
+        result = output.fetchall()
 
         data = dict()
-        data['columns'] = sqldata[0].keys()
+        data['columns'] = fields
         data['page'] = page
-        data['total'] = len(sqldata) / rows
+        data['total'] = int(math.ceil(totalrowcount/float(rows)))
         data['records'] = rows
         data['rows'] = list()
-        start = (int(page) - 1) * int(rows)
-        end = (int(page) - 1) * (rows) + (rows)
-        for index, pageobj in enumerate(sqldata[start:end]):
-            data['rows'].append({'id': index + 1, 'cell': pageobj.values()})
+
+        for index, pageobj in enumerate(result):
+            data['rows'].append({'id': index + 1, 'cell': list(pageobj)})
         return data
 
     @q.manage.applicationserver.expose

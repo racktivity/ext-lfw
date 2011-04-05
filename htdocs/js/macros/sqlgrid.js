@@ -5,6 +5,7 @@ var render = function(options) {
     var page = options.page;
     var body = JSON.parse(options.body);
     var links = body.link;
+    console.log(body);
   
     var colNames = new Array();
     var colModel = new Array();
@@ -47,11 +48,17 @@ var render = function(options) {
     	if (links != undefined && links != "") {
 			links = links.split(",");
 			}
+		var width = 80;
 		$.each(colNames, function(index, colname) {
-			if (inArray(colname, links)) {
-				colModel.push({name: colname, edittype: 'select', formatter: linkFormatter});
+			if (inArray('fieldwidth', getKeys(body))) {
+				if (inArray(colname, getKeys(body.fieldwidth))) {
+					width = body.fieldwidth[colname];
+				}
 			}
-			else colModel.push({name: colname, index: colname, width: 80, align: 'left'});
+			if (inArray(colname, links)) {
+				colModel.push({name: colname, index: colname, width: width, edittype: 'select', formatter: linkFormatter});
+			}
+			else colModel.push({name: colname, index: colname, width: width, align: 'left'});
 		})
     }
     
@@ -68,9 +75,11 @@ var render = function(options) {
     }
     
     function makeGrid(data){
+    	var height = body.height || 400;
+    	var width = body.width || 600;
     	console.log(data);
     	jQuery('#sqlgrid').jqGrid({
-    		url: '/appserver/rest/lfw/query?sql=' + body.sql + '&dbconnection=' + body.dbconnection,
+    		url: '/appserver/rest/lfw/query?fields=' + body.fields + '&table=' + body.table + '&schema=' + body.schema + '&dbconnection=' + body.dbconnection,
 			datatype: 'json',
 			colNames: getColNames(),
           	colModel: getColModel(),
@@ -79,15 +88,16 @@ var render = function(options) {
             sortname: body.sort,
             sortorder: 'asc',
             viewrecords: false,
-            caption: 'sql Grid',
-            width: 600
+            caption: 'SQL Grid',
+            width: width,
+            height: height
           });
           $("#sqlgrid")[0].addJSONData(data);
     }
 
     function getData() {
     	$.ajax({
-    		url: '/appserver/rest/lfw/query?sql=' + body.sql + '&rows=' + body.pagesize + '&dbconnection=' + body.dbconnection,
+    		url: '/appserver/rest/lfw/query?fields=' + body.fields + '&table=' + body.table + '&schema=' + body.schema + '&rows=' + body.pagesize + '&dbconnection=' + body.dbconnection,
     		data: "{}",
     		dataType: 'json',
     		type: 'POST',

@@ -40,6 +40,7 @@ var app = $.sammy(function(app) {
     this.use('Title');
     this.use('Mustache');
 
+    var _appName = null;
     var _space = null,
         _page = null;
     var sources = new Array();
@@ -260,6 +261,18 @@ data;
             }
         );
     };
+    var getAppName = function () {
+        if( ! _appName ) {
+            _appName = LFW_CONFIG['appname'];
+            if( _appName == '' ) {
+                throw new Error( 'Appname is an emtpy string' )
+            } 
+            if( ! _appName  ) {
+                throw new Error( 'Appname is null' )
+            } 
+        } 
+        return _appName;
+    }
     var getSpace = function() {
         if(!_space) {
             throw new Error('Space requested whilst it\'s not set');
@@ -441,8 +454,8 @@ data;
                var templateData = [];
                for(var i = 0, len = data.length; i < len; i++) {
                    var result = data[i];
-
-                   templateData.push([result.space, result.name]);
+                   var appName = getAppName();
+                   templateData.push([result.space, result.name, appName]);
                }
 
                swap(

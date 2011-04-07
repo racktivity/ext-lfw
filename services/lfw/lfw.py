@@ -18,7 +18,7 @@ class LFWService(object):
         
         # Initialize API
         self.connection = p.api.model.core
-
+	self.db_config_path = q.system.fs.joinPaths(q.dirs.cfgDir, 'qconfig', 'dbconnections.cfg')
         module = os.path.abspath(os.path.dirname(__file__))
         tasklet_path = os.path.abspath(os.path.join(module, 'tasklets'))
         self._tasklet_engine = q.taskletengine.get(tasklet_path)
@@ -162,7 +162,8 @@ class LFWService(object):
         import math
 
         localdb = False
-        cfgfilepath = q.system.fs.joinPaths(q.dirs.cfgDir, 'qconfig', 'dbconnections.cfg')
+        cfgfilepath = self.db_config_path
+        q.logger.log('FILE IS %s' % cfgfilepath, 1)
         if q.system.fs.exists(cfgfilepath):
             inifile = q.tools.inifile.open(cfgfilepath)
             section = 'db_%s' % dbconnection

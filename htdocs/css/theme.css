@@ -13,6 +13,7 @@ body {  background: #000 url(../img/body-bg.png) repeat-x top left scroll ; }
 a.logo {     background: url("../img/logo.png") no-repeat scroll left top transparent; float: left; height: 100px; left: 10px; position: absolute; top: 9px; width: 130px;}
 #header input { width:100px;  height:17px; color:#000; margin-right:10px; border:1px solid #7f7f7f;}
 #header select { width:150px;  height:23px; color:#000;}
+#header select option { color:#000 !important;}
 #header div { margin-top:45px;}
 #spaces { width:auto; padding-left:155px !important; margin-right:50px !important;}
 .span-19 { width:auto; }

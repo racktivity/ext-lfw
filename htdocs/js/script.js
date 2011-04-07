@@ -41,6 +41,7 @@ var app = $.sammy(function(app) {
     this.use('Mustache');
 
     var _appName = null;
+    var _dependencies = new Object();
     var _space = null,
         _page = null;
     var sources = new Array();
@@ -59,6 +60,31 @@ var app = $.sammy(function(app) {
         
         var elem = $('<div>' + html + '</div>');
         
+        if (root === null) {
+          $('#main')
+            .empty()
+            .append(elem);
+        } else {
+          $(root)
+            .empty()
+            .append(elem);
+        }
+        
+
+        // Replace anchor links
+        $('#main a[href]')
+            .filter(function() {
+                return ($(this).attr('href') || ' ')[0] === '#';
+            })
+            .each(function() {
+                $this = $(this);
+
+                var loc = base + '/' + $this.attr('href');
+
+                $this.attr('href', loc);
+            });
+            
+        console.log('SWAP END: base ' + base); 
         
 
         $('.macro', elem).each(function() {
@@ -179,31 +205,7 @@ data;
         });
         
 
-        if (root === null) {
-          $('#main')
-            .empty()
-            .append(elem);
-        } else {
-          $(root)
-            .empty()
-            .append(elem);
-        }
-        
 
-        // Replace anchor links
-        $('#main a[href]')
-            .filter(function() {
-                return ($(this).attr('href') || ' ')[0] === '#';
-            })
-            .each(function() {
-                $this = $(this);
-
-                var loc = base + '/' + $this.attr('href');
-
-                $this.attr('href', loc);
-            });
-            
-        console.log('SWAP END: base ' + base); 
     };
 
     var buildUri = function(space, page) {
@@ -325,6 +327,10 @@ data;
     	if (sourcesloaded == false) {
     		loadSources();
     	}
+        _dependencies[callback] = new Object();
+        _dependencies[callback].required = dependencies.length;
+        _dependencies[callback].ready = 0;
+        _dependencies[callback].called = false;
     	$.each(dependencies, function(depindex, dependency) {
     		console.log('dependency: ' + dependency);
 			var head = document.getElementsByTagName( "head" )[ 0 ] || document.documentElement;
@@ -334,11 +340,23 @@ data;
 				script.src = dependency;
 				script.type = 'text/javascript';
 				head.insertBefore( script, head.firstChild );
+                $(script).load(function(){
+                    _dependencies[callback].ready += 1;
+                    if (_dependencies[callback].ready >= _dependencies[callback].required){
+                        callback();
+                        _dependencies[callback].called = true;
+                    }
+                });
 				// Use insertBefore instead of appendChild  to circumvent an IE6 bug.
 				// This arises when a base node is used (#2709 and #4378).
-    		};
+    		}else{
+                _dependencies[callback].ready += 1;
+            }
     	});
-    	script.onload = callback;
+        if (_dependencies[callback].required == _dependencies[callback].ready && _dependencies[callback].called != true){
+                callback();
+                _dependencies[callback].called = true;
+        }
     }
     
     function loadCss() {
@@ -379,7 +397,7 @@ data;
 
     		if (tagname == 'link'){
 				//To add a css link i.e. <link rel="stylesheet" href="mystyle.css">
-				cssNode.type = 'text/css';
+				cssNode.type = params['type'] || 'text/css';
 				cssNode.rel = params['rel'];
 				cssNode.href = params['href'];
     		}

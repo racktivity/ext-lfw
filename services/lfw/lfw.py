@@ -115,69 +115,118 @@ class LFWService(object):
         return result
 
     @q.manage.applicationserver.expose
-    def pageTree(self, space):
+    def pageTree(self, space, id):
+        where = ""
+        if id == 0:
+            where = "and pagelist.parent is null"  
+        else:
+            where = "and pagelist.parent = '%s'" % id 
+            
         sql = """
         SELECT DISTINCT pagelist.guid,
-                pagelist.name,
-                pagelist.content,
                 pagelist.parent,
-                pagelist.category
-                FROM ONLY ui_page.ui_view_page_list pagelist
-                WHERE pagelist.space = '%(space)s'
-                    AND pagelist.guid in (
-                                            WITH RECURSIVE childpages AS
-                                            (
-                                                    -- non-recursive term
-                                                    SELECT ui_page.ui_view_page_list.guid
-                                                    FROM ui_page.ui_view_page_list
+                pagelist.name,
+                (select count(guid) FROM page.view_page_list WHERE page.ui_view_page_list.parent = pagelist.guid) as nrofkids
+                FROM ONLY page.ui_view_page_list as pagelist
+                WHERE pagelist.space = '%(space)s' %(where)s;
+        """ % {'space': space, 'where': where}
 
-                                                    UNION ALL
+        result = self.connection.page.query(sql)
+        data = list()
+        for node in result:
+            
+            nodedata = dict()
+            children = list()
+            state = 'closed' if node['nrofkids'] > 0 else 'leaf'
+            nodedata = {'data': {'title': node['name'],
+                                 'type': 'link',
+                                 'attr': {'href': '/#/%s/%s' % (space, node['name'])},
+                                 'children':[]
+                                 },
+                        'attr': {
+                                 'class': 'TreeTitle',
+                                 'id': node['guid']
+                                },
+                        'state' : state
+                        }
+            data.append(nodedata)
+        q.logger.log(data, 1)
+        return data
 
-                                                -- recursive term
-                                                SELECT pl.guid
-                                                FROM ui_page.ui_view_page_list AS pl
-                                                JOIN
-                                                    childpages AS cp
-                                                    ON (pl.parent = cp.guid)
-                                            )
-                                            SELECT guid FROM childpages
-                                         );
-        """ % {'space': space}
-
-        return self.connection.page.query(sql)
     
     @q.manage.applicationserver.expose
-    def query(self, sql, rows, dbname, applicationserver_request='', *args, **kwargs):
+    def query(self, fields, rows, table, schema, dbconnection='', link='', _search='', nd='', page=1, sidx='', sord='', applicationserver_request='', *args, **kwargs):
+        import sqlalchemy
+        from sqlalchemy import MetaData, Table, create_engine
+        from sqlalchemy.orm import sessionmaker
+        import math
+
+        localdb = False
         cfgfilepath = q.system.fs.joinPaths(q.dirs.cfgDir, 'qconfig', 'dbconnections.cfg')
         if q.system.fs.exists(cfgfilepath):
             inifile = q.tools.inifile.open(cfgfilepath)
-            section = 'db_%s' % dbname
+            section = 'db_%s' % dbconnection
             if inifile.checkSection(section):
                 dbserver = inifile.getValue(section, 'dbserver')
                 dblogin = inifile.getValue(section, 'dblogin')
-                dbpassword = inifile.getValue(section, 'dbpassword')
+                dbpassword = inifile.getValue(section, 'dbpasswd')
                 dbname = inifile.getValue(section, 'dbname')
-                if dbname not in q.manage.postgresql8.cmdb.databases:
-                    q.manage.postgresql8.startChanges()
-                    q.manage.postgresql8.cmdb.addDatabase(dbname, 'qbase')
-                    if dblogin not in q.manage.postgresql8.cmdb.databases:
-                        q.manage.postgresql8.cmdb.addLogin(dblogin, cidr_address=dbserver)
-                    q.manage.postgresql8.applyConfig()
-                    sqldata = q.cmdtools.postgresql8.query._executeSQL(dblogin, sql, database=dbname)
+            else:
+                localdb = True
         else:
-            connection = self.connection
-        sqldata = connection.page.query(sql)
+            localdb = True
+        if localdb:
+            dbname = 'portal'
+            dbserver = '127.0.0.1'
+            dblogin = q.manage.postgresql8.cmdb.rootLogin
+            dbpassword = q.manage.postgresql8.cmdb.rootPasswd
+
+        start = (int(page) - 1) * int(rows)
+        fields = fields.split(',')
+        pagefields = list()
+
+        #sqlalchemy stuff
+        engine = create_engine('postgresql://%s:%s@%s/%s' % (dblogin, dbpassword, dbserver, dbname))
+        Session = sessionmaker()
+        Session.configure(bind=engine)
+        session = Session(bind=engine)
+        metadata = MetaData(engine)
+        tableobj = Table(table, metadata, autoload=True, schema=schema)
+        totalrowcount = session.query(tableobj, getattr(tableobj.c, fields[0])).count()
+
+        for field in fields:
+            pagefields.append(getattr(tableobj.c, field))
+        if sidx:
+            selection = sqlalchemy.select(pagefields, limit=rows, offset=start, order_by=[getattr(tableobj.c.name, sord)()])
+        else:
+            selection = sqlalchemy.select(pagefields, limit=rows, offset=start)
+        output = selection.execute()
+        result = output.fetchall()
+
         data = dict()
-        
-        data['columns'] = sqldata[0].keys()
-        data['page'] = 1
-        data['total'] = len(sqldata) / rows
+        data['columns'] = fields
+        data['page'] = page
+        data['total'] = int(math.ceil(totalrowcount/float(rows)))
         data['records'] = rows
         data['rows'] = list()
-        for index, page in enumerate(sqldata):
-            data['rows'].append({'id': index + 1, 'cell': page.values()})
+
+        for index, pageobj in enumerate(result):
+            data['rows'].append({'id': index + 1, 'cell': list(pageobj)})
         return data
 
+    @q.manage.applicationserver.expose
+    def graphviz(self, graphDot_str, applicationserver_request=''):
+        import pygraphviz as pgv
+        import base64
+        import StringIO
+
+        graphDot_str = graphDot_str.replace("&gt;", ">")
+        G = pgv.AGraph(graphDot_str)
+        G.layout(prog='dot')
+        rawimage = StringIO.StringIO()
+        G.draw(rawimage, 'gif')
+        img_b64 = base64.b64encode(rawimage.getvalue())
+        return img_b64
 
     @q.manage.applicationserver.expose
     def generic(self, tagstring=None):

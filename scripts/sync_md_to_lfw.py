@@ -53,7 +53,8 @@ for folder in q.system.fs.listDirsInDir(MD_PATH):
                 macros_page_info = connection.ui.page.findAsView(filter, 'ui_view_page_list')
                 if len(macros_page_info) == 1:
                     macros_homepage = connection.ui.page.get(macros_page_info[0]['guid'])
-            p.parent = macros_homepage.guid
+            if macros_homepage:
+                p.parent = macros_homepage.guid
 
         # content
         p.content = content if content else 'empty'

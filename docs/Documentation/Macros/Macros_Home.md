@@ -18,3 +18,4 @@ A [How to Create a Macro][] page has also been written to explain and ease the d
 *   [WizardActions](/#/Documentation/MacroWizardActions)
 *   [PageTree](/#/Documentation/MacroPageTree)
 *   [SQLGrid](/#/Documentation/MacroSqlGrid)
+*   [GraphViz](/#/Documentation/MacroGraphViz)

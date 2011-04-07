@@ -140,7 +140,7 @@ class LFWService(object):
             state = 'closed' if node['nrofkids'] > 0 else 'leaf'
             nodedata = {'data': {'title': node['name'],
                                  'type': 'link',
-                                 'attr': {'href': '/#/%s/%s' % (space, node['name'])},
+                                 'attr': {'href': '#/%s/%s' % (space, node['name'])},
                                  'children':[]
                                  },
                         'attr': {

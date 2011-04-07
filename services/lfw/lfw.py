@@ -1,31 +1,27 @@
-from pymonkey import q
-import osis
-from osis.client import OsisConnection
-from osis.client.xmlrpc import XMLRPCTransport
-from osis.model.serializers import ThriftSerializer
+import os.path
 
-import time
-
+from pylabs import q, p
 
 # @TODO: use sqlalchemy to construct queries - escape values 
 # @TODO: add space to filter criteria
 
-SQL_PAGES = 'SELECT DISTINCT page.view_page_list.%(prop)s FROM page.view_page_list'
-SQL_PAGES_FILTER = 'SELECT DISTINCT page.view_page_list.%(prop)s FROM page.view_page_list WHERE page.view_page_list.%(prop)s LIKE \'%(term)s%%\''
+SQL_PAGES = 'SELECT DISTINCT ui_page.ui_view_page_list.%(prop)s FROM ui_page.ui_view_page_list'
+SQL_PAGES_FILTER = 'SELECT DISTINCT ui_page.ui_view_page_list.%(prop)s FROM ui_page.ui_view_page_list WHERE ui_page.ui_view_page_list.%(prop)s LIKE \'%(term)s%%\''
 
-SQL_PAGE_TAGS = 'SELECT DISTINCT page.view_page_tag_list.%(prop)s FROM page.view_page_tag_list'
-SQL_PAGE_TAGS_FILTER = 'SELECT DISTINCT page.view_page_tag_list.%(prop)s FROM page.view_page_tag_list WHERE page.view_page_tag_list.%(prop)s LIKE \'%(term)s%%\''
+SQL_PAGE_TAGS = 'SELECT DISTINCT ui_page.ui_view_page_tag_list.%(prop)s FROM ui_page.ui_view_page_tag_list'
+SQL_PAGE_TAGS_FILTER = 'SELECT DISTINCT ui_page.ui_view_page_tag_list.%(prop)s FROM ui_page.ui_view_page_tag_list WHERE ui_page.ui_view_page_tag_list.%(prop)s LIKE \'%(term)s%%\''
 
 
 class LFWService(object):
 
-    def __init__(self):
+    def __init__(self, tasklet_path=None):
         
-        # Initialize osis
-        osis.init('/opt/qbase3/libexec/osis')
-        transport = XMLRPCTransport('http://127.0.0.1:8888/RPC2', 'osis_service')
-        serializer = ThriftSerializer()
-        self.connection = OsisConnection(transport, serializer)
+        # Initialize API
+        self.connection = p.api.model.core
+
+        module = os.path.abspath(os.path.dirname(__file__))
+        tasklet_path = os.path.abspath(os.path.join(module, 'tasklets'))
+        self._tasklet_engine = q.taskletengine.get(tasklet_path)
 
     @q.manage.applicationserver.expose    
     def tags(self, term=None):
@@ -50,24 +46,24 @@ class LFWService(object):
         if not any([text, space, category, tags]):
             return []
 
-        sql_select = 'view_page_list.category, view_page_list."name", view_page_list.space'
-        sql_from = ['page.view_page_list']
+        sql_select = 'ui_view_page_list.category, ui_view_page_list."name", ui_view_page_list.space'
+        sql_from = ['ui_page.ui_view_page_list']
         sql_where = ['1=1']
 
         if tags:
             taglist = tags.split(', ') or []
             
             for x, tag in enumerate(taglist):
-               sql_from.append('INNER JOIN page.view_page_tag_list tl%(x)s ON tl%(x)s.guid = view_page_list.guid AND tl%(x)s.tag = \'%(tag)s\'' % {'tag': tag, 'x': x})
+               sql_from.append('INNER JOIN ui_page.ui_view_page_tag_list tl%(x)s ON tl%(x)s.guid = ui_view_page_list.guid AND tl%(x)s.tag = \'%(tag)s\'' % {'tag': tag, 'x': x})
 
         if space:
-            sql_where.append('view_page_list.space = \'%s\'' % space)
+            sql_where.append('ui_view_page_list.space = \'%s\'' % space)
   
         if category:
-            sql_where.append('view_page_list.category = \'%s\'' % category)
+            sql_where.append('ui_view_page_list.category = \'%s\'' % category)
 
         if text:
-            sql_where.append('view_page_list.content LIKE \'%%%s%%\'' % text)
+            sql_where.append('ui_view_page_list.content LIKE \'%%%s%%\'' % text)
  
         query = 'SELECT %s FROM %s WHERE %s' % (sql_select, ' '.join(sql_from), ' AND '.join(sql_where))
 
@@ -79,13 +75,13 @@ class LFWService(object):
     def page(self, space, name):
         sql = """
               SELECT 
-                  view_page_list.guid 
+                  ui_view_page_list.guid 
               FROM 
-                  page.view_page_list 
+                  ui_page.ui_view_page_list 
               WHERE 
-                  page.view_page_list.space = \'%(space)s\' 
+                  ui_page.ui_view_page_list.space = \'%(space)s\' 
                   AND 
-                  page.view_page_list."name" = \'%(name)s\'""" % {'space': space, 'name': name}
+                  ui_page.ui_view_page_list."name" = \'%(name)s\'""" % {'space': space, 'name': name}
 
 
         qr = self.connection.page.query(sql)
@@ -130,8 +126,8 @@ class LFWService(object):
         SELECT DISTINCT pagelist.guid,
                 pagelist.parent,
                 pagelist.name,
-                (select count(guid) FROM page.view_page_list WHERE page.view_page_list.parent = pagelist.guid) as nrofkids
-                FROM ONLY page.view_page_list as pagelist
+                (select count(guid) FROM page.view_page_list WHERE page.ui_view_page_list.parent = pagelist.guid) as nrofkids
+                FROM ONLY page.ui_view_page_list as pagelist
                 WHERE pagelist.space = '%(space)s' %(where)s;
         """ % {'space': space, 'where': where}
 
@@ -157,6 +153,7 @@ class LFWService(object):
         q.logger.log(data, 1)
         return data
 
+    
     @q.manage.applicationserver.expose
     def query(self, fields, rows, table, schema, dbconnection='', link='', _search='', nd='', page=1, sidx='', sord='', applicationserver_request='', *args, **kwargs):
         import sqlalchemy
@@ -231,3 +228,19 @@ class LFWService(object):
         img_b64 = base64.b64encode(rawimage.getvalue())
         return img_b64
 
+    @q.manage.applicationserver.expose
+    def generic(self, tagstring=None):
+        q.logger.log('[GENERIC] Request tagstring: %s' % tagstring, 5)
+
+        tags = q.base.tags.getObject(tagstring)
+
+        params = {
+            'tags': tags,
+        }
+
+        self._tasklet_engine.execute(params=params, tags=('macro', 'generic', ))
+
+        result = params.get('result', '')
+        q.logger.log('[GENERIC] Result: %s' % result, 5)
+
+        return result

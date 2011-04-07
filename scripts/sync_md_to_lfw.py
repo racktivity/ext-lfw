@@ -1,17 +1,21 @@
 #!/opt/qbase3/bin/python
-from pymonkey.InitBase import q
+from pylabs.InitBase import q
 
 import os, re
 import osis
 from osis.client import OsisConnection
 from osis.client.xmlrpc import XMLRPCTransport
-from osis.model.serializers import ThriftSerializer
+import pymodel
+from pymodel.serializers import ThriftSerializer
 
-osis.init(q.system.fs.joinPaths(q.dirs.baseDir, 'libexec', 'osis'))
-transport = XMLRPCTransport('http://127.0.0.1/appserver/xmlrpc/', 'osis_service')
+pymodel.init_domain('/opt/qbase5/pyapps/sampleapp/interface/model')
+osis.init()
+
+transport = XMLRPCTransport('http://127.0.0.1/sampleapp/appserver/xmlrpc/', 'model')
 serializer = ThriftSerializer()
 connection = OsisConnection(transport, serializer)
-MD_PATH = q.system.fs.joinPaths(q.dirs.varDir, 'qpackages4', 'files', 'pylabs.org', 'lfw', '1.0', 'generic', 'docs')
+#MD_PATH = q.system.fs.joinPaths(q.dirs.varDir, 'qpackages4', 'files', 'pylabs.org', 'lfw', '1.0', 'generic', 'docs')
+MD_PATH = '/opt/qbase5/pyapps/sampleapp/portal/doc/'
 
 macros_homepage = None
 
@@ -24,18 +28,18 @@ for folder in q.system.fs.listDirsInDir(MD_PATH):
         content = q.system.fs.fileGetContents(f)
 
         # Check if page exists
-        f = connection.page.getFilterObject()
-        f.add('view_page_list', 'name', name, True)
-        f.add('view_page_list', 'space', space, True)
-        page_info = connection.page.findAsView(f, 'view_page_list')
+        f = connection.ui.page.getFilterObject()
+        f.add('ui_view_page_list', 'name', name, True)
+        f.add('ui_view_page_list', 'space', space, True)
+        page_info = connection.ui.page.findAsView(f, 'ui_view_page_list')
 
         if len(page_info) > 1:
             raise ValueError('Multiple pages found ?')
 
         elif len(page_info) == 1:
-            p = connection.page.get(page_info[0]['guid'])
+            p = connection.ui.page.get(page_info[0]['guid'])
         else:
-            p = connection.page.new()
+            p = connection.ui.page.new()
             p.name = name 
             p.space = space
             p.category = 'portal'
@@ -43,12 +47,12 @@ for folder in q.system.fs.listDirsInDir(MD_PATH):
         if name.startswith('Macro') and name not in ['Macros_Home', 'Macros']:
             if not macros_homepage:
                 #check if Macros_Home page is already created, then get its guid to set it as parent guid to other macro pages
-                filter = connection.page.getFilterObject()
-                filter.add('view_page_list', 'name', 'Macros_Home', True)
-                filter.add('view_page_list', 'space', space, True)
-                macros_page_info = connection.page.findAsView(filter, 'view_page_list')
+                filter = connection.ui.page.getFilterObject()
+                filter.add('ui_view_page_list', 'name', 'Macros_Home', True)
+                filter.add('ui_view_page_list', 'space', space, True)
+                macros_page_info = connection.ui.page.findAsView(filter, 'ui_view_page_list')
                 if len(macros_page_info) == 1:
-                    macros_homepage = connection.page.get(macros_page_info[0]['guid'])
+                    macros_homepage = connection.ui.page.get(macros_page_info[0]['guid'])
             if macros_homepage:
                 p.parent = macros_homepage.guid
 
@@ -73,4 +77,4 @@ for folder in q.system.fs.listDirsInDir(MD_PATH):
 
         p.tags = ' '.join(tags)
 
-        connection.page.save(p)
+        connection.ui.page.save(p)

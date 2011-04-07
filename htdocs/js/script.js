@@ -40,6 +40,7 @@ var app = $.sammy(function(app) {
     this.use('Title');
     this.use('Mustache');
 
+    var _appName = null;
     var _dependencies = new Object();
     var _space = null,
         _page = null;
@@ -262,6 +263,18 @@ data;
             }
         );
     };
+    var getAppName = function () {
+        if( ! _appName ) {
+            _appName = LFW_CONFIG['appname'];
+            if( _appName == '' ) {
+                throw new Error( 'Appname is an emtpy string' )
+            } 
+            if( ! _appName  ) {
+                throw new Error( 'Appname is null' )
+            } 
+        } 
+        return _appName;
+    }
     var getSpace = function() {
         if(!_space) {
             throw new Error('Space requested whilst it\'s not set');
@@ -310,6 +323,7 @@ data;
 	}
 		
     var addDependency = function(callback, dependencies) {
+    	console.log('in adddependency');
     	if (sourcesloaded == false) {
     		loadSources();
     	}
@@ -318,6 +332,7 @@ data;
         _dependencies[callback].ready = 0;
         _dependencies[callback].called = false;
     	$.each(dependencies, function(depindex, dependency) {
+    		console.log('dependency: ' + dependency);
 			var head = document.getElementsByTagName( "head" )[ 0 ] || document.documentElement;
 			script = document.createElement( "script" );
     		if (addSource(dependency) == true) {
@@ -359,6 +374,7 @@ data;
     };
     
 	var addCssId = function(id) {
+		console.log('adding cdd with id: ' + id);
 		if (!inArray(id, csses)) {
 			csses.push(id);
 			return true;
@@ -367,6 +383,7 @@ data;
 	};
 
 	var addCss = function(cssobject) {
+		console.log('in addCss');
     	if (cssLoaded == false) {
     		loadCss();
     	}
@@ -455,8 +472,8 @@ data;
                var templateData = [];
                for(var i = 0, len = data.length; i < len; i++) {
                    var result = data[i];
-
-                   templateData.push([result.space, result.name]);
+                   var appName = getAppName();
+                   templateData.push([result.space, result.name, appName]);
                }
 
                swap(

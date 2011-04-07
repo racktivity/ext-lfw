@@ -7,7 +7,7 @@ def main(q, i, params, tags):
     osis = OsisDB().getConnection('main')
     root = params['rootobject']
 
-    osis.viewSave('page', 'view_page_list', root.guid, root.version, 
+    osis.viewSave('ui', 'page', 'view_page_list', root.guid, root.version, 
                     {'name'                  :root.name, 
                      'space'                 :root.space, 
                      'category'              :root.category, 
@@ -15,4 +15,6 @@ def main(q, i, params, tags):
                      'content'               :root.content})
 
 def match(q, i, params, tags):
-    return params['rootobjecttype'] == 'page'
+    return params['rootobjecttype'] == 'page' and params['domain'] == 'ui'  
+            
+            

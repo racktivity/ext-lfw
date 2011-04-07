@@ -9,7 +9,7 @@ def main(q, i, params, tags):
   
     if root.tags:  
         fields = [{'tag': tag} for tag in root.tags.split(' ') if tag]
-        osis.viewSave('page', 'view_page_tag_list', root.guid, root.version, fields)
+        osis.viewSave('ui', 'page', 'view_page_tag_list', root.guid, root.version, fields)
 
 def match(q, i, params, tags):
-    return params['rootobjecttype'] == 'page'
+    return params['rootobjecttype'] == 'page' and params['domain'] == 'ui'

@@ -7,7 +7,6 @@ var render = function(options) {
         url: '/appserver/rest/lfw/graphviz/',
         data: {graphDot_str: options.body},
         success: function (data, textStatus, jqXHR) {
-            console.log('Got data: ' + data);
             $.template(TEMPLATE_NAME, '<div><img src="data:image/gif;base64,${data}" alt="Graphviz Image"/></div>');
             $.tmpl(TEMPLATE_NAME, {data:data}).appendTo($this);
         },

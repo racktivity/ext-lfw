@@ -111,9 +111,9 @@ var render = function(options) {
     	getData();
     }
     
-    options.addCss({'id': 'sqlgrid1', 'tag': 'link', 'params': {'rel': 'stylesheet', 'href': '/js/libs/jquery.jqGrid-3.8.2/src/css/ui.jqgrid.css'}});
-    options.addCss({'id': 'sqlgrid2', 'tag': 'link', 'params': {'rel': 'stylesheet', 'href': '/js/libs/jquery.jqGrid-3.8.2/src/css/ui.multiselect.css'}});
-    options.addDependency(cb, ["/js/libs/jquery.jqGrid-3.8.2/src/i18n/grid.locale-en.js", "/js/libs/jquery.jqGrid-3.8.2/js/jquery.jqGrid.min.js","/js/libs/jquery.jqGrid-3.8.2/src/jqModal.js", "/js/libs/jquery.jqGrid-3.8.2/src/jqDnR.js"]);
+    options.addCss({'id': 'sqlgrid1', 'tag': 'link', 'params': {'rel': 'stylesheet', 'href': '/static/lfw/js/libs/jquery.jqGrid-3.8.2/src/css/ui.jqgrid.css'}});
+    options.addCss({'id': 'sqlgrid2', 'tag': 'link', 'params': {'rel': 'stylesheet', 'href': '/static/lfw/js/libs/jquery.jqGrid-3.8.2/src/css/ui.multiselect.css'}});
+    options.addDependency(cb, ["/static/lfw/js/libs/jquery.jqGrid-3.8.2/src/i18n/grid.locale-en.js", "/static/lfw/js/libs/jquery.jqGrid-3.8.2/js/jquery.jqGrid.min.js","/static/lfw/js/libs/jquery.jqGrid-3.8.2/src/jqModal.js", "/static/lfw/js/libs/jquery.jqGrid-3.8.2/src/jqDnR.js"]);
 }
 register(render);
 

@@ -15,7 +15,7 @@ transport = XMLRPCTransport('http://127.0.0.1/sampleapp/appserver/xmlrpc/', 'mod
 serializer = ThriftSerializer()
 connection = OsisConnection(transport, serializer)
 #MD_PATH = q.system.fs.joinPaths(q.dirs.varDir, 'qpackages4', 'files', 'pylabs.org', 'lfw', '1.0', 'generic', 'docs')
-MD_PATH = '/opt/qbase5/pyapps/sampleapp/portal/doc/'
+MD_PATH = '/opt/qbase5/pyapps/sampleapp/portal/spaces/'
 
 macros_homepage = None
 

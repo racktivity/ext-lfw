@@ -75,7 +75,7 @@ class LFWService(object):
     def page(self, space, name):
         sql = """
               SELECT 
-                  ui_view_page_list.guid 
+                  ui_page.ui_view_page_list.guid 
               FROM 
                   ui_page.ui_view_page_list 
               WHERE 
@@ -93,7 +93,7 @@ class LFWService(object):
         props = ['name', 'space', 'category', 'content', 'creationdate']
 
         result = dict([(prop, getattr(page, prop)) for prop in props]) 
-        result['tags'] = page.tags.split(' ') 
+        result['tags'] = page.tags.split(' ') if page.tags else []
 
         return result
 
@@ -126,8 +126,8 @@ class LFWService(object):
         SELECT DISTINCT pagelist.guid,
                 pagelist.parent,
                 pagelist.name,
-                (select count(guid) FROM page.view_page_list WHERE page.ui_view_page_list.parent = pagelist.guid) as nrofkids
-                FROM ONLY page.ui_view_page_list as pagelist
+                (select count(guid) FROM ui_page.ui_view_page_list WHERE ui_page.ui_view_page_list.parent = pagelist.guid) as nrofkids
+                FROM ONLY ui_page.ui_view_page_list as pagelist
                 WHERE pagelist.space = '%(space)s' %(where)s;
         """ % {'space': space, 'where': where}
 

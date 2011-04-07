@@ -18,7 +18,7 @@ var render = function(options) {
     	$('#mytree').jstree({
     		"json_data": {
     			"ajax": {
-    				"url": "/appserver/rest/lfw/pageTree?space=" + space,
+    				"url": "appserver/rest/ui/portal/pageTree?space=" + space,
     				"data": function(n) {
     					return {id: n.attr ? n.attr("id") : 0};
     				},

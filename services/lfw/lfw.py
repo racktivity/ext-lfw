@@ -119,18 +119,43 @@ class LFWService(object):
         return result
 
     @q.manage.applicationserver.expose
-    def pageTree(self, space):
+    def pageTree(self, space, id):
+        where = ""
+        if id == 0:
+            where = "and pagelist.parent is null"  
+        else:
+            where = "and pagelist.parent = '%s'" % id 
+            
         sql = """
         SELECT DISTINCT pagelist.guid,
                 pagelist.parent,
-                pagelist.name
-                FROM ONLY page.view_page_list pagelist
-                WHERE pagelist.space = '%(space)s';
-        """ % {'space': space}
+                pagelist.name,
+                (select count(guid) FROM page.view_page_list WHERE page.view_page_list.parent = pagelist.guid) as nrofkids
+                FROM ONLY page.view_page_list as pagelist
+                WHERE pagelist.space = '%(space)s' %(where)s;
+        """ % {'space': space, 'where': where}
 
         result = self.connection.page.query(sql)
-        q.logger.log(result, 1)
-        return result
+        data = list()
+        for node in result:
+            
+            nodedata = dict()
+            children = list()
+            state = 'closed' if node['nrofkids'] > 0 else 'leaf'
+            nodedata = {'data': {'title': node['name'],
+                                 'type': 'link',
+                                 'attr': {'href': '/#/%s/%s' % (space, node['name'])},
+                                 'children':[]
+                                 },
+                        'attr': {
+                                 'class': 'TreeTitle',
+                                 'id': node['guid']
+                                },
+                        'state' : state
+                        }
+            data.append(nodedata)
+        q.logger.log(data, 1)
+        return data
 
     @q.manage.applicationserver.expose
     def query(self, fields, rows, table, schema, dbconnection='', link='', _search='', nd='', page=1, sidx='', sord='', applicationserver_request='', *args, **kwargs):
@@ -154,6 +179,7 @@ class LFWService(object):
         else:
             localdb = True
         if localdb:
+            dbname = 'portal'
             dbserver = '127.0.0.1'
             dblogin = q.manage.postgresql8.cmdb.rootLogin
             dbpassword = q.manage.postgresql8.cmdb.rootPasswd

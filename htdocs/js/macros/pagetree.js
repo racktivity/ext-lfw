@@ -4,94 +4,33 @@ var render = function(options) {
     var $this = $(this);    
     var space = options.space;
     var page = options.page;
-
-    options.addCss({'id': 'pagetree', 'tag': 'link', 'params': {'rel': 'stylesheet', 'href': '/js/libs/jquery.treeview/jquery.treeview.css'}});
-    options.addCss({'id': 'pagetree_', 'tag': 'link', 'params': {'rel': 'stylesheet', 'href': '/js/libs/jquery.treeview/demo/screen.css'}});
-
-
-    var processData = function(data){
-	    children = new Object();
-	    dataitems = new Object();
-	    childrenitems = new Array();
-	    
-	    contents = '';
-		contents += '<ul id="treeview">';
-	    $.each(data, function(index, datadict) {
-	    	if (datadict["parent"] != null){
-	    		if (children[datadict['parent']] == undefined){
-	    			children[datadict['parent']] = new Array();
-	    		}
-	    		children[datadict['parent']].push(datadict['guid']);
-	    		childrenitems.push(datadict['guid']);
-	    	}
-	    	dataitems[datadict['guid']] = datadict;
-	    })
-	    
-	    $.each(data, function(index, datadict){
-	    	var isroot = inArray(datadict.guid, childrenitems);
-	    	if (isroot == false) {
-	    		href = '/#/' + options.space + '/' + datadict.name;
-	    		contents += '<li class="closed"><span><a href="' + href + '">' + datadict.name + '</a></span>';
-	    	}
-	    	
-	    	contents += formRecursiveTree(dataitems, datadict.guid, children);
-	    	if (isroot == false){
-	    		contents += '</li>';
-	    	}
-	    })
-	    contents += '</ul>';
-	    //$('#main').append(contents);
-	    
-	    var unique = "pagetree_test";
-	    $.template(TEMPLATE_NAME, '<div id="${unique}"></div>');
-	    $.tmpl(TEMPLATE_NAME, {'unique': unique}).appendTo($this);
-	    $('#pagetree_test').append(contents);
-    };
-
-    var formRecursiveTree = function(data, elementguid, children){
-    	var contents = "";
-    	if (elementguid in children) {
-    		contents += '<ul>';
-    		$.each(children[elementguid], function(index, child) {
-    			href = '/#/' + options.space + '/' + data[child].name;
-    			contents += '<li class="closed"><span><a href="' + href + '">' + data[child].name + '</a></span>';
-    			contents += formRecursiveTree(data, child, children);
-    			contents += '</li>';
-    		})
-    		contents += '</ul>';
-    		return contents;
-    	}
-    	else return '';
-    }
     
-	function inArray(element, array) {
-		for (index in array) {
-			if (array[index] == element) {
-				return true;
-			}
-		}
-		return false;
-	}
+    $.template(TEMPLATE_NAME, '<div><div id="mytree"></div></div>');
+    $.tmpl(TEMPLATE_NAME, {}).appendTo($this);
+
+	options.addCss({'id': 'jsicon', 'tag': 'link', 'params': {'rel': 'shortcut icon', 'href': '/favicon.ico'}});
+	options.addCss({'id': 'jstree', 'tag': 'link', 'params': {'rel': 'alternate', 'type': 'application/rss+xml', 'href': 'http://www.jstree.com/feed'}});
+	options.addCss({'id': 'pagetree', 'tag': 'link', 'params': {'rel': 'stylesheet', 'href': 'http://static.jstree.com/v.1.0rc2/_docs/!style.css'}});
+	options.addCss({'id': 'canonical', 'tag': 'link', 'params': {'rel': 'canonical', 'href': 'http://www.jstree.com/demo'}});
 
     var cb = function(){
-	    $.get(
-	        '/appserver/rest/lfw/pageTree',
-	        {
-	            space: space,
-	        },
-	        'json'
-	    )
-	    .success(function (data, textStatus, jqXHR) {
-	        processData(data);
-	        $('#treeview').treeview();
-	    })
-	    .error(function (data, textStatus, jqXHR) {
-	        console.log('Failed to get page tree: ' + textStatus);
-	    });
+    	
+    	$('#mytree').jstree({
+    		"json_data": {
+    			"ajax": {
+    				"url": "/appserver/rest/lfw/pageTree?space=" + space,
+    				"data": function(n) {
+    					return {id: n.attr ? n.attr("id") : 0};
+    				},
+    			"progressive_render" : true
+    			}
+    		},
+    		"plugins": ["themes", "json_data"]
+    	});
     	
     }
 
-	options.addDependency(cb, ["/js/libs/jquery.treeview/jquery.treeview.js"]);	
+	options.addDependency(cb, ["http://static.jstree.com/v.1.0rc2/jquery.cookie.js", "http://static.jstree.com/v.1.0rc2/jquery.hotkeys.js", "http://static.jstree.com/v.1.0rc2/jquery.jstree.js"]);	
 };
 
 register(render); 

@@ -380,7 +380,7 @@ data;
 
     		if (tagname == 'link'){
 				//To add a css link i.e. <link rel="stylesheet" href="mystyle.css">
-				cssNode.type = 'text/css';
+				cssNode.type = params['type'] || 'text/css';
 				cssNode.rel = params['rel'];
 				cssNode.href = params['href'];
     		}

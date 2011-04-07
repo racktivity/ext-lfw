@@ -5,8 +5,9 @@ It calls an lfw service which queries the database page schema and forms a recur
 
 ## Example
 
-	<div id="pagetree" class="macro macro_pagetree"></div>
+        <div id="pagetree" class="macro macro_pagetree"></div>
 
 ## Sample
 
 <div id="pagetree" class="macro macro_pagetree"></div>
+

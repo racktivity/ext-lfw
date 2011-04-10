@@ -155,11 +155,12 @@ class LFWService(object):
 
     
     @q.manage.applicationserver.expose
-    def query(self, fields, rows, table, schema, dbconnection='', link='', _search='', nd='', page=1, sidx='', sord='', applicationserver_request='', *args, **kwargs):
+    def query(self, sqlselect, rows, table, schema, dbconnection='', link='', _search='', nd='', page=1, sidx='', sord='', applicationserver_request='', *args, **kwargs):
         import sqlalchemy
         from sqlalchemy import MetaData, Table, create_engine
         from sqlalchemy.orm import sessionmaker
         import math
+        import re
 
         localdb = False
         cfgfilepath = self.db_config_path
@@ -183,29 +184,26 @@ class LFWService(object):
             dbpassword = q.manage.postgresql8.cmdb.rootPasswd
 
         start = (int(page) - 1) * int(rows)
-        fields = fields.split(',')
         pagefields = list()
 
         #sqlalchemy stuff
         engine = create_engine('postgresql://%s:%s@%s/%s' % (dblogin, dbpassword, dbserver, dbname))
-        Session = sessionmaker()
-        Session.configure(bind=engine)
-        session = Session(bind=engine)
-        metadata = MetaData(engine)
-        tableobj = Table(table, metadata, autoload=True, schema=schema)
-        totalrowcount = session.query(tableobj, getattr(tableobj.c, fields[0])).count()
+        connection = engine.connect()
 
-        for field in fields:
-            pagefields.append(getattr(tableobj.c, field))
+        comp = re.compile(".*from(?P<end>.*)", re.I)
+        countquery = comp.sub("select count(*) as count from \g<end>", sqlselect)
         if sidx:
-            selection = sqlalchemy.select(pagefields, limit=rows, offset=start, order_by=[getattr(tableobj.c.name, sord)()])
-        else:
-            selection = sqlalchemy.select(pagefields, limit=rows, offset=start)
-        output = selection.execute()
+            sqlselect += " ORDER BY %s %s" % (sidx, sord)
+        sqlselect += ' LIMIT %s OFFSET %s' % (rows, start)
+        
+        t = engine.text(countquery)
+        totalrowcount = t.execute().fetchone()[0]
+        t = engine.text(sqlselect)
+        output = t.execute()
         result = output.fetchall()
 
         data = dict()
-        data['columns'] = fields
+        data['columns'] = output.keys()
         data['page'] = page
         data['total'] = int(math.ceil(totalrowcount/float(rows)))
         data['records'] = rows

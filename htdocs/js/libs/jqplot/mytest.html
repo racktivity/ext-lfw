@@ -1,0 +1,25 @@
+<html>
+	<head>
+		<title>My first jqPlot</title>
+		<script language="javascript" type="text/javascript" src="src/jquery-1.5.1.js"></script>
+		<script language="javascript" type="text/javascript" src="src/jquery.jqplot.js"></script>
+		<link rel="stylesheet" type="text/css" href="src/jquery.jqplot.css" />
+		
+		<script language="javascript" type="text/javascript" src="plugins/jqplot.logAxisRenderer.js"></script>
+
+		<script type="text/javascript" language="javascript">
+			$(document).ready(function(){
+				$.jqplot.config.enablePlugins = true;
+				$.jqplot('chartdiv',  [[[1, 2],[3,5.12],[5,13.1],[7,33.6],[9,85.9],[11,219.9]]],
+					{
+						title:'Exponential Line',
+						axes:{yaxis:{renderer: $.jqplot.LogAxisRenderer, tickDistribution:'power'}},
+						series:[{color:'#d8b83f'}]
+					});         
+			});
+		</script>
+	</head>
+	<body>
+		<div id="chartdiv" style="height:700px;width:700px; "></div>
+	</body>
+</html>

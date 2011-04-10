@@ -7,7 +7,7 @@ This macro executes a given query and shows the result in a sql grid, supports p
 * __dbconnection:__ Name of the database connection (connection with this name must be configured on the server)
 * __table:__ Table name to select from
 * __schema:__ Name of schema this table exists
-* __fields:__ list of field names to select on
+* __sqlselect:__ Any select statement
 * __link:__ Name of the field in query which links to $space_$pagename or $space_$type_$pagename, name to the link is name of field
 * __sort:__ Name of field that can be sorted
 * __pagesize:__ Maximum rows per page
@@ -31,23 +31,22 @@ To configure remote databases this configuration should be in file under locatio
 ## Macro Example
 
 	<div class="macro macro_sqlgrid">
-		{
-			"dbconnection": "local",
-			"table": "view_page_list",
-			"schema": "page",
-			"fields": ["category", "name", "parent", "space"],
-			"link": "name",
-			"sort": "name",
-			"pagesize": 10,
-			"width": 600,
-			"height": 490,
-			"fieldwidth": {
-				"category": 40,
-				"name": 60,
-				"parent": 120,
-				"space": 70
-			}
+	{
+		"dbconnection": "local",
+		"table": "view_page_list",
+		"schema": "page",
+		"sqlselect": "SELECT view_page_list.category, view_page_list.name, view_page_list.parent FROM page.view_page_list WHERE view_page_list.space='Documentation'",
+		"link": "name",
+		"sort": "name",
+		"pagesize": 10,
+		"width": 600,
+		"height": 200,
+		"fieldwidth": {
+			"category": 40,
+			"name": 80,
+			"parent": 160
 		}
+	}
 	
 	</div>
 
@@ -58,7 +57,7 @@ To configure remote databases this configuration should be in file under locatio
 		"dbconnection": "local",
 		"table": "view_page_list",
 		"schema": "page",
-		"fields": ["category", "name", "parent", "space"],
+		"sqlselect": "SELECT view_page_list.category, view_page_list.name, view_page_list.parent FROM page.view_page_list WHERE view_page_list.space='Documentation'",
 		"link": "name",
 		"sort": "name",
 		"pagesize": 10,
@@ -67,8 +66,7 @@ To configure remote databases this configuration should be in file under locatio
 		"fieldwidth": {
 			"category": 40,
 			"name": 80,
-			"parent": 160,
-			"space": 60
+			"parent": 160
 		}
 	}
 

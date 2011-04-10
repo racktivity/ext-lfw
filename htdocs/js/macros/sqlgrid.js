@@ -79,7 +79,7 @@ var render = function(options) {
     	var width = body.width || 600;
     	console.log(data);
     	jQuery('#sqlgrid').jqGrid({
-    		url: 'appserver/rest/ui/portal/query?fields=' + body.fields + '&table=' + body.table + '&schema=' + body.schema + '&dbconnection=' + body.dbconnection,
+    		url: '/appserver/rest/lfw/query?sqlselect=' + body.sqlselect + '&table=' + body.table + '&schema=' + body.schema + '&dbconnection=' + body.dbconnection,
 			datatype: 'json',
 			colNames: getColNames(),
           	colModel: getColModel(),
@@ -97,7 +97,7 @@ var render = function(options) {
 
     function getData() {
     	$.ajax({
-    		url: 'appserver/rest/ui/portal/query?fields=' + body.fields + '&table=' + body.table + '&schema=' + body.schema + '&rows=' + body.pagesize + '&dbconnection=' + body.dbconnection,
+    		url: '/appserver/rest/lfw/query?sqlselect=' + body.sqlselect + '&table=' + body.table + '&schema=' + body.schema + '&rows=' + body.pagesize + '&dbconnection=' + body.dbconnection,
     		data: "{}",
     		dataType: 'json',
     		type: 'POST',

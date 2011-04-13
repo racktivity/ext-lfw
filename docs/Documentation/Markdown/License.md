@@ -21,7 +21,7 @@ to support its development.
 License
 -------
 
-<p>Copyright © 2004, John Gruber <br />
+<p>Copyright 2004, John Gruber <br />
 <a href="http://daringfireball.net/">http://daringfireball.net/</a> <br />
 All rights reserved.</p>
 

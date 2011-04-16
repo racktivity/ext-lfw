@@ -14,13 +14,13 @@ This page contains the Alkira documentation.
 
 ## Markdown
 
-Alkira uses the Markdown syntax, check the [Markdown](/#/Documentation/Markdown_Home) page for more details.
+Alkira uses the Markdown syntax, check the [Markdown](/sampleapp/#/alkiradocs/Markdown_Home) page for more details.
 
 - - -
 
 ## Macros
 
-We have written our own macros to be used with Alkira, check them out in the [Macro](/#/Documentation/Macros_Home) page.
+We have written our own macros to be used with Alkira, check them out in the [Macro](/sampleapp/#/alkiradocs/Macros_Home) page.
 
 - - -
 

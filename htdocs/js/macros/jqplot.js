@@ -5,7 +5,6 @@ var render = function(options) {
     var height = data_dict.height || 700;
     var width = data_dict.width || 700;
     var chart_data = data_dict.chart_data;
-    var chart_title = data_dict.title || "jqPlot Chart/Plot";
     var renderer = data_dict.renderer;
     var renderer_dependency;
 
@@ -23,7 +22,7 @@ var render = function(options) {
         
         var series;
         if (renderer){
-             series = {series:[{renderer:eval(renderer)}]};
+             series = { series:[{renderer:eval(renderer)}]};
         }
         $.jqplot.config.enablePlugins = true;
         plot1 = $.jqplot(chart_div, chart_data, series);

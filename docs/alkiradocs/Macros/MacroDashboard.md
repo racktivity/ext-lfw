@@ -103,5 +103,5 @@ Is the title that will be displayed in the header of the dashboard.
 }
 </div>
 
-[code macro]: /#/Documentation/MacroCode
-[include macro]: /#/Documentation/MacroInclude
+[code macro]: /sampleapp/#/alkiradocs/MacroCode
+[include macro]: /sampleapp/#/alkiradocs/MacroInclude

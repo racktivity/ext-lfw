@@ -25,4 +25,4 @@ Assuming we want to include the page [SubPage][] at the end of this page, we wou
 
 <div class="macro macro_include">{"name": "SubPage"}</div>
 
-  [SubPage]: /#/Documentation/SubPage
+  [SubPage]: /sampleapp/#/alkiradocs/SubPage

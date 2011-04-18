@@ -4,7 +4,7 @@ A generic macro which renders content based on the Pylabs tags defined in the bo
 
 The content that this macro renders is a result of the execution of certain tasklets. These tasklets are present under:
 
-    /opt/qbase3/apps/applicationserver/services/widget_service/tasklets/generic
+    /opt/qbase5/apps/applicationserver/services/widget_service/tasklets/generic
 
 Currently there are two test tasklets present under that directory:
 

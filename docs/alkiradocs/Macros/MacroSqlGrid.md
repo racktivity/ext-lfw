@@ -17,7 +17,7 @@ This macro executes a given query and shows the result in a sql grid, supports p
 
 ## Remote database Configuration
 
-To configure remote databases this configuration should be in file under location /opt/qbase3/cfg/qconfig/dbconnections.cfg
+To configure remote databases this configuration should be in file under location /opt/qbase5/cfg/qconfig/dbconnections.cfg
 
 ### Example configuration
 

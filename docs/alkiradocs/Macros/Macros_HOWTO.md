@@ -34,7 +34,7 @@ This tutorial will walk you through creating an LFW macro while using the Google
 
 ### Steps to Creating a Macro
 
-1. Create a macro file under /opt/qbase3/www/js/macros/macrofilename.js (lets call the file macrotest.js)
+1. Create a macro file under /opt/qbase5/www/js/macros/macrofilename.js (lets call the file macrotest.js)
 
 2. There must be a render function which takes options as a parameter. Options is an object with some parameters that we can use, such as:
     * __options.space:__ Gets space name.

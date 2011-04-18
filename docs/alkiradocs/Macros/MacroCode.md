@@ -1,7 +1,7 @@
 # Code Macro
 
 The code macro can be used to display code on a page.
-Syntax language is detected automatically and highligted accordingly.
+Syntax language is detected automatically and highlighted accordingly.
 
 ## Parameters
 

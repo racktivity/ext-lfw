@@ -32,11 +32,11 @@ This section will walk you through creating a space, page and making them visabl
 
 Currently, you create a space by simply creating a directory under the following path:
 
-    /opt/qbase3/var/qpackages4/files/pylabs.org/lfw/1.0/generic/docs/
+    /opt/qbase5/var/qpackages4/files/pylabs.org/lfw/1.0/generic/docs/
 
 For example, I created the 'Documentation' space by running the following command:
 
-    mkdir /opt/qbase3/var/qpackages4/files/pylabs.org/lfw/1.0/generic/docs/Documentation
+    mkdir /opt/qbase5/var/qpackages4/files/pylabs.org/lfw/1.0/generic/docs/Documentation
 
 A space will not appear unless it contains a 'Home.md' page and the 'sync\_md\_to\_lfw.py' is run. Read the sections below for details on creating a page and how the script works.
 
@@ -50,11 +50,11 @@ In our a case, a 'Home.md' file was created. The content of this file is the pag
 
 In order for any pages or spaces to be displayed, you need to run the 'sync\_md\_to\_lfw.py' script. The script is located under:
 
-    /opt/qbase3/var/qpackages4/files/pylabs.org/lfw/1.0/generic/scripts
+    /opt/qbase5/var/qpackages4/files/pylabs.org/lfw/1.0/generic/scripts
 
 This script goes through the directory:
 
-    /opt/qbase3/var/qpackages4/files/pylabs.org/lfw/1.0/generic/docs/
+    /opt/qbase5/var/qpackages4/files/pylabs.org/lfw/1.0/generic/docs/
 
 and creates a space for every directory in there as long as it has a 'Home.md' file. Any folders under a space folder will not have a space created for them.
 

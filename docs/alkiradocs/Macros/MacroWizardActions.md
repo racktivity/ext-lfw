@@ -14,7 +14,7 @@ __Step 1:__
 
 Create your wizard tasklets and place them under the following directory:
 
-    /opt/qbase3/apps/applicationserver/services/wizard_engine/tasklets/
+    /opt/qbase5/apps/applicationserver/services/wizard_engine/tasklets/
 
 In our case, we created two wizard tasklets:
 

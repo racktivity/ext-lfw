@@ -1,14 +1,14 @@
 # Dashboard Macro
 
-The Dashboard macro allows you to add pages or other macros as widgits in your Alkira page.
+The Dashboard macro allows you to add pages or other macros as widgets in your Alkira page.
 
 ## Parameters
 
-The parameters of the Dashboard macro are the widgits you would like to include in the page. Check the example for how this is done.
+The parameters of the Dashboard macro are the widgets you would like to include in the page. Check the example for how this is done.
 
 ## Example
 
-Assuming we want to add the following widgits to our page:
+Assuming we want to add the following widgets to our page:
 
 First Column:
 

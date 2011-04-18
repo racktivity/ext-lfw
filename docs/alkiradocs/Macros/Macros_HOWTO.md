@@ -99,4 +99,4 @@ Where macroname is the name of your macro. So for example if we want to add the 
 
 For another example, take a look at the [code highlighting][] macro which takes the code itself as a body.
 
-  [code highlighting]: /#/Documentation/MacroCode
+  [code highlighting]: /sampleapp/#/Documentation/MacroCode

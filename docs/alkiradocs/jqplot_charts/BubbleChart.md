@@ -24,7 +24,7 @@ The Bubble chart is an example with explanation of the JqPlot Bubble Chart
          "renderer" :"$.jqplot.BubbleRenderer"
         }
     </div>
-######If you want to create a macro with a more complicated bubble chart please see [How to Create a Macro](/#/alkiradocs/Macros_HOWTO)  
+######If you want to create a macro with a more complicated bubble chart please see [How to Create a Macro](/sampleapp/#/alkiradocs/Macros_HOWTO)  
 ######and [jqPlot options page][jqplot options]  
 ## Sample
 ### Bubble Chart

@@ -2,10 +2,10 @@ Markdown: Basics
 ================
 
 <ul id="ProjectSubmenu">
-    <li><a href="/#/Documentation/Markdown_Home" title="Markdown Project Page">Home</a></li>
-    <li><a href="/#/Documentation/Basics" class="selected" title="Markdown Basics">Basics</a></li>
-    <li><a href="/#/Documentation/Syntax" title="Markdown Syntax Documentation">Syntax</a></li>
-    <li><a href="/#/Documentation/License" title="Pricing and License Information">License</a></li>
+    <li><a href="/sampleapp/#/alkiradocs/Markdown_Home" title="Markdown Project Page">Home</a></li>
+    <li><a href="/sampleapp/#/alkiradocs/Basics" class="selected" title="Markdown Basics">Basics</a></li>
+    <li><a href="/sampleapp/#/alkiradocs/Syntax" title="Markdown Syntax Documentation">Syntax</a></li>
+    <li><a href="/sampleapp/#/alkiradocs/License" title="Pricing and License Information">License</a></li>
 </ul>
 
 

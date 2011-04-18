@@ -57,7 +57,7 @@ The publish documentation to Alkira method (publishDocsToAlkira) is used to publ
 
 * __space:__ The name of the space on Alkira. If it doesn't exist, it gets created.
 * __name:__ The name of the page where all the Q-Packages will be listed.
-* __filesLocation:__ The lcoation where the documentation files where generated (using generateDocumentation).
+* __filesLocation:__ The location where the documentation files where generated (using generateDocumentation).
 * __hostname:__ The IP that the Alkira Client will use to get a connection and add the pages. Default is localhost.
 
 In our case, we shall run it with the following parameters:

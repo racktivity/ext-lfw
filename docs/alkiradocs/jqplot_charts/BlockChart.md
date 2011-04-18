@@ -21,7 +21,7 @@ The Block chart is an example with explanation of the JqPlot Block Chart
          "renderer" :"$.jqplot.BlockRenderer"
         }
     </div>
-######If you want to create a macro with a more complicated block chart please see [How to Create a Macro](/#/alkiradocs/Macros_HOWTO)  
+######If you want to create a macro with a more complicated block chart please see [How to Create a Macro](/sampleapp/#/alkiradocs/Macros_HOWTO)  
 ######and [jqPlot options page][jqplot options]  
 ## Sample
 ### Block Chart

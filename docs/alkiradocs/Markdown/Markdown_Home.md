@@ -2,10 +2,10 @@ Markdown: Home
 ================
 
 <ul id="ProjectSubmenu">
-    <li><a href="/#/Documentation/Markdown_Home" class="selected" title="Markdown Project Page">Home</a></li>
-    <li><a href="/#/Documentation/Basics" title="Markdown Basics">Basics</a></li>
-    <li><a href="/#/Documentation/Syntax" title="Markdown Syntax Documentation">Syntax</a></li>
-    <li><a href="/#/Documentation/License" title="Pricing and License Information">License</a></li>
+    <li><a href="/sampleapp/#/alkiradocs/Markdown_Home" class="selected" title="Markdown Project Page">Home</a></li>
+    <li><a href="/sampleapp/#/alkiradocs/Basics" title="Markdown Basics">Basics</a></li>
+    <li><a href="/sampleapp/#/alkiradocs/Syntax" title="Markdown Syntax Documentation">Syntax</a></li>
+    <li><a href="/sampleapp/#/alkiradocs/License" title="Pricing and License Information">License</a></li>
 </ul>
 
 Download
@@ -98,7 +98,7 @@ Movable Type 3.0).
 2.  Once installed, Markdown will appear as an option in Movable Type's
 	Text Formatting pop-up menu. This is selectable on a per-post basis:
 	
-	![Screenshot of Movable Type 'Text Formatting' Menu][tfmenu]
+	![mt\_textformat\_menu](md\_images/mt\_textformat\_menu.png)
 	
 	Markdown translates your posts to HTML when you publish; the posts
 	themselves are stored in your MT database in Markdown format.

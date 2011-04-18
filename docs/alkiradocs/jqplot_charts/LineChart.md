@@ -22,7 +22,7 @@ The Line chart is an example with explanation of the JqPlot Line Chart
          "chart_div" : "line_div",
         }
     </div>
-######If you want to create a macro with a more complicated line chart please see [How to Create a Macro](/#/alkiradocs/Macros_HOWTO)  
+######If you want to create a macro with a more complicated line chart please see [How to Create a Macro](/sampleapp/#/alkiradocs/Macros_HOWTO)  
 ######and [jqPlot line chart page][line chart]
 <br />
 ## Sample

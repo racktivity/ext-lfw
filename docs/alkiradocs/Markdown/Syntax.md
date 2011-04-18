@@ -2,10 +2,10 @@ Markdown: Syntax
 ================
 
 <ul id="ProjectSubmenu">
-    <li><a href="/#/Documentation/Markdown_Home" title="Markdown Project Page">Home</a></li>
-    <li><a href="/#/Documentation/Basics" title="Markdown Basics">Basics</a></li>
-    <li><a href="/#/Documentation/Syntax" class="selected" title="Markdown Syntax Documentation">Syntax</a></li>
-    <li><a href="/#/Documentation/License" title="Pricing and License Information">License</a></li>
+    <li><a href="/sampleapp/#/alkiradocs/Markdown_Home" title="Markdown Project Page">Home</a></li>
+    <li><a href="/sampleapp/#/alkiradocs/Basics" title="Markdown Basics">Basics</a></li>
+    <li><a href="/sampleapp/#/alkiradocs/Syntax" class="selected" title="Markdown Syntax Documentation">Syntax</a></li>
+    <li><a href="/sampleapp/#/alkiradocs/License" title="Pricing and License Information">License</a></li>
 </ul>
 
 

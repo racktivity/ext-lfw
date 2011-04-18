@@ -2,10 +2,10 @@ Markdown: License
 ================
 
 <ul id="ProjectSubmenu">
-    <li><a href="/#/Documentation/Markdown_Home" title="Markdown Project Page">Home</a></li>
-    <li><a href="/#/Documentation/Basics" title="Markdown Basics">Basics</a></li>
-    <li><a href="/#/Documentation/Syntax" title="Markdown Syntax Documentation">Syntax</a></li>
-    <li><a href="/#/Documentation/License" class="selected"  title="Pricing and License Information">License</a></li>
+    <li><a href="/sampleapp/#/alkiradocs/Markdown_Home" title="Markdown Project Page">Home</a></li>
+    <li><a href="/sampleapp/#/alkiradocs/Basics" title="Markdown Basics">Basics</a></li>
+    <li><a href="/sampleapp/#/alkiradocs/Syntax" title="Markdown Syntax Documentation">Syntax</a></li>
+    <li><a href="/sampleapp/#/alkiradocs/License" class="selected"  title="Pricing and License Information">License</a></li>
 </ul>
 
 

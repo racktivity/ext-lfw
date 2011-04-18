@@ -54,10 +54,10 @@ __Note:__ You should change the IP in the examples above to the IP of your machi
 
 <div class="macro macro_wizardactions"/>
 
-* <a href="javascript:start('bla','hellowizard','172.19.6.163',success)" target='#'>Hello Wizard</a>
-* <a href="javascript:start('bla','hellowizardname','172.19.6.163',success)" target='#'>Hello Wizard with Name</a>
+* <a href="javascript:start('bla','hellowizard','localhost',success)" target='#'>Hello Wizard</a>
+* <a href="javascript:start('bla','hellowizardname','localhost',success)" target='#'>Hello Wizard with Name</a>
 
 Or:
 
-<button onclick="start('bla','hellowizard','172.19.6.163',success)">Hello Wizard</button>
-<button onclick="start('bla','hellowizardname','172.19.6.163',success)">Hello Wizard with Name</button>
+<button onclick="start('bla','hellowizard','localhost',success)">Hello Wizard</button>
+<button onclick="start('bla','hellowizardname','localhost',success)">Hello Wizard with Name</button>

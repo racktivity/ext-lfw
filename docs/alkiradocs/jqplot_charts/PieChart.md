@@ -25,7 +25,7 @@ The Pie Chart is an example with explanation of the JqPlot Pie Chart.
          "renderer" :"$.jqplot.PieRenderer"
         }
     </div>
-######If you want to create a macro with a more complicated bar chart please see [How to Create a Macro](/#/alkiradocs/Macros_HOWTO)  
+######If you want to create a macro with a more complicated bar chart please see [How to Create a Macro](/sampleapp/#/alkiradocs/Macros_HOWTO)  
 ######and [jqPlot pie chart page][pie chart]
 ## Sample
 ### Pie Chart

@@ -4,7 +4,7 @@ This page contains the Alkira documentation.
 
 ### What is Alkira?
 
-* Alkira is a highly customizable wiki developed by Incubaid that uses the Markdown syntax.
+* Alkira is a highly customizable wiki developed by Incubaid that uses the [Markdown syntax](http://daringfireball.net/projects/markdown/syntax).
 
 ### Why use it?
 
@@ -26,7 +26,7 @@ We have written our own macros to be used with Alkira, check them out in the [Ma
 
 ## Managing Spaces & Pages
 
-This section will walk you through creating a space, page and making them visable.
+This section will walk you through creating a space, page and making them visible.
 
 ### How to Create a Space
 
@@ -84,7 +84,7 @@ You can also search using tags and labels. Currently, when a page is created, we
 
 For example, since all our pages belong to the 'Documentation' space, searching for 'space:Documentation' will return all the pages in that space since they all were assigned that tag during creation.
 
-__Note:__ The Label search field is comma seperated, which means you can seach for several tags and labels at the same time in order to narrow down your search results.
+__Note:__ The Label search field is comma separated, which means you can search for several tags and labels at the same time in order to narrow down your search results.
 
 ### Search
 

@@ -5,7 +5,8 @@ The Pie Chart is an example with explanation of the JqPlot Pie Chart.
 
 ##Parameters
 
-######The body of the macro is the parameters that JqPlot uses to initialize the pie chart.  
+######The body of the macro is the parameters that JqPlot uses to initialize the pie chart.
+
     1- width:- The width of the canvas where the chart is drawn. An optional parameter.  
     2- height:- The height of the canvas where the chart is drawn. An optional parameter.  
     3- chart_data:- A list that contains the pie that will be drawn where the pie is a list of points.  
@@ -17,6 +18,7 @@ The Pie Chart is an example with explanation of the JqPlot Pie Chart.
 
 
 ##Example
+
     <div class="macro macro_jqplot">
         {"width" : 400,
          "height" : 400,
@@ -25,10 +27,13 @@ The Pie Chart is an example with explanation of the JqPlot Pie Chart.
          "renderer" :"$.jqplot.PieRenderer"
         }
     </div>
-######If you want to create a macro with a more complicated bar chart please see [How to Create a Macro](/sampleapp/#/alkiradocs/Macros_HOWTO)  
-######and [jqPlot pie chart page][pie chart]
-## Sample
-### Pie Chart
+
+
+If you want to create a macro with a more complicated bar chart please see [How to Create a Macro](/sampleapp/#/alkiradocs/Macros_HOWTO) and [jqPlot pie chart page][pie chart].
+
+
+## Sample Pie Chart
+
 <div class="macro macro_jqplot">
 {"width" : 400,
  "height" : 400,

@@ -1,18 +1,17 @@
-# Wizards Actions Macro
+#Wizards Actions Macro
+The Wizards Actions macro allows you to place a created [wizard](/sampleapp/#/doc/formwizardpractical) in an Alkira page.
 
-The Wiards Actions macro allows you to place a created wizard in an Alkira page.
 
 ## Parameters
-
 None
 
-## Example
 
+## Example
 Let us take a look at how we can add two very simple wizards to this page.
 
 __Step 1:__
 
-Create your wizard tasklets and place them under the following directory:
+Create your wizard tasklets and place them in the following directory:
 
     /opt/qbase5/apps/applicationserver/services/wizard_engine/tasklets/
 
@@ -23,7 +22,7 @@ In our case, we created two wizard tasklets:
 
 __Step 2:__
 
-Insure that the application server is running, then add the Wizards Actions macro to the page as follows:
+Ensure that the application server is running, then add the Wizards Actions macro to the page as follows:
 
     <div class="macro macro_wizardactions"></div>
 
@@ -50,14 +49,15 @@ For example, your file should look like this:
 
 __Note:__ You should change the IP in the examples above to the IP of your machine in order for them to work.
 
-## Wizard Samples
+
+##Wizard Samples
 
 <div class="macro macro_wizardactions"/>
 
-* <a href="javascript:start('bla','hellowizard','localhost',success)" target='#'>Hello Wizard</a>
-* <a href="javascript:start('bla','hellowizardname','localhost',success)" target='#'>Hello Wizard with Name</a>
+* <a href="javascript:start('bla','hellowizard','172.19.6.163',success)" target='#'>Hello Wizard</a>
+* <a href="javascript:start('bla','hellowizardname','172.19.6.163',success)" target='#'>Hello Wizard with Name</a>
 
 Or:
 
-<button onclick="start('bla','hellowizard','localhost',success)">Hello Wizard</button>
-<button onclick="start('bla','hellowizardname','localhost',success)">Hello Wizard with Name</button>
+<button onclick="start('bla','hellowizard','172.19.6.163',success)">Hello Wizard</button>
+<button onclick="start('bla','hellowizardname','172.19.6.163',success)">Hello Wizard with Name</button>

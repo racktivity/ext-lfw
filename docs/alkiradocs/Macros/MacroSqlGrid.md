@@ -1,21 +1,21 @@
-# SQL Grid Macro
+#SQL Grid Macro
+This macro executes a given SQL query and shows the result in a SQL grid, with support of paging.
 
-This macro executes a given query and shows the result in a sql grid, supports paging
 
 ## Parameters
+* __dbconnection:__ name of the database connection, as configured on the database server
+* __table:__ table name to select from
+* __schema:__ schema name of the table, if any
+* __sqlselect:__ your SQL select statement
+* __link:__ name of the field in the query which links to $space\_$pagename or $space\_$type\_$pagename. The name to the link is the name of field.
+* __sort:__ name of field on which you can sort
+* __pagesize:__ maximum rows per page
+* __width:__ width of the grid, by default 600
+* __height:__ height of the grid, by default 400
+* __fieldwidth:__ a dictionary which specifies the width of each field. If this is not provided, each field width is 80
 
-* __dbconnection:__ Name of the database connection (connection with this name must be configured on the server)
-* __table:__ Table name to select from
-* __schema:__ Name of schema this table exists
-* __sqlselect:__ Any select statement
-* __link:__ Name of the field in query which links to $space_$pagename or $space_$type_$pagename, name to the link is name of field
-* __sort:__ Name of field that can be sorted
-* __pagesize:__ Maximum rows per page
-* __width:__ Width of the grid, if not given default is 600
-* __height:__ Height of the grid, if not given default is 400
-* __fieldwidth:__ Dict specifies width of each field specified if not given default width of each field is 80
 
-## Remote database Configuration
+##Remote database Configuration
 
 To configure remote databases this configuration should be in file under location /opt/qbase5/cfg/qconfig/dbconnections.cfg
 
@@ -24,18 +24,18 @@ To configure remote databases this configuration should be in file under locatio
 	[db_$nameofDbConnection]
 	dbtype=postgresql #only supported for now
 	dbserver=127.0.0.1
-	dblogin=qbase
+	dblogin=sampleapp
 	dbpasswd=rooter
-	dbname=portal
+	dbname=sampleapp
 
-## Macro Example
+##Macro Example
 
 	<div class="macro macro_sqlgrid">
 	{
 		"dbconnection": "local",
-		"table": "view_page_list",
+		"table": "page_view",
 		"schema": "page",
-		"sqlselect": "SELECT view_page_list.category, view_page_list.name, view_page_list.parent FROM page.view_page_list WHERE view_page_list.space='Documentation'",
+		"sqlselect": "SELECT page_view.category, page_view.name, page_view.parent FROM page.page_view WHERE page_view.space='alkiradocs'",
 		"link": "name",
 		"sort": "name",
 		"pagesize": 10,
@@ -50,14 +50,15 @@ To configure remote databases this configuration should be in file under locatio
 	
 	</div>
 
-## Sample
+
+##Sample
 
 <div class="macro macro_sqlgrid">
 	{
 		"dbconnection": "local",
-		"table": "view_page_list",
+		"table": "page_view",
 		"schema": "page",
-		"sqlselect": "SELECT view_page_list.category, view_page_list.name, view_page_list.parent FROM page.view_page_list WHERE view_page_list.space='Documentation'",
+		"sqlselect": "SELECT page_view.category, page_view.name, page_view.parent FROM page.page_view WHERE page_view.space='alkiradocs'",
 		"link": "name",
 		"sort": "name",
 		"pagesize": 10,

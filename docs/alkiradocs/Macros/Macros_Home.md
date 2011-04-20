@@ -1,21 +1,14 @@
-[How to Create a Macro]: /sampleapp/#/alkiradocs/Macros_HOWTO
-[Macros]: /sampleapp/#/alkiradocs/Macros
+[howto]: /sampleapp/#/alkiradocs/Macros\_HOWTO
 
-# Alkira Macros
+#Alkira Macros
+As we have mentioned, Alkira is highly customizable; this is due to the fact that you can develop your own macros, which are written in _JavaScript_.
+These macros can have a wide range of usage, from highlighting code and showing a Google map, to adding a Wizard.
 
-As we have mentioned, Alkira is highly customizable; this is due to the fact that you can develop your own macros. These macros can have a wide range of usage, from highlighting code and showing a Google map, to adding a Wizard.
+The macro files themselves (JavaScript files) are stored in `/opt/qbase5/www/lfw/js/macros` and must have unique names.
 
-A [How to Create a Macro][] page has also been written to explain and ease the development of further macros.
+In this section you can find an overview of the available macros and how you can create [your own macro][howto].
 
-### Currently Implemented Macros
+##Currently Implemented Macros
 
-*   [Actions](/sampleapp/#/alkiradocs/MacroActions)
-*   [Code](/sampleapp/#/alkiradocs/MacroCode)
-*   [Dashboard](/sampleapp/#/alkiradocs/MacroDashboard)
-*   [Generic](/sampleapp/#/alkiradocs/MacroGeneric)
-*   [Include](/sampleapp/#/alkiradocs/MacroInclude)
-*   [GoogleMaps](/sampleapp/#/alkiradocs/MacroGoogleMaps)
-*   [WizardActions](/sampleapp/#/alkiradocs/MacroWizardActions)
-*   [PageTree](/sampleapp/#/alkiradocs/MacroPageTree)
-*   [SQLGrid](/sampleapp/#/alkiradocs/MacroSqlGrid)
-*   [GraphViz](/sampleapp/#/alkiradocs/MacroGraphViz)
+<div class="macro macro_include">{"name": "Macros"}</div>
+

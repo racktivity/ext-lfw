@@ -9,13 +9,9 @@ Markdown: License
 </ul>
 
 
-Markdown is free software, available under the terms of a BSD-style
-open source license.
+Markdown is free software, available under the terms of a BSD-style open source license.
 
-If you enjoy Markdown, please considering making a contribution
-to support its development.
-
-
+If you enjoy Markdown, please considering making a contribution to support its development.
 
 
 License

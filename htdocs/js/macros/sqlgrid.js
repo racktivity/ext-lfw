@@ -17,7 +17,7 @@ var render = function(options) {
     	setColNames(jsondata);
     	setColModel(getColNames());
     	makeGrid(jsondata);
-   };
+    };
     
     function getKeys(obj) {
     	var keys = [];

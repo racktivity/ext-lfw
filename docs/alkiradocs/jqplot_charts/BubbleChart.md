@@ -5,6 +5,7 @@ The Bubble chart is an example with explanation of the JqPlot Bubble Chart
 
 
 ######The body of the macro is the parameters that JqPlot uses to initialize the block chart.  
+
     1- width:- The width of the canvas where the chart is drawn. An optional parameter.  
     2- height:- The height of the canvas where the chart is drawn. An optional parameter.  
     3- chart_data:- A list of the bubble set(s) that will be drawn where each bubble set is a list of  
@@ -15,6 +16,7 @@ The Bubble chart is an example with explanation of the JqPlot Bubble Chart
        is not passed jqPlot will draw the default shape the Line chart.
 
 ##Example
+
     <div class="macro macro_jqplot">
         {"width" : 400,
          "height" : 400,
@@ -24,10 +26,12 @@ The Bubble chart is an example with explanation of the JqPlot Bubble Chart
          "renderer" :"$.jqplot.BubbleRenderer"
         }
     </div>
-######If you want to create a macro with a more complicated bubble chart please see [How to Create a Macro](/sampleapp/#/alkiradocs/Macros_HOWTO)  
-######and [jqPlot options page][jqplot options]  
-## Sample
-### Bubble Chart
+
+If you want to create a macro with a more complicated bubble chart please see [How to Create a Macro](/sampleapp/#/alkiradocs/Macros_HOWTO) and [jqPlot options page][jqplot options].
+  
+  
+## Sample Bubble Chart
+
 <div class="macro macro_jqplot">
 {"width" : 400,
  "height" : 400,

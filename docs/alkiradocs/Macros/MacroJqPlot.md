@@ -1,13 +1,13 @@
 [new jqplt chart]:http://www.jqplot.com/docs/files/usage-txt.html
 [jqPlot Examples]:http://www.jqplot.com/tests/
 
-# JqPlot Macro 
-
+#JqPlot Macro 
 jqPlot is a jQuery plugin to generate pure client-side javascript charts in your web pages
+
 
 ##Examples
 
-### [Line Chart](/sampleapp/#/alkiradocs/LineChart)
+###[Line Chart](/sampleapp/#/alkiradocs/LineChart)
 <div class="macro macro_jqplot">
 {"width" : 400,
  "height" : 400,
@@ -18,7 +18,7 @@ jqPlot is a jQuery plugin to generate pure client-side javascript charts in your
 
 <br />
 
-### [Bar Chart](/sampleapp/#/alkiradocs/BarChart)
+###[Bar Chart](/sampleapp/#/alkiradocs/BarChart)
 <div class="macro macro_jqplot">
 {"width" : 400,
  "height" : 400,
@@ -29,7 +29,7 @@ jqPlot is a jQuery plugin to generate pure client-side javascript charts in your
 </div>
 <br />
 
-### [Pie Chart](/sampleapp/#/alkiradocs/PieChart)
+###[Pie Chart](/sampleapp/#/alkiradocs/PieChart)
 <div class="macro macro_jqplot">
 {"width" : 400,
  "height" : 400,
@@ -40,7 +40,7 @@ jqPlot is a jQuery plugin to generate pure client-side javascript charts in your
 </div>
 
 
-### [Block Chart](/sampleapp/#/alkiradocs/BlockChart)
+###[Block Chart](/sampleapp/#/alkiradocs/BlockChart)
 <div class="macro macro_jqplot">
 {"width" : 400,
  "height" : 400,
@@ -51,7 +51,7 @@ jqPlot is a jQuery plugin to generate pure client-side javascript charts in your
 </div>
 <br />
 
-### [Bubble Chart](/sampleapp/#/alkiradocs/BubbleChart)
+###[Bubble Chart](/sampleapp/#/alkiradocs/BubbleChart)
 <div class="macro macro_jqplot">
 {"width" : 400,
  "height" : 400,
@@ -62,5 +62,6 @@ jqPlot is a jQuery plugin to generate pure client-side javascript charts in your
 </div>
 
 <br />
-####For more details and examples see
-[How to create a jqPlot chart][new jqplt chart] and [jqPlot Examples][jqPlot Examples]
+
+- - -
+For more details and examples see [How to create a jqPlot chart][new jqplt chart] and [jqPlot Examples][jqPlot Examples].

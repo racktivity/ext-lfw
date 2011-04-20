@@ -27,11 +27,14 @@ Bar charts are rendered with the barRenderer plugin which will be set in the bod
           "renderer" :"$.jqplot.BarRenderer"
         }
     </div>
-######If you want to create a macro with a more complicated bar chart please see [How to Create a Macro](/sampleapp/#/alkiradocs/Macros_HOWTO)  
-######and [jqPlot bar chart page][bar chart]
+    
+    
+If you want to create a macro with a more complicated bar chart please see [How to Create a Macro](/sampleapp/#/alkiradocs/Macros_HOWTO) and [jqPlot bar chart page][bar chart].
+
 <br />
-## Sample
-### Bar Chart
+
+## Sample Bar Chart
+
 <div class="macro macro_jqplot">
 {"width" : 400,
  "height" : 400,

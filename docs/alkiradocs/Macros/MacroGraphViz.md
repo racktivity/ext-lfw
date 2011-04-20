@@ -1,14 +1,16 @@
-# GraphViz Macro
+#GraphViz Macro
+This Macro shows how GraphViz generates an image graph from a dot file.
 
-This Macro shows how GraphViz generates an image graph from dot file.
 
-## Parameters
-
+##Parameters
 The body of the macro is the dot string definition of the graph which will generate a graph image.
+
 
 ## Example
 We use the graphviz macro as follows:
-## Sample 01
+
+
+###Sample 01
     <div class="macro macro_graphviz">
         digraph {
 
@@ -47,7 +49,8 @@ We use the graphviz macro as follows:
             }
     </div>
 
-## Sample 02
+
+###Sample 02
 
     <div class="macro macro_graphviz">
         digraph finite_state_machine {
@@ -73,7 +76,8 @@ We use the graphviz macro as follows:
         }
     </div>
 
-## Sample 01
+
+###Sample 01
 
 <div class="macro macro_graphviz">
 digraph {
@@ -112,7 +116,7 @@ digraph {
 </div>
 
 
-## Sample 02
+###Sample 02
 
 <div class="macro macro_graphviz">
 digraph finite_state_machine {

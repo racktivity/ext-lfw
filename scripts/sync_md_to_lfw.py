@@ -1,21 +1,26 @@
-#!/opt/qbase3/bin/python
-from pylabs.InitBase import q
+#!/usr/bin/python
+from pylabs.InitBase import q, p
 
+import optparse
 import os, re
-import osis
-from osis.client import OsisConnection
-from osis.client.xmlrpc import XMLRPCTransport
-import pymodel
-from pymodel.serializers import ThriftSerializer
 
-pymodel.init_domain('/opt/qbase5/pyapps/sampleapp/interface/model')
-osis.init()
+sync_parser = optparse.OptionParser()
 
-transport = XMLRPCTransport('http://127.0.0.1/sampleapp/appserver/xmlrpc/', 'model')
-serializer = ThriftSerializer()
-connection = OsisConnection(transport, serializer)
-#MD_PATH = q.system.fs.joinPaths(q.dirs.varDir, 'qpackages4', 'files', 'pylabs.org', 'lfw', '1.0', 'generic', 'docs')
-MD_PATH = '/opt/qbase5/pyapps/sampleapp/portal/spaces/'
+sync_parser.add_option('--path', '-p', dest='path', help='The path to the Markdown files you want to sync.')
+sync_parser.add_option('--appname', '-n', dest='appname', help='The name of the application for which you want to sync files.')
+
+(options, args) = sync_parser.parse_args()
+
+if not options.appname:
+    q.errorconditionhandler.raiseError('Application name must be given.')
+
+if options.path:
+    MD_PATH = options.path
+else:
+    MD_PATH = q.system.fs.joinPaths(q.dirs.baseDir, 'pyapps', options.appname, 'portal', 'spaces')
+
+api = p.application.getAPI(options.appname, context=q.enumerators.AppContext.APPSERVER)
+connection = api.model.ui
 
 macros_homepage = None
 
@@ -28,18 +33,18 @@ for folder in q.system.fs.listDirsInDir(MD_PATH):
         content = q.system.fs.fileGetContents(f)
 
         # Check if page exists
-        f = connection.ui.page.getFilterObject()
+        f = connection.page.getFilterObject()
         f.add('ui_view_page_list', 'name', name, True)
         f.add('ui_view_page_list', 'space', space, True)
-        page_info = connection.ui.page.findAsView(f, 'ui_view_page_list')
+        page_info = connection.page.findAsView(f, 'ui_view_page_list')
 
         if len(page_info) > 1:
             raise ValueError('Multiple pages found ?')
 
         elif len(page_info) == 1:
-            p = connection.ui.page.get(page_info[0]['guid'])
+            p = connection.page.get(page_info[0]['guid'])
         else:
-            p = connection.ui.page.new()
+            p = connection.page.new()
             p.name = name 
             p.space = space
             p.category = 'portal'
@@ -47,12 +52,12 @@ for folder in q.system.fs.listDirsInDir(MD_PATH):
         if name.startswith('Macro') and name not in ['Macros_Home', 'Macros']:
             if not macros_homepage:
                 #check if Macros_Home page is already created, then get its guid to set it as parent guid to other macro pages
-                filter = connection.ui.page.getFilterObject()
+                filter = connection.page.getFilterObject()
                 filter.add('ui_view_page_list', 'name', 'Macros_Home', True)
                 filter.add('ui_view_page_list', 'space', space, True)
-                macros_page_info = connection.ui.page.findAsView(filter, 'ui_view_page_list')
+                macros_page_info = connection.page.findAsView(filter, 'ui_view_page_list')
                 if len(macros_page_info) == 1:
-                    macros_homepage = connection.ui.page.get(macros_page_info[0]['guid'])
+                    macros_homepage = connection.page.get(macros_page_info[0]['guid'])
             if macros_homepage:
                 p.parent = macros_homepage.guid
 
@@ -77,4 +82,4 @@ for folder in q.system.fs.listDirsInDir(MD_PATH):
 
         p.tags = ' '.join(tags)
 
-        connection.ui.page.save(p)
+        connection.page.save(p)

@@ -119,9 +119,19 @@ class LFWService(object):
         where = ""
         if id == 0:
             where = "and pagelist.parent is null"  
-        else:
+        elif q.basetype.guid.check(id):
             where = "and pagelist.parent = '%s'" % id 
+        else:
+            sql1 = """
+                SELECT DISTINCT pagelist.guid 
+                FROM ONLY page.view_page_list as pagelist
+                WHERE pagelist.space ='%(space)s' and pagelist.name = '%(id)s';
+                """ % {'space': space, 'id': id}
             
+            parent_guid_result = self.connection.page.query(sql1)
+            parent_guid = parent_guid_result[0]['guid']
+            where = "and pagelist.parent = '%s'" % parent_guid
+
         sql = """
         SELECT DISTINCT pagelist.guid,
                 pagelist.parent,

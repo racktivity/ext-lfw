@@ -4,6 +4,7 @@ var render = function(options) {
     var $this = $(this);    
     var space = options.space;
     var page = options.page;
+    var root = options.body || 0;
     
     $.template(TEMPLATE_NAME, '<div><div id="mytree"></div></div>');
     $.tmpl(TEMPLATE_NAME, {}).appendTo($this);
@@ -20,7 +21,7 @@ var render = function(options) {
     			"ajax": {
     				"url": "appserver/rest/ui/portal/pageTree?space=" + space,
     				"data": function(n) {
-    					return {id: n.attr ? n.attr("id") : 0};
+    					return {id: n.attr ? n.attr("id") : root};
     				},
     			"progressive_render" : true
     			}

@@ -90,7 +90,7 @@ Below you can find an example of a macro that shows a static Google map.
 8. Define your macro in a Markdown file.
 
 
-##Callin the Macro in a Markdown File
+##Calling the Macro in a Markdown File
 
 To call a macro in a Markdown file, you use the following format:
 

@@ -42,6 +42,7 @@ var app = $.sammy(function(app) {
 
     var _appName = null;
     var _dependencies = new Object();
+    var _loadedscripts = new Object();
     var _space = null,
         _page = null;
     var sources = new Array();
@@ -335,22 +336,41 @@ data;
     		console.log('dependency: ' + dependency);
 			var head = document.getElementsByTagName( "head" )[ 0 ] || document.documentElement;
 			script = document.createElement( "script" );
+            if (! _loadedscripts[dependency] ) {
+                _loadedscripts[dependency] = new Object();
+                _loadedscripts[dependency].ready = false;
+                _loadedscripts[dependency].callbacks = new Array();
+            }
     		if (addSource(dependency) == true) {
     			console.log('adding dependency: ' + dependency);
 				script.src = dependency;
 				script.type = 'text/javascript';
 				head.insertBefore( script, head.firstChild );
+                _loadedscripts[dependency].callbacks.push(callback);
                 $(script).load(function(){
-                    _dependencies[callback].ready += 1;
-                    if (_dependencies[callback].ready >= _dependencies[callback].required){
-                        callback();
-                        _dependencies[callback].called = true;
-                    }
+                    _loadedscripts[dependency].ready = true;
+                    $.each(_loadedscripts[dependency].callbacks, function(cbidx, callback){
+                        _dependencies[callback].ready += 1;
+                        if (_dependencies[callback].ready >= _dependencies[callback].required){
+                            callback();
+                            _dependencies[callback].called = true;
+                        }
+                    });
                 });
 				// Use insertBefore instead of appendChild  to circumvent an IE6 bug.
 				// This arises when a base node is used (#2709 and #4378).
     		}else{
-                _dependencies[callback].ready += 1;
+                if (_loadedscripts[dependency].ready){
+                    _dependencies[callback].ready += 1;
+                }
+                else{
+                    _loadedscripts[dependency].callbacks.push(callback);
+                    //we add this just incase it became reasy while we where pushing our callback
+                    if (_loadedscripts[dependency].ready){
+                        _dependencies[callback].ready += 1;
+                    }
+ 
+                }
             }
     	});
         if (_dependencies[callback].required == _dependencies[callback].ready && _dependencies[callback].called != true){

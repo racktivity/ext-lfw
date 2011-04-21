@@ -9,3 +9,4 @@
 *   [PageTree](/sampleapp/#/alkiradocs/MacroPageTree)
 *   [SQLGrid](/sampleapp/#/alkiradocs/MacroSqlGrid)
 *   [GraphViz](/sampleapp/#/alkiradocs/MacroGraphViz)
+*   [JqPlot](/sampleapp/#/alkiradocs/MacroJqPlot)

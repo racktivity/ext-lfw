@@ -1,14 +1,10 @@
-from pymonkey import q
+from pylabs import q, p
 
 import os, re
-import osis
-from osis.client import OsisConnection
-from osis.client.xmlrpc import XMLRPCTransport
-from osis.model.serializers import ThriftSerializer
 
 class AlkiraClient:
 
-    def getClient(self, hostname):
+    def getClient(self, hostname, appname):
         """
         Gets a client object.
 
@@ -17,21 +13,19 @@ class AlkiraClient:
 
         @return: A client object.
         """
-        return Client(hostname)
+        return Client(hostname, appname)
 
 class Client:
 
-    def __init__(self, hostname):
-        osis.init(q.system.fs.joinPaths(q.dirs.baseDir, 'libexec', 'osis'))
-        transport = XMLRPCTransport('http://%s/appserver/xmlrpc/' %hostname, 'osis_service')
-        serializer = ThriftSerializer()
-        self.connection = OsisConnection(transport, serializer)
+    def __init__(self, hostname, appname):
+        api = p.application.getAPI(appname, host=hostname, context=q.enumerators.AppContext.APPSERVER)
+        self.connection = api.model.ui
 
     def _getPageInfo(self, space, name):
         page_filter = self.connection.page.getFilterObject()
-        page_filter.add('view_page_list', 'name', name, True)
-        page_filter.add('view_page_list', 'space', space, True)
-        page_info = self.connection.page.findAsView(page_filter, 'view_page_list')
+        page_filter.add('ui_view_page_list', 'name', name, True)
+        page_filter.add('ui_view_page_list', 'space', space, True)
+        page_info = self.connection.page.findAsView(page_filter, 'ui_view_page_list')
         return page_info
 
     def _getParentGUIDS(self, guid_list):
@@ -50,7 +44,7 @@ class Client:
         @type space: String
         @param space: The name of the space.
         """
-        PAGES = 'SELECT page.view_page_list."name" FROM page.view_page_list WHERE page.view_page_list.space = \'%s\'' %space
+        PAGES = 'SELECT ui_page.ui_view_page_list."name" FROM ui_page.ui_view_page_list WHERE ui_page.ui_view_page_list.space = \'%s\'' %space
         query = self.connection.page.query(PAGES)
         return map(lambda item: item["name"], query)
 
@@ -58,7 +52,7 @@ class Client:
         """
         Lists all the spaces.
         """
-        SPACES = 'SELECT DISTINCT page.view_page_list."space" FROM page.view_page_list'
+        SPACES = 'SELECT DISTINCT ui_page.ui_view_page_list."space" FROM ui_page.ui_view_page_list'
         query = self.connection.page.query(SPACES)
         return map(lambda item: item["space"], query)
 
@@ -122,7 +116,7 @@ class Client:
         @param name: The name of the page.
         """
         space_filter = self.connection.page.getFilterObject()
-        space_filter.add('view_page_list', 'space', space, True)
+        space_filter.add('ui_view_page_list', 'space', space, True)
         space_guids = self.connection.page.find(space_filter)
 
         delete_list = []
@@ -247,7 +241,7 @@ class Client:
             page.content = content
 
         if parent:
-            parent_page = self.getPage(space, parent)
+            parent_page = self.getPage(old_space, parent)
             page.parent = parent_page.guid
 
         if category:

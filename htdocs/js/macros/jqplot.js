@@ -49,12 +49,13 @@ var render = function(options) {
         dependencies.push(renderer_dependency);
     }
 
-    options.addDependency(cb, dependencies); 
 
     $.template(TEMPLATE_NAME, '<div><div id=${chart_div} style="height:${height}px;width:${width}px; "></div></div>');
     $.tmpl(TEMPLATE_NAME, {chart_div:chart_div, height:height, width:width}).appendTo($this);
     
     options.addCss({'id': 'jqplot', 'tag': 'link', 'params': {'rel': 'stylesheet', 'href': 'js/libs/jqplot/src/jquery.jqplot.css'}});
+
+    options.addDependency(cb, dependencies); 
 }
 register(render);
 

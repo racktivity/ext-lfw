@@ -6,9 +6,6 @@ var render = function(options) {
     var page = options.page;
     var root = options.params.root || 0;
     
-    $.template(TEMPLATE_NAME, '<div><div id="mytree"></div></div>');
-    $.tmpl(TEMPLATE_NAME, {}).appendTo($this);
-
 	options.addCss({'id': 'jsicon', 'tag': 'link', 'params': {'rel': 'shortcut icon', 'href': '/favicon.ico'}});
 	options.addCss({'id': 'jstree', 'tag': 'link', 'params': {'rel': 'alternate', 'type': 'application/rss+xml', 'href': 'http://www.jstree.com/feed'}});
 	options.addCss({'id': 'pagetree', 'tag': 'link', 'params': {'rel': 'stylesheet', 'href': 'http://static.jstree.com/v.1.0rc2/_docs/!style.css'}});
@@ -16,7 +13,7 @@ var render = function(options) {
 
     var cb = function(){
     	
-    	$('#mytree').jstree({
+    	$this.jstree({
     		"json_data": {
     			"ajax": {
     				"url": "appserver/rest/ui/portal/pageTree?space=" + space,

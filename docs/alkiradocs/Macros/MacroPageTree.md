@@ -6,11 +6,11 @@ It calls an lfw service which queries the database page schema and forms a recur
 
 ## Example
 ######If you want to display all pages that you have use this call:
-        <div id="pagetree" class="macro macro_pagetree"></div>
+        [[pagetree]][[/pagetree]]
 ######Or if you want to display the children of a certain page, then put the page's name in the body as follows:
-        <div id="pagetree" class="macro macro_pagetree">Home</div>
+        [[pagetree:root=Home]][[/pagetree]]
 
 ##Sample
 
-<div id="pagetree" class="macro macro_pagetree"></div>
+[[pagetree]][[/pagetree]]
 

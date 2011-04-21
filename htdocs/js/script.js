@@ -16,7 +16,7 @@
  */
 
 (function($) {
-    
+
 var DEFAULT_PAGE_NAME = 'Home',
     LABELS_RE = /,\s*/,
     LOCATION_PREFIX = '#/';
@@ -49,18 +49,18 @@ var app = $.sammy(function(app) {
     var csses = new Array();
     var sourcesloaded = false;
 	var cssLoaded = false;
-	
+
     var swap = function(html, base, root) {
-         
+
         base = base || ''; // location #/space/page
         root = root || null;
-        
+
         console.log('SWAP START: base ' + base + 'root ' + root);
-        
+
         console.log('SWAP content: ' + html);
-        
+
         var elem = $('<div>' + html + '</div>');
-        
+
         if (root === null) {
           $('#main')
             .empty()
@@ -70,7 +70,7 @@ var app = $.sammy(function(app) {
             .empty()
             .append(elem);
         }
-        
+
 
         // Replace anchor links
         $('#main a[href]')
@@ -84,35 +84,18 @@ var app = $.sammy(function(app) {
 
                 $this.attr('href', loc);
             });
-            
-        console.log('SWAP END: base ' + base); 
-        
+
+        console.log('SWAP END: base ' + base);
+
 
         $('.macro', elem).each(function() {
             var $this = $(this),
                 classes = ($this.attr('class') || '').split(/\s+/),
                 name = null,
                 context = this,
-                data = $this.html();
-                 
-                //data = $.parseJSON($this.html());
-            /**
-			var badparents = $this.parents("pre")
-			    .map(function () {
-			        return this.tagName;
-			        
-			    })
-			    .get().join(", ");
-			
-			    
-			
-			
-			if (badparents) {
-				console.log('Shouldn\'t be swapped! ' + $this.attr('class') + 'evil: ' + badparents);
-				return; 
-			}
-			**/
-			
+                data = $this.html(),
+                params = $.parseJSON(htmlDecode($this.attr('params'))) || new Object();
+
             $this.empty();
 
             for(var i = 0, len = classes.length; i < len; i++) {
@@ -128,11 +111,12 @@ var app = $.sammy(function(app) {
             }
 
             var render = function() {
-                            
+
                 var options = {
                     'space': getSpace(),
                     'page': getPage(),
                     'body': data,
+                    'params': params,
                     'pagecontent': elem,
                     'addDependency': function(callback, dependencies) {
                     	addDependency(callback, dependencies);
@@ -157,11 +141,11 @@ var app = $.sammy(function(app) {
 
                 // Load macro
                 console.log('Loading macro ' + name);
-                
+
                 var jqxhr = $.get(LFW_CONFIG['uris']['macros'] + name + '.js',
                     function(data, textStatus, jqXHR) {
-                    
-                    var script = '' +                        
+
+                    var script = '' +
 'var __exec_context_321 = this,\n' +
 '    register = function(render) {\n' +
 '        __exec_context_321.macros[\'' + name + '\'] = render;\n' +
@@ -186,12 +170,12 @@ data;
                     for(var i = 0, len = waiting.length; i < len; i++) {
                         waiting[i]();
                     }
-                }, 
+                },
                     'text'
                 )
                 .success()
-                .error(function(data, textStatus, jqXHR) { 
-                    console.log('Failed to load Macro: ' + textStatus); 
+                .error(function(data, textStatus, jqXHR) {
+                    console.log('Failed to load Macro: ' + textStatus);
                 })
                 .complete();
             }
@@ -204,7 +188,7 @@ data;
                 }
             }
         });
-        
+
 
 
     };
@@ -269,11 +253,11 @@ data;
             _appName = LFW_CONFIG['appname'];
             if( _appName == '' ) {
                 throw new Error( 'Appname is an emtpy string' )
-            } 
+            }
             if( ! _appName  ) {
                 throw new Error( 'Appname is null' )
-            } 
-        } 
+            }
+        }
         return _appName;
     }
     var getSpace = function() {
@@ -291,10 +275,47 @@ data;
         return _page;
     }
     
+    var htmlEncode = function(value){
+        if (!value){
+            return '';
+        }
+        return $('<div/>').text(value).html();
+    }
+
+    var htmlDecode = function(value){
+        if (!value){
+            return '';
+        }
+        return $('<div/>').html(value).text();
+    }
+
     var renderWiki = function(mdstring) {
-    	var compiler = new Showdown.converter(),
-                    rendered = compiler.makeHtml(mdstring || '');
-        return rendered;
+        mdstring = mdstring || '';
+        //mdstring = mdstring.replace(/\n?(\S{2})?\[\[((\w+):?((\w+=\w+)?(\s*,\s*\w+=\w+)*))\]\](([^\[][^\[])+)?([\s\S]?\[\[\/\2\]\])/g ,
+        mdstring = mdstring.replace(/\n?(..)?\[\[(\w+)(:[^\]]+)?\]\](([^\[][^\[])+)?([\s\S]?\[\[\/\2\]\])/g ,
+            function(fullmatch, _, macroname, paramstring, body, m3){
+                if (fullmatch.substr(0, 2) == "  "){
+                    return fullmatch;
+                }
+                var result = '<div class="macro macro_' + macroname + '"'
+                if (paramstring){
+                    paramstring = paramstring.substr(1);
+                    var params = new Object();
+                    $.each(paramstring.split(","), function(idx, param){
+                        if ( param.search("=") != -1){
+                            var keyvalue = param.split("=");
+                            params[keyvalue[0].trim()] = keyvalue[1].trim();
+                        }
+                    });
+                    result += " params='" + htmlEncode($.toJSON(params)) + "'";
+                }
+                body = body || '';
+                result += ">" + body + "</div>"
+                return result;
+            });
+        var compiler = new Showdown.converter();
+        var result = compiler.makeHtml(mdstring);
+        return result;
     }
 
 	function inArray(element, array) {
@@ -313,7 +334,7 @@ data;
 		}
 		return false;
 	}
-	
+
 	function loadSources() {
 		scripts = $('head > script');
     	$.each(scripts, function(idx, script) {
@@ -322,7 +343,7 @@ data;
     	});
     	sourcesloaded = true;
 	}
-		
+
     var addDependency = function(callback, dependencies) {
     	console.log('in adddependency');
     	if (sourcesloaded == false) {
@@ -369,7 +390,7 @@ data;
                     if (_loadedscripts[dependency].ready){
                         _dependencies[callback].ready += 1;
                     }
- 
+
                 }
             }
     	});
@@ -378,7 +399,7 @@ data;
                 _dependencies[callback].called = true;
         }
     }
-    
+
     function loadCss() {
     	csslinks = $('link');
     	$.each(csslinks, function(index, csslink) {
@@ -392,7 +413,7 @@ data;
     	})
     	cssLoaded = true;
     };
-    
+
 	var addCssId = function(id) {
 		console.log('adding cdd with id: ' + id);
 		if (!inArray(id, csses)) {
@@ -511,19 +532,19 @@ data;
     });
 
     this.get('#/:space/:page', function() {
-        
+
         clearFields();
 
         var space = this.params['space'],
             page = this.params['page'];
-        
+
         var render = true;
-        
+
         if (page.substr(-3) === '.md') {
             page = page.substr(0, page.length - 3);
             render = false;
         }
-         
+
             //pageUri = LFW_CONFIG['uris']['pages'] + '/' + space + '/' + page;
         var pageUri = LFW_CONFIG['uris']['pages'] + '?space=' + space +
                 '&name=' + page;
@@ -544,16 +565,15 @@ data;
                     context.notFound();
                     return;
                 }
-                
+
                 console.log('Page source: ' + content);
                 if(render === true) {
-                    var compiler = new Showdown.converter(),
-                        rendered = compiler.makeHtml(content || '');
+                    rendered = renderWiki(content);
                 } else {
-                     
+
                     rendered = $('<div><pre>' + content + '</pre></div>').html();
                     //rendered.append($('<div/>').text(content).text());
-                    
+
                     //rendered = rendered.html();
                 }
                 console.log('Page rendered: ' + rendered);
@@ -582,16 +602,16 @@ data;
         }, 500);
 
     });
-        
+
     /**
      * Pylabs Wizards integration
      **/
     this.post('#/action/:action', function () {
-       alert('Hello, executing action  ' + this.params['action']); 
+       alert('Hello, executing action  ' + this.params['action']);
        return false;
     });
-    
-     
+
+
 
     this.bind('change-space', function(e, data) {
         this.log('change-space');

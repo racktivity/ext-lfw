@@ -4,7 +4,7 @@ var render = function(options) {
     var $this = $(this);    
     var space = options.space;
     var page = options.page;
-    var root = options.body || 0;
+    var root = options.params.root || 0;
     
     $.template(TEMPLATE_NAME, '<div><div id="mytree"></div></div>');
     $.tmpl(TEMPLATE_NAME, {}).appendTo($this);

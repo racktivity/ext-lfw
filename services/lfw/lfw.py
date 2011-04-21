@@ -124,7 +124,7 @@ class LFWService(object):
         else:
             sql1 = """
                 SELECT DISTINCT pagelist.guid 
-                FROM ONLY page.view_page_list as pagelist
+                FROM ONLY ui_page.ui_view_page_list as pagelist
                 WHERE pagelist.space ='%(space)s' and pagelist.name = '%(id)s';
                 """ % {'space': space, 'id': id}
             

@@ -1,16 +1,15 @@
 import os.path
-
 from pylabs import q, p
+import urllib
 
 # @TODO: use sqlalchemy to construct queries - escape values 
 # @TODO: add space to filter criteria
 
-SQL_PAGES = 'SELECT DISTINCT ui_page.ui_view_page_list.%(prop)s FROM ui_page.ui_view_page_list'
-SQL_PAGES_FILTER = 'SELECT DISTINCT ui_page.ui_view_page_list.%(prop)s FROM ui_page.ui_view_page_list WHERE ui_page.ui_view_page_list.%(prop)s LIKE \'%(term)s%%\''
+SQL_PAGES = 'SELECT DISTINCT ui_page.ui_view_page_list.%(prop)s FROM ui_page.ui_view_page_list %(space_criteria)s'
+SQL_PAGES_FILTER = 'SELECT DISTINCT ui_page.ui_view_page_list.%(prop)s FROM ui_page.ui_view_page_list WHERE ui_page.ui_view_page_list.%(prop)s LIKE \'%(term)s%%\'  %(space_criteria)s'
 
 SQL_PAGE_TAGS = 'SELECT DISTINCT ui_page.ui_view_page_tag_list.%(prop)s FROM ui_page.ui_view_page_tag_list'
 SQL_PAGE_TAGS_FILTER = 'SELECT DISTINCT ui_page.ui_view_page_tag_list.%(prop)s FROM ui_page.ui_view_page_tag_list WHERE ui_page.ui_view_page_tag_list.%(prop)s LIKE \'%(term)s%%\''
-
 
 class LFWService(object):
 
@@ -32,12 +31,12 @@ class LFWService(object):
         return self.get_items('space', term)
 
     @q.manage.applicationserver.expose
-    def pages(self, term=None):
-        return self.get_items('name', term)
+    def pages(self, space=None, term=None):
+        return self.get_items('name', space, term)
 
     @q.manage.applicationserver.expose
-    def categories(self, term=None):
-        return self.get_items('category', term)     
+    def categories(self, space=None, term=None):
+        return self.get_items('category', space, term)
  
     @q.manage.applicationserver.expose 
     def search(self, text=None, space=None, category=None, tags=None):
@@ -51,8 +50,10 @@ class LFWService(object):
         sql_where = ['1=1']
 
         if tags:
-            taglist = tags.split(', ') or []
-            
+            # MNour - A hackish solution for tags/labels search. @see PYLABS-14.
+            # MNOUR - IMO this should be solved in the REST layer.
+            taglist = [tag for tag in urllib.unquote_plus(tags).split(', ') if tag] or []
+
             for x, tag in enumerate(taglist):
                sql_from.append('INNER JOIN ui_page.ui_view_page_tag_list tl%(x)s ON tl%(x)s.guid = ui_view_page_list.guid AND tl%(x)s.tag = \'%(tag)s\'' % {'tag': tag, 'x': x})
 
@@ -97,16 +98,21 @@ class LFWService(object):
 
         return result
 
-    def get_items(self, prop, term=None):
+    def get_items(self, prop, space=None, term=None):
 
         t = term.split(', ')[-1] if term else ''
 
         d = {'prop': prop, 'term': t}
 
-        if prop in ('tag',): 
+        if prop in ('tag',):
             sql = SQL_PAGE_TAGS_FILTER % d if t else SQL_PAGE_TAGS % d
         else:
-            sql = SQL_PAGES_FILTER % d if t else SQL_PAGES % d
+            if t:
+                d['space_criteria'] = 'AND ui_view_page_list.space = \'%s\'' % space if space else ''
+                sql = SQL_PAGES_FILTER % d
+            else:
+                d['space_criteria'] = 'WHERE ui_view_page_list.space = \'%s\'' % space if space else ''
+                sql = SQL_PAGES % d
 
         qr = self.connection.page.query(sql)
 

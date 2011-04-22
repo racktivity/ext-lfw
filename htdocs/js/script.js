@@ -226,7 +226,7 @@ data;
                     completionUri = LFW_CONFIG['uris']['title'];
 
                 $.getJSON(completionUri, {
-                    //'space': space,
+                    'space': space,
                     //'type': 'title',
                     //'q': term
                     'term': term
@@ -240,7 +240,7 @@ data;
                     completionUri = LFW_CONFIG['uris']['tags'];
 
                 $.getJSON(completionUri, {
-                    //'space': space,
+                    // 'space': space,
                     //'type': 'labels',
                     //'q': term
                     'term': term

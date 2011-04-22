@@ -22,7 +22,6 @@ var render = function(options) {
         }
         $this.empty();
         $this.append(element);
-        console.log('Being called by someone');
 	};
 	
     options.addDependency(cb, 

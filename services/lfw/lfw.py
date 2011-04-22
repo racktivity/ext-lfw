@@ -51,6 +51,7 @@ class LFWService(object):
 
         if tags:
             # MNour - A hackish solution for tags/labels search. @see PYLABS-14.
+            # MNOUR - IMO this should be solved in the REST layer.
             taglist = [tag for tag in urllib.unquote_plus(tags).split(', ') if tag] or []
 
             for x, tag in enumerate(taglist):
@@ -66,10 +67,6 @@ class LFWService(object):
             sql_where.append('ui_view_page_list.content LIKE \'%%%s%%\'' % text)
  
         query = 'SELECT %s FROM %s WHERE %s' % (sql_select, ' '.join(sql_from), ' AND '.join(sql_where))
-
-        # MNOUR - START DEBUG
-        q.logger.log('>>> SQL: %s' %query)
-        # MNOUR - END   DEBUG
 
         result = self.connection.page.query(query)
 

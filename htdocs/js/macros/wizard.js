@@ -20,7 +20,6 @@ var render = function(options) {
         else{
             element = $("<a>").attr("href", "javascript:"+action).text(title);
         }
-        $this.empty();
         $this.append(element);
 	};
 	

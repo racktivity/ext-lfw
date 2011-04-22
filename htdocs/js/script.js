@@ -41,7 +41,6 @@ var app = $.sammy(function(app) {
     this.use('Mustache');
 
     var _appName = null;
-    var _dependencies = new Object();
     var _loadedscripts = new Object();
     var _space = null,
         _page = null;
@@ -297,7 +296,7 @@ data;
                 if (fullmatch.substr(0, 2) == "  "){
                     return fullmatch;
                 }
-                var result = '<div class="macro macro_' + macroname + '"'
+                var result = '<span class="macro macro_' + macroname + '"'
                 if (paramstring){
                     paramstring = paramstring.substr(1);
                     var params = new Object();
@@ -310,7 +309,7 @@ data;
                     result += " params='" + htmlEncode($.toJSON(params)) + "'";
                 }
                 body = body || '';
-                result += ">" + body + "</div>"
+                result += ">" + body + "</span>"
                 return result;
             });
         var compiler = new Showdown.converter();
@@ -349,10 +348,11 @@ data;
     	if (sourcesloaded == false) {
     		loadSources();
     	}
-        _dependencies[callback] = new Object();
-        _dependencies[callback].required = dependencies.length;
-        _dependencies[callback].ready = 0;
-        _dependencies[callback].called = false;
+        _cbdata = new Object();
+        _cbdata.required = dependencies.length;
+        _cbdata.ready = 0;
+        _cbdata.called = false;
+        _cbdata.callback = callback;
     	$.each(dependencies, function(depindex, dependency) {
     		console.log('dependency: ' + dependency);
 			var head = document.getElementsByTagName( "head" )[ 0 ] || document.documentElement;
@@ -367,14 +367,14 @@ data;
 				script.src = dependency;
 				script.type = 'text/javascript';
 				head.insertBefore( script, head.firstChild );
-                _loadedscripts[dependency].callbacks.push(callback);
+                _loadedscripts[dependency].callbacks.push(_cbdata);
                 $(script).load(function(){
                     _loadedscripts[dependency].ready = true;
-                    $.each(_loadedscripts[dependency].callbacks, function(cbidx, callback){
-                        _dependencies[callback].ready += 1;
-                        if (_dependencies[callback].ready >= _dependencies[callback].required){
-                            callback();
-                            _dependencies[callback].called = true;
+                    $.each(_loadedscripts[dependency].callbacks, function(cbidx, cbdata){
+                        cbdata.ready += 1;
+                        if (cbdata.ready == cbdata.required){
+                            cbdata.called = true;
+                            cbdata.callback();
                         }
                     });
                 });
@@ -382,21 +382,21 @@ data;
 				// This arises when a base node is used (#2709 and #4378).
     		}else{
                 if (_loadedscripts[dependency].ready){
-                    _dependencies[callback].ready += 1;
+                    _cbdata.ready += 1;
                 }
                 else{
-                    _loadedscripts[dependency].callbacks.push(callback);
+                    _loadedscripts[dependency].callbacks.push(_cbdata);
                     //we add this just incase it became reasy while we where pushing our callback
                     if (_loadedscripts[dependency].ready){
-                        _dependencies[callback].ready += 1;
+                        _cbdata.ready += 1;
                     }
 
                 }
             }
     	});
-        if (_dependencies[callback].required == _dependencies[callback].ready && _dependencies[callback].called != true){
-                callback();
-                _dependencies[callback].called = true;
+        if (_cbdata.required == _cbdata.ready && _cbdata.called != true){
+                _cbdata.called = true;
+                _cbdata.callback();
         }
     }
 

@@ -4,10 +4,14 @@ import optparse
 import os, re
 import functools
 
-def sync_to_alkira(appname, path):
+def sync_to_alkira(appname, path=None):
     from pylabs import p, q
     api = p.application.getAPI(options.appname, context=q.enumerators.AppContext.APPSERVER)
-    MD_PATH = path
+    MD_PATH = ''
+    if not path:
+        MD_PATH = q.system.fs.joinPaths(q.dirs.baseDir, 'pyapps', options.appname, 'portal', 'spaces')
+    else:
+        MD_PATH = path
     serverapi = p.application.getAPI(appname,context=q.enumerators.AppContext.APPSERVER)
     connection = p.application.getAPI(appname).action
     macros_homepage = None
@@ -80,10 +84,5 @@ if __name__ == "__main__":
     if not options.appname:
         q.errorconditionhandler.raiseError('Application name must be given.')
 
-    if options.path:
-        MD_PATH = options.path
-    else:
-        MD_PATH = q.system.fs.joinPaths(q.dirs.baseDir, 'pyapps', options.appname, 'portal', 'spaces')
-
-    sync_to_alkira(options.appname, MD_PATH)
+    sync_to_alkira(options.appname, options.path)
 

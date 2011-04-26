@@ -21,57 +21,89 @@ To configure remote databases this configuration should be in file under locatio
 
 ### Example configuration
 
-	[db_$nameofDbConnection]
-	dbtype=postgresql #only supported for now
-	dbserver=127.0.0.1
-	dblogin=sampleapp
-	dbpasswd=rooter
-	dbname=sampleapp
+    [db_sampleapp]
+    dbtype = postgresql
+    dbpasswd = 
+    dblogin = sampleapp
+    dbname = sampleapp
+    dbserver = 127.0.0.1
 
 ##Macro Example
 
-	<div class="macro macro_sqlgrid">
-	{
-		"dbconnection": "local",
-		"table": "page_view",
-		"schema": "page",
-		"sqlselect": "SELECT page_view.category, page_view.name, page_view.parent FROM page.page_view WHERE page_view.space='alkiradocs'",
-		"link": "name",
-		"sort": "name",
-		"pagesize": 10,
-		"width": 600,
-		"height": 200,
-		"fieldwidth": {
-			"category": 40,
-			"name": 80,
-			"parent": 160
-		}
-	}
-	
-	</div>
+    <div class="macro macro_sqlgrid">
+    {
+        "dbconnection": "sampleapp",
+        "table": "ui_view_page_list",
+        "schema": "ui_page",
+        "sqlselect": "SELECT ui_view_page_list.category, ui_view_page_list.name, ui_view_page_list.parent FROM ui_page.ui_view_page_list WHERE ui_view_page_list.space='Macros'",
+        "link": "name",
+        "sort": "name",
+        "pagesize": 10,
+        "width": 600,
+        "height": 200,
+        "fieldwidth": {
+            "category": 40,
+            "name": 80,
+            "parent": 160
+        }
+    }
+    
+    </div>
+###### OR you can specify the columns you want to retrieve, Schema name, Table/View name and a dictionary of filter you want to use
+    <div class="macro macro_sqlgrid">
+    {
+        "dbconnection": "sampleapp",
+        "table": "ui_view_page_list",
+        "schema": "ui_page",
+        "columns": {
+            "category": null,
+            "name": "Macro name",
+            "parent": "Parent guid"
+            },
+        "wheredict": {
+            "space": "Macros"
+            },
+        "link": "Macro name",
+        "sort": "name",
+        "pagesize": 10,
+        "width": 600,
+        "height": 200,
+        "fieldwidth": {
+            "category": 40,
+            "name": 80,
+            "parent": 160
+        }
+    }
+    </div>
+
 
 
 ##Sample
 
 <div class="macro macro_sqlgrid">
-	{
-		"dbconnection": "local",
-		"table": "page_view",
-		"schema": "page",
-		"sqlselect": "SELECT page_view.category, page_view.name, page_view.parent FROM page.page_view WHERE page_view.space='alkiradocs'",
-		"link": "name",
-		"sort": "name",
-		"pagesize": 10,
-		"width": 600,
-		"height": 200,
-		"fieldwidth": {
-			"category": 40,
-			"name": 80,
-			"parent": 160
-		}
-	}
+    {
+        "dbconnection": "sampleapp",
+        "table": "ui_view_page_list",
+        "schema": "ui_page",
+        "columns": {
+            "category": null,
+            "name": "Macro name",
+            "parent": "Parent guid"
+            },
+        "wheredict": {
+            "space": "Macros"
+            },
+        "link": "Macro name",
+        "sort": "name",
+        "pagesize": 10,
+        "width": 600,
+        "height": 200,
+        "fieldwidth": {
+            "category": 40,
+            "name": 80,
+            "parent": 160
+        }
+    }
 
 </div>
-
-
 

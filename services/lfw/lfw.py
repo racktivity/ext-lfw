@@ -17,7 +17,7 @@ class LFWService(object):
         
         # Initialize API
         self.connection = p.api.model.core
-	self.db_config_path = q.system.fs.joinPaths(q.dirs.cfgDir, 'qconfig', 'dbconnections.cfg')
+        self.db_config_path = q.system.fs.joinPaths(q.dirs.cfgDir, 'qconfig', 'dbconnections.cfg')
         module = os.path.abspath(os.path.dirname(__file__))
         tasklet_path = os.path.abspath(os.path.join(module, 'tasklets'))
         self._tasklet_engine = q.taskletengine.get(tasklet_path)
@@ -194,7 +194,7 @@ class LFWService(object):
         else:
             localdb = True
         if localdb:
-            dbname = 'portal'
+            dbname = 'sampleapp'
             dbserver = '127.0.0.1'
             dblogin = q.manage.postgresql8.cmdb.rootLogin
             dbpassword = q.manage.postgresql8.cmdb.rootPasswd

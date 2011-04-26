@@ -4,15 +4,24 @@ This macro displays a Google map on the page.
 
 
 ##Parameters
-None
+ * latitude: Latitude on earth
+ * longitude: Longitude on earth
+ * width: Width of the canvas
+ * height: Height of the canvas
+ * zoom: Zoomlevel of the map
+
 
 
 ##Example
 To call the macro we use:
 
-    <div class="macro macro_googlemaps"></div>
+    [[googlemaps]][[/googlemaps]]
+    [[googlemaps:longitude=31.2547302, latitude=30.0904842, zoom=10]][[/googlemaps]]
 
 
 ##Sample
 
-<div class="macro macro_googlemaps"></div>
+[[googlemaps]][[/googlemaps]]
+
+[[googlemaps:longitude=31.2547302, latitude=30.0904842, zoom=11]][[/googlemaps]]
+

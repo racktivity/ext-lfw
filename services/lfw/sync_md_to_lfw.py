@@ -8,7 +8,7 @@ def sync_to_alkira(appname, path=None):
     from pylabs import p, q
     MD_PATH = ''
     if not path:
-        MD_PATH = q.system.fs.joinPaths(q.dirs.baseDir, 'pyapps', options.appname, 'portal', 'spaces')
+        MD_PATH = q.system.fs.joinPaths(q.dirs.baseDir, 'pyapps', appname, 'portal', 'spaces')
     else:
         MD_PATH = path
     serverapi = p.application.getAPI(appname,context=q.enumerators.AppContext.APPSERVER)

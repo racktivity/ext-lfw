@@ -1,9 +1,8 @@
 var render = function(options) {
 
     var me = this;    
-    config = $.parseJSON(options.body)
-    var space = config['space'] || options.space;
-    var name = config['name'];
+    var space = options.params.space || options.space;
+    var name = options.params.name;
     
     console.log('[macro_include] Retrieving page ' + name + ' from space ' + space);
 

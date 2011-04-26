@@ -11,13 +11,13 @@ Includes another page in the current page.
 ##Example
 Assuming we want to include the page [SubPage][] at the end of this page, we would add:
 
-    <div class="macro macro_include">{"name": "SubPage"}</div>
+    [[include:name=SubPage]][[/include]]
 
 
 ##Sample
 
 ---
 
-<div class="macro macro_include">{"name": "SubPage"}</div>
+[[include:name=SubPage]][[/include]]
 
   [SubPage]: /sampleapp/#/alkiradocs/SubPage

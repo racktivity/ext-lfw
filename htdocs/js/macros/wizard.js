@@ -35,6 +35,7 @@ var render = function(options) {
              '/static/jswizards/libs/jQueryBubblePopup.v2.3.1_2/jquery.bubblepopup.v2.3.1.min.js',
              '/static/jswizards/libs/jquery-tooltip/js/jtip.js']);
 	options.addCss({'id': 'jquery-ui', 'tag': 'link', 'params': {'rel': 'stylesheet', 'href': '/static/jswizards/style/jquery-ui.css'}});
+	options.addCss({'id': 'floatbox-wizard', 'tag': 'link', 'params': {'rel': 'stylesheet', 'href': '/static/jswizards/style/floatbox-wizard.css'}});
 	options.addCss({'id': 'wizardaction', 'tag': 'link', 'params': {'rel': 'stylesheet', 'href': '/static/jswizards/libs/jQueryBubblePopup.v2.3.1_2/jquery.bubblepopup.v2.3.1.css'}});
 };
 register(render);

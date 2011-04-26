@@ -6,7 +6,6 @@ import functools
 
 def sync_to_alkira(appname, path=None):
     from pylabs import p, q
-    api = p.application.getAPI(options.appname, context=q.enumerators.AppContext.APPSERVER)
     MD_PATH = ''
     if not path:
         MD_PATH = q.system.fs.joinPaths(q.dirs.baseDir, 'pyapps', options.appname, 'portal', 'spaces')

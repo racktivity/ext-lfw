@@ -290,13 +290,12 @@ data;
 
     var renderWiki = function(mdstring) {
         mdstring = mdstring || '';
-        //mdstring = mdstring.replace(/\n?(\S{2})?\[\[((\w+):?((\w+=\w+)?(\s*,\s*\w+=\w+)*))\]\](([^\[][^\[])+)?([\s\S]?\[\[\/\2\]\])/g ,
-        mdstring = mdstring.replace(/\n?(..)?\[\[(\w+)(:[^\]]+)?\]\](([^\[][^\[])+)?([\s\S]?\[\[\/\2\]\])/g ,
+        mdstring = mdstring.replace(/\n?(..)?\[\[(\w+)(:[^\]]+)?\]\]([.\s\S]*?)([\s\S]?\[\[\/\2\]\])/g ,
             function(fullmatch, _, macroname, paramstring, body, m3){
                 if (fullmatch.substr(0, 2) == "  "){
                     return fullmatch;
                 }
-                var result = '<div class="macro macro_' + macroname + '"'
+                var result = '\n<div class="macro macro_' + macroname + '"'
                 if (paramstring){
                     paramstring = paramstring.substr(1);
                     var params = new Object();
@@ -309,7 +308,7 @@ data;
                     result += " params='" + htmlEncode($.toJSON(params)) + "'";
                 }
                 body = body || '';
-                result += ">" + body + "</div>"
+                result += ">" + body + "\n</div>"
                 return result;
             });
         var compiler = new Showdown.converter();

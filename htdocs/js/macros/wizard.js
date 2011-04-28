@@ -20,6 +20,7 @@ var render = function(options) {
         else{
             element = $("<a>").attr("href", "javascript:"+action).text(title);
         }
+        $this.attr('style', 'float: left; width: auto');
         $this.append(element);
 	};
 	

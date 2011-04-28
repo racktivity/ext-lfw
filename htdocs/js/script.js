@@ -296,7 +296,7 @@ data;
                 if (fullmatch.substr(0, 2) == "  "){
                     return fullmatch;
                 }
-                var result = '<span class="macro macro_' + macroname + '"'
+                var result = '<div class="macro macro_' + macroname + '"'
                 if (paramstring){
                     paramstring = paramstring.substr(1);
                     var params = new Object();
@@ -309,7 +309,7 @@ data;
                     result += " params='" + htmlEncode($.toJSON(params)) + "'";
                 }
                 body = body || '';
-                result += ">" + body + "</span>"
+                result += ">" + body + "</div>"
                 return result;
             });
         var compiler = new Showdown.converter();

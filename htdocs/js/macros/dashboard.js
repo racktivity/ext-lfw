@@ -60,13 +60,16 @@ var render = function(options) {
     var config = $.parseJSON(options.body);
 
     // @hack: config to json string
-    for (var column in config.columns)
-        for (var widget in config.columns[column].widgets)
+    for (var column in config.columns){
+        for (var widget in config.columns[column].widgets){
             config.columns[column].widgets[widget].config = $.toJSON(config.columns[column].widgets[widget].config);
+            config.columns[column].widgets[widget].params = $.toJSON(config.columns[column].widgets[widget].params);
+        }
+    }
 
     // Define templates
     // @todo: Check if templates are already compiled
-    $.template('plugin.dashboard.column', '{{each columns}}<div id="column${order}" class="column">{{each widgets}}<div id="${id}" class="portlet"><div class="portlet-header">${title}</div><div class="portlet-content"><div class="macro macro_${widgettype}">${config}</div></div></div>{{/each}}</div>{{/each}}');
+    $.template('plugin.dashboard.column', '{{each columns}}<div id="column${order}" class="column">{{each widgets}}<div id="${id}" class="portlet"><div class="portlet-header">${title}</div><div class="portlet-content"><div class="macro macro_${widgettype}" params="${params}">${config}</div></div></div>{{/each}}</div>{{/each}}');
     $.template('plugin.dashboard.main', '<div class="bogus"><div class="dashboard"><div class="dashboard-header">${title}</div><div class="columns">{{tmpl "plugin.dashboard.column"}}</div></div></div>');
 
     var c = $.tmpl('plugin.dashboard.main', config);

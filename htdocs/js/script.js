@@ -131,7 +131,11 @@ var app = $.sammy(function(app) {
                     }
                 };
                 console.log('Start rendering macro ' + name + ' - ' + data);
-                LFW.macros[name].call(context, options);
+                try{
+                    LFW.macros[name].call(context, options);
+                }catch(err){
+                    $this.append("<div class='macro_error'>Macro "+ name +" failed to render<br>"+err+"</div>")
+                }
                 console.log('Stop rendering macro ' + name + ' - ' + data);
             };
 

@@ -49,3 +49,10 @@
     display: inline;
     
 }
+
+.macro_error {
+    background: none repeat scroll 0 0 #FBE3E4;
+    color: #8A1F11;
+    border: 2px solid #FBC2C4;
+    margin-bottom: 1em;
+    padding: 0.8em; 

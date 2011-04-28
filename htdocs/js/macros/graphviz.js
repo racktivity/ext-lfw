@@ -4,7 +4,7 @@ var render = function(options) {
 
     $.ajax({
         type: 'POST',
-        url: '/appserver/rest/lfw/graphviz/',
+        url: 'appserver/rest/ui/portal/graphviz/',
         data: {graphDot_str: options.body},
         success: function (data, textStatus, jqXHR) {
             $.template(TEMPLATE_NAME, '<div><img src="data:image/gif;base64,${data}" alt="Graphviz Image"/></div>');

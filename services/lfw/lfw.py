@@ -236,10 +236,11 @@ class LFWService(object):
         import StringIO
 
         graphDot_str = graphDot_str.replace("&gt;", ">")
-        G = pgv.AGraph(graphDot_str)
+        G = pgv.AGraph(string=graphDot_str)
         G.layout(prog='dot')
         rawimage = StringIO.StringIO()
         G.draw(rawimage, 'gif')
+        rawimage.buf = ''
         img_b64 = base64.b64encode(rawimage.getvalue())
         return img_b64
 

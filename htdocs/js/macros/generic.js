@@ -8,7 +8,7 @@ var render = function(options) {
     tagstring = tagstring + ' space:' + options.space;
 
     $.get(
-    '/appserver/rest/widget_service/generic',
+    'appserver/rest/ui/portal/generic',
     {
         tagstring: tagstring
     },

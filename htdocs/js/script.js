@@ -294,7 +294,7 @@ data;
 
     var renderWiki = function(mdstring) {
         mdstring = mdstring || '';
-        mdstring = mdstring.replace(/\n?(..)?\[\[(\w+)(:[^\]]+)?\]\]([.\s\S]*?)([\s\S]?\[\[\/\2\]\])/g ,
+        mdstring = mdstring.replace(/\n?(..)?\[\[(\w+)(:[^\]]+)?\]\]([.\s\S]*?[\s\S])?(\[\[\/\2\]\])/g ,
             function(fullmatch, _, macroname, paramstring, body, m3){
                 if (fullmatch.substr(0, 2) == "  "){
                     return fullmatch;
@@ -312,7 +312,7 @@ data;
                     result += " params='" + htmlEncode($.toJSON(params)) + "'";
                 }
                 body = body || '';
-                result += ">" + body + "\n</div>"
+                result += ">" + body.trim() + "\n</div>"
                 return result;
             });
         var compiler = new Showdown.converter();

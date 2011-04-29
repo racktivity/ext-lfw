@@ -1,6 +1,6 @@
 #Google Maps Macro
 
-This macro displays a Google map on the page.
+The `googlemaps` macro displays a Google map on the page.
 
 
 ##Parameters

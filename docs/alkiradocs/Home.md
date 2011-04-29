@@ -32,7 +32,7 @@
             <li><a href="/sampleapp/#/alkiradocs/MacroJqPlot">JqPlot</a></li>
             <li><a href="/sampleapp/#/alkiradocs/MacroPageTree">PageTree</a></li>
             <li><a href="/sampleapp/#/alkiradocs/MacroSqlGrid">SqlGrid</a></li>
-            <li><a href="/sampleapp/#/alkiradocs/MacroWizardActions">WizardActions</a></li>
+            <li><a href="/sampleapp/#/alkiradocs/MacroWizard">Wizards</a></li>
         </ul>
     </li>
 </ul>

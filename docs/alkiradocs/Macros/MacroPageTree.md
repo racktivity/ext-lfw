@@ -1,11 +1,11 @@
 #Page Tree Macro
 
-The pagetree macro shows a flexible hierarchical tree view.
+The `pagetree` macro shows a flexible hierarchical tree view.
 It calls an Alkira service which queries the database page schema and then forms a recursive tree of parent-children relation.
 
 
 ##Parameters
-The pagetree macro can take the `root` parameter which indicates the root page from which the page tree must be built.
+The `pagetree` macro can take the `root` parameter which indicates the root page from which the page tree must be built.
 
 
 ## Example

@@ -2,11 +2,11 @@
 [jqPlot Examples]:http://www.jqplot.com/tests/
 
 #JqPlot Macro 
-jqPlot is a jQuery plugin to generate pure client-side JavaScript charts in your web pages.
+The `jqplot` is a jQuery plugin to generate pure client-side JavaScript charts in your web pages.
 
 
 ##Parameters
-The jqplot macro does not use parameters.
+The `jqplot` macro does not use parameters.
 The body contains the data to generate the chart.
 
 
@@ -21,7 +21,6 @@ The body contains the data to generate the chart.
     }
     [[/jqplot]]
 
-<br />
 
 [[jqplot]]
 {"width" : 400,
@@ -43,7 +42,6 @@ The body contains the data to generate the chart.
     }
     [[/jqplot]]
     
-<br />
 
 [[jqplot]]
 {"width" : 400,
@@ -66,7 +64,6 @@ The body contains the data to generate the chart.
     }
     [[/jqplot]]
 
-<br />
 
 [[jqplot]]
 {"width" : 400,
@@ -89,7 +86,6 @@ The body contains the data to generate the chart.
     }
     [[/jqplot]]
 
-<br />
 
 [[jqplot]]
 {"width" : 400,
@@ -112,7 +108,6 @@ The body contains the data to generate the chart.
     }
     [[/jqplot]]
 
-<br />
 
 [[jqplot]]
 {"width" : 400,

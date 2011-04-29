@@ -1,9 +1,9 @@
 #SQL Grid Macro
-This macro executes a given SQL query and shows the result in a SQL grid, with support of paging.
+The `sqlgrid` macro executes a given SQL query and shows the result in a SQL grid, with support of paging.
 
 
 ## Parameters
-The sqlgrid macro does not accept parameters, they are all defined in the bode of the macro.
+The `sqlgrid` macro does not accept parameters, the parameters are all defined in the body of the macro.
 
 * __dbconnection:__ name of the database connection, as configured on the database server
 * __table:__ table name to select from

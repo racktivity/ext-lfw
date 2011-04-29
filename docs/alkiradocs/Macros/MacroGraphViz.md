@@ -1,5 +1,5 @@
 #Graphviz Macro
-The Graphviz macro creates a graphic by means of a dot file. For more information about Graphviz, visit the [Graphviz website](http://www.graphviz.org).
+The `graphviz` macro creates a graphic by means of a dot file. For more information about Graphviz, visit the [Graphviz website](http://www.graphviz.org).
 
 
 ##Parameters

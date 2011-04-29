@@ -1,5 +1,5 @@
 #Dashboard Macro
-The Dashboard macro allows you to add pages or other macros as widgets in your Alkira page.
+The `dashboard` macro allows you to add pages or other macros as widgets in your Alkira page.
 
 
 ##Parameters
@@ -59,12 +59,12 @@ This is where everything is mainly defined. For every column you want to add, yo
 
 * Order: a number that specifies in which column you want to add the widgets.
 * Widgets: a list that contains the actual widgets you want to add, it has the following parameters:
-    ** __order:__ The position of the widget inside the previous column you chose before.
-    ** __id:__ An ID given to the widget.
-    ** __widgettype:__ Specifies which macro the widget will contain. You should write the macro name itself. For example, if you want the widget to include the Home page, then you set the widgit type to 'include'. If you want to display the youtube widgit, then you set it to 'youtube'.
-    ** __title:__ A title which is displayed in the title bar of the widget.
-    ** __config:__ If the macro you want to add uses the body as a parameter (for example, the [code macro][] or [include macro][]), then you write that body in the config parameter.
-    ** __params:__ The parameters you want to pass to the macro
+    * __order:__ The position of the widget inside the previous column you chose before.
+    * __id:__ An ID given to the widget.
+    * __widgettype:__ Specifies which macro the widget will contain. You should write the macro name itself. For example, if you want the widget to include the Home page, then you set the widgit type to 'include'. If you want to display the youtube widgit, then you set it to 'youtube'.
+    * __title:__ A title which is displayed in the title bar of the widget.
+    * __config:__ If the macro you want to add uses the body as a parameter (for example, the [code macro][] or [include macro][]), then you write that body in the config parameter.
+    * __params:__ The parameters you want to pass to the macro
 
 
 ###ID

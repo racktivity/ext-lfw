@@ -1,15 +1,15 @@
 #Wizards Macro
-The Wizards macro allows you to add a created [wizard](/sampleapp/#/doc/formwizardpractical) in an Alkira page.
+The `wizard` macro allows you to add a created [wizard](/sampleapp/#/doc/formwizardpractical) in an Alkira page.
 
 
 ## Parameters
-* appserver: name of the application server that runs the wizard, by default the application server of the domain of your document
-* title: title for your wizard, as it will appear in your document
-* name: name of the wizard, must be the name of the directory in which the desired wizard is located
-* type: type of element in your document, either _button_ (by default) or _link_
-* appname: name of the application which contains the wizard, by default the application in which your document is included
-* domain: name of the domain in the application, by default the domain is the space
-* extra: the 'extra' params used in the wizards
+* __appserver__: name of the application server that runs the wizard, by default the application server of the domain of your document
+* __title__: title for your wizard, as it will appear in your document
+* __name__: name of the wizard, must be the name of the directory in which the desired wizard is located
+* __type__: type of element in your document, either _button_ (by default) or _link_
+* __appname__: name of the application which contains the wizard, by default the application in which your document is included
+* __domain__: name of the domain in the application, by default the domain is the space
+* __extra__: the 'extra' params used in the wizards
 
 The _title_ and _name_ parameters are required, all other parameters are optional.
 

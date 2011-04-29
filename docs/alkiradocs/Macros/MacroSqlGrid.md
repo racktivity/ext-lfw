@@ -6,6 +6,7 @@ The `sqlgrid` macro executes a given SQL query and shows the result in a SQL gri
 The `sqlgrid` macro does not accept parameters, the parameters are all defined in the body of the macro.
 
 * __dbconnection:__ name of the database connection, as configured on the database server
+* __name:__ name displayed at the top of the grid, default SQL Grid
 * __table:__ table name to select from
 * __schema:__ schema name of the table, if any
 * __sqlselect:__ your SQL select statement, to be used without the `columns` and `wheredict` parameters

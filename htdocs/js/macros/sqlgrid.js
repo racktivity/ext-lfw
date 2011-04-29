@@ -5,6 +5,7 @@ var render = function(options) {
     var page = options.page;
     var body = $.parseJSON(options.body);
     var links = body.link;
+    var caption = body.name || "SQL Grid";
     var sqlselect = "SELECT ";
     
     if (body.sqlselect){
@@ -111,7 +112,7 @@ var render = function(options) {
             sortname: body.sort,
             sortorder: 'asc',
             viewrecords: false,
-            caption: 'SQL Grid',
+            caption: caption,
             width: width,
             height: height
           });

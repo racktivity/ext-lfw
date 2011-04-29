@@ -3,7 +3,7 @@ The `generic` macro which renders content based on the PyLabs tags defined in th
 
 The content that this macro renders is a result of the execution of certain tasklets. These tasklets are available in:
 
-    /opt/qbase5/apps/applicationserver/services/widget_service/tasklets/generic
+    /opt/qbase5/pyapps/<yourapp>/impl/portal
 
 Currently there are two test tasklets present in that directory:
 
@@ -25,25 +25,25 @@ The tasklet `test1.py` lists all the tags and labels in a page. As we have menti
 * space:space\_name
 * page:page\_name
 
-Where `space_name` is the name of the space and `page_name` is the name of the page. Sample 1 is the result of calling the Generic macro with debug as one of the labels; code is shown below:
+Where `space_name` is the name of the space and `page_name` is the name of the page. Sample 1 is the result of calling the Generic macro with 'debug' as one of the labels; code is shown below:
 
-    <div class="macro macro_generic">debug tagkey:tagvalue label sample</div>
+    [[generic]]debug tagkey:tagvalue label sample[[/generic]]
 
 
 ###Sample 1
 
 ---
-<div class="macro macro_generic">debug tagkey:tagvalue label</div>
+[[generic]]debug tagkey:tagvalue label[[/generic]]
 
 
 ##Example 2
 
 The tasklet `test2.py` on the other hand, only prints out a default message. Sample 2 is the result of calling the Generic macro with 'demo' as a label; code is shown below:
 
-    <div class="macro macro_generic">a:b demo</div>
+    [[generic]]a:b demo[[/generic]]
 
 
 ###Sample 2
 
 ---
-<div class="macro macro_generic">a:b demo</div>
+[[generic]]a:b demo[[/generic]]

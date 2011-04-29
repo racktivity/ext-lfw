@@ -294,7 +294,7 @@ data;
 
     var renderWiki = function(mdstring) {
         mdstring = mdstring || '';
-        mdstring = mdstring.replace(/\n?(..)?\[\[(\w+)(:[^\]]+)?\]\]([.\s\S]*?[\s\S])?(\[\[\/\2\]\])/g ,
+        mdstring = mdstring.replace(/\n?(..)?\[\[(\w+)(:[^\]]+)?\]\]([.\s\S]*?[\s\S])??(\[\[\/\2\]\])/g ,
             function(fullmatch, _, macroname, paramstring, body, m3){
                 if (fullmatch.substr(0, 2) == "  "){
                     return fullmatch;

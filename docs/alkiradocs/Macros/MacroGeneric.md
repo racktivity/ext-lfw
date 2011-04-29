@@ -1,5 +1,5 @@
 #Generic Macro
-A generic macro which renders content based on the PyLabs tags defined in the body of the macro and the context of the page.
+The `generic` macro which renders content based on the PyLabs tags defined in the body of the macro and the context of the page.
 
 The content that this macro renders is a result of the execution of certain tasklets. These tasklets are available in:
 

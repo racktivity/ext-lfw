@@ -1,6 +1,6 @@
 #Google Maps Macro
 
-This macro displays a Google map on the page.
+The `googlemaps` macro displays a Google map on the page.
 
 
 ##Parameters
@@ -22,6 +22,8 @@ To call the macro we use:
 ##Sample
 
 [[googlemaps]][[/googlemaps]]
+
+<br />
 
 [[googlemaps:longitude=31.2547302, latitude=30.0904842, zoom=11]][[/googlemaps]]
 

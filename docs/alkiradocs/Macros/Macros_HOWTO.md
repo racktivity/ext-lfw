@@ -9,6 +9,12 @@ Below you can find an example of a macro that shows a static Google map.
     [[code]]
     	var render = function(options) {
     	    var $this = $(this);
+    	        //define params that user can provide when adding the macro to a page
+    	        var lat = parseFloat(options.params.latitude) || 51.1;
+                var longitude = parseFloat(options.params.longitude) || 3.83333;
+                var width = parseFloat(options.params.width) || 250;
+                var height = parseFloat(options.params.height) || 250;
+                var zoom = parseFloat(options.params.zoom) || 8;
     	
     	        var cb = function(){
     	                var latlng = new google.maps.LatLng(51.1, 3.833333);
@@ -41,7 +47,10 @@ Below you can find an example of a macro that shows a static Google map.
 
     __Note:__ `lfw` is the acronym for _Lightning Fast Wiki_, which is the Incubaid code name for the [Alkira](/sampleapp/#/alkiradocs/Home) project.
 
-2. There must be a render function which takes `options` as a parameter. Options is an object with some parameters that we can use, such as:
+2. Define the parameters if any. You can set a default value for each parameter. In the example these parameters are defined with `options.params`, for example `var longitude = parseFloat(options.params.longitude);`. 
+You can provide default values by adding double pipe characters: `var longitude = parseFloat(options.params.longitude) || 3.83333;`
+
+3. There must be a render function which takes `options` as a parameter. Options is an object with some parameters that we can use, such as:
     * __options.space:__ get space name.
     * __options.page:__ get page name.
     * __options.body:__ get the page contents.
@@ -50,7 +59,7 @@ Below you can find an example of a macro that shows a static Google map.
     * __options.swap():__ swap the old content of a page with new content.
     * __options.renderWiki():__ return the HTML element of a given Markdown syntax.  
        
-3. If you want to apply a special style sheet for your macro, you need the `options.addCss()` function. This function has three arguments:
+4. If you want to apply a special style sheet for your macro, you need the `options.addCss()` function. This function has three arguments:
     * __id:__ a unique id for your macro (usually just the macro name since it should be unique).
     * __tag:__ either "style" or "link" tag, where:
 
@@ -64,30 +73,30 @@ Below you can find an example of a macro that shows a static Google map.
 
         For example: 'params': {'rel': 'stylesheet', 'href': 'http://yandex.st/highlightjs/5.16/styles/default.min.css'}
 
-4. You can load extra JavaScript libraries in your macro with the `options.addDependency` function. This functions requires two arguments:
+5. You can load extra JavaScript libraries in your macro with the `options.addDependency` function. This functions requires two arguments:
 
     * __callback:__  callback function to be called after loading all dependency scripts, `cb` in the given example
     * __dependencies:__ list of file links to be loaded.
 
     In this case, you have to put all code that depends on the loaded dependencies in a callback function which you give as first argument to the `addDependency` function call.
 
-5. Create a template using jQuery; jQuery.template(name, template) where:
+6. Create a template using jQuery; jQuery.template(name, template) where:
 
     * __name:__ A string naming the compiled template.
     * __template:__ The HTML markup and/or text to be used as template. Can be a string, or an HTML element (or jQuery object wrapping an element) whose content is to be used as a template.  
         
-6. Render the specified HTML content as a template, using the specified data:
+7. Render the specified HTML content as a template, using the specified data:
 
     jQuery.tmpl(name, [ options ]) where:
 
     * __name:__ A string naming the compiled template.
     * __options:__ An optional map of user-defined key-value pairs. Extends the tmplItem data structure, available to the template during rendering.  
       
-7. Register the render function using:
+8. Register the render function using:
 
     * register(render);
 
-8. Define your macro in a Markdown file.
+9. Define your macro in a Markdown file.
 
 
 ##Calling the Macro in a Markdown File

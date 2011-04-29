@@ -8,4 +8,5 @@
 *   [JqPlot](/sampleapp/#/alkiradocs/MacroJqPlot)
 *   [PageTree](/sampleapp/#/alkiradocs/MacroPageTree)
 *   [SQLGrid](/sampleapp/#/alkiradocs/MacroSqlGrid)
+*   [Toc](/sampleapp/#/alkiradocs/MacroToc)
 *   [Wizard](/sampleapp/#/alkiradocs/MacroWizard)

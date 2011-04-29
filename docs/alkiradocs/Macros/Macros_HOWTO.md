@@ -6,7 +6,7 @@ This tutorial will walk you through creating an Alkira macro while using the Goo
 Below you can find an example of a macro that shows a static Google map.
 
 
-    <div class="macro macro_code">
+    [[code]]
     	var render = function(options) {
     	    var $this = $(this);
     	
@@ -33,13 +33,13 @@ Below you can find an example of a macro that shows a static Google map.
     	};
     	
     	register(render);
-    </div>
+    [[/code
 
 ##Creating a Macro
 
 1. Create a macro file under `/opt/qbase5/www/lfw/js/macros/`, for example `macrotest.js`.
 
-    __Note:__ `lfw` is the acronym for _Lightning Fast Wiki_, which is the Incubaid code name for [Alkira](/sampleapp/#/alkiradocs/Home)
+    __Note:__ `lfw` is the acronym for _Lightning Fast Wiki_, which is the Incubaid code name for the [Alkira](/sampleapp/#/alkiradocs/Home) project.
 
 2. There must be a render function which takes `options` as a parameter. Options is an object with some parameters that we can use, such as:
     * __options.space:__ get space name.
@@ -94,13 +94,13 @@ Below you can find an example of a macro that shows a static Google map.
 
 To call a macro in a Markdown file, you use the following format:
 
-    <div class="macro macro_macroname">
+    [[<macroname>]]
         Macro body code goes here.
-    </div>
+    [[/<macroname>]]
 
-Where `macroname` is the name of your macro. So for example if we want to add the Google Maps macro, since it does not contain a body, we use:
+Where `macroname` is the name of your macro, i.e. the name of the JavaScript file. For example if we want to add the Google Maps macro, since it does not contain a body, we use:
 
-    <div class="macro macro_googlemaps"></div>
+    [[googlemaps]][[/googlemaps]]
 
 For another example, take a look at the [code highlighting][] macro which takes the code itself as a body.
 

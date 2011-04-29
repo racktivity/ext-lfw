@@ -23,5 +23,7 @@ To call the macro we use:
 
 [[googlemaps]][[/googlemaps]]
 
+<br />
+
 [[googlemaps:longitude=31.2547302, latitude=30.0904842, zoom=11]][[/googlemaps]]
 

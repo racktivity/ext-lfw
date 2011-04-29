@@ -10,5 +10,5 @@ In this section you can find an overview of the available macros and how you can
 
 ##Currently Implemented Macros
 
-<div class="macro macro_include">{"name": "Macros"}</div>
+[[include:name:Macros]][[/include]]
 

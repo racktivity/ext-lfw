@@ -17,17 +17,17 @@ Assume that you want to highlight the following code:
 
 Use the code macro as follows:
 
-    <div class="macro macro_code">
+    [[code]]
         class MyClass(object):
             def __init__(self):
                 # Do some init
-    </div>
+    [[/code]]
 
 
 ##Sample
 
-<div class="macro macro_code">
+[[code]]
 class MyClass(object):
 	def __init__(self):
 		# Do some init
-</div>
+[[/code]]

@@ -1,5 +1,5 @@
 # Include Macro
-Includes another page in the current page.
+The Include macra includes the content of another page in the current page.
 
 
 ##Parameters
@@ -19,5 +19,3 @@ Assuming we want to include the page [SubPage][] at the end of this page, we wou
 ---
 
 [[include:name=SubPage]][[/include]]
-
-  [SubPage]: /sampleapp/#/alkiradocs/SubPage

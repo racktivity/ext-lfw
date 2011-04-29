@@ -5,17 +5,14 @@ var render = function(options) {
     var tocTemplate = $.tmpl('plugin.page.toc', {});
     $this.append(tocTemplate);
     
-    var body = $(options.body);
-    value = "h1, h2, h3";
-    if (body != undefined) {
-    	value = body.attr('value');
-    }
+    //var body = $(options.body);
+    var value = options.params.tags || "h1, h2, h3";
 
     $("#toc").append('<p>Table of Contents:</p>');
     options.pagecontent.find(value).each(function(i) {
         var current = $(this);
         current.attr("id", "title" + i);
-        $("#toc").append("<a id='link" + i + "' href='/#/" + options.space + "/" + options.page + "/#title" +
+        $("#toc").append("<a id='link" + i + "' href='/#/" + options.space + "/" + options.page + "#title" +
             i + "'>" + current.html() + "</a><br />");
     });
 }

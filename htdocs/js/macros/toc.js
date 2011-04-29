@@ -12,7 +12,7 @@ var render = function(options) {
     options.pagecontent.find(value).each(function(i) {
         var current = $(this);
         current.attr("id", "title" + i);
-        $("#toc").append("<a id='link" + i + "' href='/#/" + options.space + "/" + options.page + "#title" +
+        $("#toc").append("<a id='link" + i + "' href='" + document.URL + "/#title" +
             i + "'>" + current.html() + "</a><br />");
     });
 }

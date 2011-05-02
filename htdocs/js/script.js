@@ -41,12 +41,9 @@ var app = $.sammy(function(app) {
     this.use('Mustache');
 
     var _appName = null;
-    var _loadedscripts = new Object();
     var _space = null,
         _page = null;
-    var sources = new Array();
     var csses = new Array();
-    var sourcesloaded = false;
 	var cssLoaded = false;
 
     var swap = function(html, base, root) {
@@ -325,23 +322,6 @@ data;
 			}
 		}
 		return false;
-	}
-
-	var addSource = function(source) {
-		if (!inArray(source, sources)) {
-			sources.push(source);
-			return true;
-		}
-		return false;
-	}
-
-	function loadSources() {
-		scripts = $('head > script');
-    	$.each(scripts, function(idx, script) {
-    		source = script.src;
-    		addSource(source);
-    	});
-    	sourcesloaded = true;
 	}
 
     var addDependency = function(callback, dependencies, ordered) {

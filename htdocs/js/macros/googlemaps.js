@@ -24,7 +24,7 @@ var render = function(options) {
     options.addCss({'id': 'googlemaps', 'tag': 'style', 'params': 'html { height: 100% }\
     body { height: 100%; margin: 0px; padding: 0px }\
     #map_canvas { height: 100% }'});
-    options.addDependency(cb, ['http://maps.google.com/maps/api/js?sensor=false', "http://maps.gstatic.com/intl/en_us/mapfiles/api-3/4/2/main.js"]);
+    options.addDependency(cb, ['http://maps.google.com/maps/api/js?sensor=false', "http://maps.gstatic.com/intl/en_us/mapfiles/api-3/4/2/main.js"], true);
 };
 
 register(render);

@@ -326,7 +326,7 @@ data;
 
     var addDependency = function(callback, dependencies, ordered) {
 
-        var seperator = ordered == undefined ? "" : ">";
+        var seperator = ordered == undefined ? " " : ">";
     	console.log('in adddependency');
         var depstring = "";
         $.each(dependencies, function(idx, script){

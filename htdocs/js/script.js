@@ -117,9 +117,7 @@ var app = $.sammy(function(app) {
                     'body': data,
                     'params': params,
                     'pagecontent': elem,
-                    'addDependency': function(callback, dependencies) {
-                    	addDependency(callback, dependencies);
-                    },
+                    'addDependency': addDependency,
                     'addCss': function(cssobject) {
                     	addCss(cssobject);
                     },
@@ -346,61 +344,18 @@ data;
     	sourcesloaded = true;
 	}
 
-    var addDependency = function(callback, dependencies) {
-    	console.log('in adddependency');
-    	if (sourcesloaded == false) {
-    		loadSources();
-    	}
-        _cbdata = new Object();
-        _cbdata.required = dependencies.length;
-        _cbdata.ready = 0;
-        _cbdata.called = false;
-        _cbdata.callback = callback;
-    	$.each(dependencies, function(depindex, dependency) {
-    		console.log('dependency: ' + dependency);
-			var head = document.getElementsByTagName( "head" )[ 0 ] || document.documentElement;
-			script = document.createElement( "script" );
-            if (! _loadedscripts[dependency] ) {
-                _loadedscripts[dependency] = new Object();
-                _loadedscripts[dependency].ready = false;
-                _loadedscripts[dependency].callbacks = new Array();
-            }
-    		if (addSource(dependency) == true) {
-    			console.log('adding dependency: ' + dependency);
-				script.src = dependency;
-				script.type = 'text/javascript';
-				head.insertBefore( script, head.firstChild );
-                _loadedscripts[dependency].callbacks.push(_cbdata);
-                $(script).load(function(){
-                    _loadedscripts[dependency].ready = true;
-                    $.each(_loadedscripts[dependency].callbacks, function(cbidx, cbdata){
-                        cbdata.ready += 1;
-                        if (cbdata.ready == cbdata.required){
-                            cbdata.called = true;
-                            cbdata.callback();
-                        }
-                    });
-                });
-				// Use insertBefore instead of appendChild  to circumvent an IE6 bug.
-				// This arises when a base node is used (#2709 and #4378).
-    		}else{
-                if (_loadedscripts[dependency].ready){
-                    _cbdata.ready += 1;
-                }
-                else{
-                    _loadedscripts[dependency].callbacks.push(_cbdata);
-                    //we add this just incase it became reasy while we where pushing our callback
-                    if (_loadedscripts[dependency].ready){
-                        _cbdata.ready += 1;
-                    }
+    var addDependency = function(callback, dependencies, ordered) {
 
-                }
-            }
-    	});
-        if (_cbdata.required == _cbdata.ready && _cbdata.called != true){
-                _cbdata.called = true;
-                _cbdata.callback();
+        var seperator = ordered == undefined ? "" : ">";
+    	console.log('in adddependency');
+        var depstring = "";
+        $.each(dependencies, function(idx, script){
+            depstring += script + " " + seperator + " ";
+        });
+        if (depstring !== ""){
+            depstring = depstring.substring(0, depstring.length - 3);
         }
+        dominoes(depstring, callback);
     }
 
     function loadCss() {

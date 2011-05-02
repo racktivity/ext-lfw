@@ -55,7 +55,7 @@ var render = function(options) {
     
     options.addCss({'id': 'jqplot', 'tag': 'link', 'params': {'rel': 'stylesheet', 'href': 'js/libs/jqplot/src/jquery.jqplot.css'}});
 
-    options.addDependency(cb, dependencies); 
+    options.addDependency(cb, dependencies, true); 
 }
 register(render);
 

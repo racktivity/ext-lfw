@@ -22,18 +22,27 @@
     <li><a href="/sampleapp/#/alkiradocs/Macros_Home">Macros</a>
         <ul>    
             <li><a href="/sampleapp/#/alkiradocs/Macros_HOWTO">Creating a Macro</a></li>
-            <li><a href="/sampleapp/#/alkiradocs/MacroActions">Actions</a></li>
-            <li><a href="/sampleapp/#/alkiradocs/MacroCode">Code</a></li>
-            <li><a href="/sampleapp/#/alkiradocs/MacroDashboard">Dashboard</a></li>
-            <li><a href="/sampleapp/#/alkiradocs/MacroGeneric">Generic</a></li>
-            <li><a href="/sampleapp/#/alkiradocs/MacroGoogleMaps">Google Maps</a></li>
-            <li><a href="/sampleapp/#/alkiradocs/MacroGraphViz">GraphViz</a></li>
-            <li><a href="/sampleapp/#/alkiradocs/MacroInclude">Include</a></li>
-            <li><a href="/sampleapp/#/alkiradocs/MacroJqPlot">JqPlot</a></li>
-            <li><a href="/sampleapp/#/alkiradocs/MacroPageTree">PageTree</a></li>
-            <li><a href="/sampleapp/#/alkiradocs/MacroSqlGrid">SqlGrid</a></li>
-            <li><a href="/sampleapp/#/alkiradocs/MacroToc">Toc</a></li>
-            <li><a href="/sampleapp/#/alkiradocs/MacroWizard">Wizards</a></li>
+            <li><a href="/sampleapp/#/alkiradocs/MacrosPylabs">Pylabs Macros</a>
+                <ul>
+                    <li><a href="/sampleapp/#/alkiradocs/MacroGeneric">Generic</a></li>
+                    
+                </ul>
+            </li>
+            <li><a href="/sampleapp/#/alkiradocs/MacrosJavascript">Javascript Macros</a>
+                <ul>
+                    <li><a href="/sampleapp/#/alkiradocs/MacroActions">Actions</a></li>
+                    <li><a href="/sampleapp/#/alkiradocs/MacroCode">Code</a></li>
+                    <li><a href="/sampleapp/#/alkiradocs/MacroDashboard">Dashboard</a></li>
+                    <li><a href="/sampleapp/#/alkiradocs/MacroGoogleMaps">Google Maps</a></li>
+                    <li><a href="/sampleapp/#/alkiradocs/MacroGraphViz">GraphViz</a></li>
+                    <li><a href="/sampleapp/#/alkiradocs/MacroInclude">Include</a></li>
+                    <li><a href="/sampleapp/#/alkiradocs/MacroJqPlot">JqPlot</a></li>
+                    <li><a href="/sampleapp/#/alkiradocs/MacroPageTree">PageTree</a></li>
+                    <li><a href="/sampleapp/#/alkiradocs/MacroSqlGrid">SqlGrid</a></li>
+                    <li><a href="/sampleapp/#/alkiradocs/MacroToc">Toc</a></li>
+                    <li><a href="/sampleapp/#/alkiradocs/MacroWizard">Wizards</a></li>
+                </ul>
+            </li>
         </ul>
     </li>
 </ul>

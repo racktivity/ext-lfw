@@ -4,12 +4,12 @@
 
 #Alkira Macros
 
-##### [PyLabs Macros][pylabs]
-##### [JavaScript Macros][js]
-
 As we have mentioned, Alkira is highly customizable; this is due to the fact that you can develop your own macros, which are written in _JavaScript_.
 
-There are two types of macros, PyLabs Macros and JavaScript Macros.
+There are two types of macros:
+
+* __[PyLabs Macros][pylabs]__
+* __[JavaScript Macros][js]__
 
 ## PyLabs Macros
 PyLabs Macros render content based on the PyLabs tags defined in the body of the macro and the content of the page.

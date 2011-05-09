@@ -1,8 +1,24 @@
+[generic]: /sampleapp/#/alkiradocs/MacroGeneric
+
 #How to Create Macros
-This tutorial will walk you through creating an Alkira macro while using the Google Maps macro as a reference.
+Adding dynamic content to an Alkira page is easy by using macros. There are two ways to add dynamic content:
+
+1. using PyLabs tasklets with the [generic][] macro
+2. using JavaScript macros
+
+Both options will be explained in this section.
 
 
-##Google Maps Macro Code
+##PyLabs Tasklets
+The [generic][] macro is a macro that looks up tasklets in a specific directory of an application. By providing labels to this macro, a specific tasklet is executed.
+For more details about this way of adding dynamic content, see the [Generic Macro][generic] page.
+
+
+##JavaScript Macros
+Instead of using PyLabs' _generic_ macro, you can also create your own macros in JavaScript. Below we elaborate how you can create a JavaScript macro by using the Google Maps macro as a reference.
+
+
+###Google Maps Macro Code
 Below you can find an example of a macro that shows a static Google map.
 
 
@@ -41,7 +57,7 @@ Below you can find an example of a macro that shows a static Google map.
 	register(render);
 [[/code]]
 
-##Creating a Macro
+###Creating a Macro
 
 1. Create a macro file under `/opt/qbase5/www/lfw/js/macros/`, for example `macrotest.js`.
 
@@ -99,7 +115,7 @@ You can provide default values by adding double pipe characters: `var longitude 
 9. Define your macro in a Markdown file.
 
 
-##Calling the Macro in a Markdown File
+###Calling the Macro in a Markdown File
 
 To call a macro in a Markdown file, you use the following format:
 

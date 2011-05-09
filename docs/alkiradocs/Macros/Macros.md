@@ -1,12 +1,5 @@
 
-*   [Code](/sampleapp/#/alkiradocs/MacroCode)
-*   [Dashboard](/sampleapp/#/alkiradocs/MacroDashboard)
-*   [Generic](/sampleapp/#/alkiradocs/MacroGeneric)
-*   [GoogleMaps](/sampleapp/#/alkiradocs/MacroGoogleMaps)
-*   [GraphViz](/sampleapp/#/alkiradocs/MacroGraphViz)
-*   [Include](/sampleapp/#/alkiradocs/MacroInclude)
-*   [JqPlot](/sampleapp/#/alkiradocs/MacroJqPlot)
-*   [PageTree](/sampleapp/#/alkiradocs/MacroPageTree)
-*   [SQLGrid](/sampleapp/#/alkiradocs/MacroSqlGrid)
-*   [Toc](/sampleapp/#/alkiradocs/MacroToc)
-*   [Wizard](/sampleapp/#/alkiradocs/MacroWizard)
+[[include:name=MacrosPylabs]][[/include]]
+
+
+[[include:name=MacrosJavascript]][[/include]]

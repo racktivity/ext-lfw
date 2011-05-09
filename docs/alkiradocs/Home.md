@@ -22,13 +22,13 @@
     <li><a href="/sampleapp/#/alkiradocs/Macros_Home">Macros</a>
         <ul>    
             <li><a href="/sampleapp/#/alkiradocs/Macros_HOWTO">Creating a Macro</a></li>
-            <li><a href="/sampleapp/#/alkiradocs/MacrosPylabs">Pylabs Macros</a>
+            <li><a href="/sampleapp/#/alkiradocs/MacrosPylabs">PyLabs Macros</a>
                 <ul>
                     <li><a href="/sampleapp/#/alkiradocs/MacroGeneric">Generic</a></li>
                     
                 </ul>
             </li>
-            <li><a href="/sampleapp/#/alkiradocs/MacrosJavascript">Javascript Macros</a>
+            <li><a href="/sampleapp/#/alkiradocs/MacrosJavascript">JavaScript Macros</a>
                 <ul>
                     <li><a href="/sampleapp/#/alkiradocs/MacroActions">Actions</a></li>
                     <li><a href="/sampleapp/#/alkiradocs/MacroCode">Code</a></li>

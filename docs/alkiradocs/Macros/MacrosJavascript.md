@@ -10,7 +10,7 @@
 [toc]: /sampleapp/#/alkiradocs/MacroToc
 [wizard]: /sampleapp/#/alkiradocs/MacroWizard
 
-### Javascript Macros
+####JavaScript Macros
 * [Actions Macro][actions]  
 * [Code Macro][code]  
 * [Dashboard Macro][dashboard]  

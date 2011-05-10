@@ -1,39 +1,50 @@
+[qpcreate]: http://confluence.incubaid.com/display/PYLABS/Creating+a+Q-Package
+[codetasklet]: http://confluence.incubaid.com/display/PYLABS/Q-Package+Tasklets#codemanagement+Tasklet
+
 #Managing Spaces and Pages
-In this section, we explain how you can work with Alkira spaces and pages.
+When you create an application, it is possible to add documentation for the application, or you can simply create an application that only contains documentation.
+The documentation is created on the Alkira platform.
+In this section, we explain how you can manage Alkira spaces and pages.
 
 
-###Creating a Space
+##Creating a Space
 
 Currently, you create a space by simply creating a directory under the following path:
 
-    /opt/qbase5/var/qpackages4/files/pylabs.org/lfw/1.0/generic/docs/
+    /opt/qbase5/pyapps/<pyapp name>/portal/spaces
+    
+For example, in the 'sampleapp' application there are four spaces, `alkiradocs`, `api`, `crm`, and `doc`:
 
-For example, create a space `Documentation` by running the following command:
+* `/opt/qbase5/pyapps/sampleapp/portal/spaces/alkiradocs`
+* `/opt/qbase5/pyapps/sampleapp/portal/spaces/api`
+* `/opt/qbase5/pyapps/sampleapp/portal/spaces/crm`
+* `/opt/qbase5/pyapps/sampleapp/portal/spaces/doc`
+    
 
-    mkdir /opt/qbase5/var/qpackages4/files/pylabs.org/lfw/1.0/generic/docs/alkiradocs
+If you want to add a space to the 'sampleapp' application, create an extra directory, for example `mytest` by running the following command:
 
-The created space only appears when the directory contains a `Home.md` page and the `sync_md_to_lfw.py` is run. 
-Read the sections below for details on creating a page and how the script works.
+    mkdir /opt/qbase5/pyapps/sampleapp/portal/spaces/mytest
 
+To make the new space available in your application, you must create the file `Home.md` in this directory and run the `syncPortal` action in the Q-Shell:
 
-###Creating a Page
+    p.application.syncPortal('<pyapp name>')
+ 
+
+##Creating a Page
 
 To create a page, create a Markdown file in the desired space. A markdown file has always the `.md` extension.
 
-In this case, a 'Home.md' file is created in `/opt/qbase5/var/qpackages4/files/pylabs.org/lfw/1.0/generic/docs/alkiradocs`. 
+In this case, a 'Home.md' file is created in `/opt/qbase5/pyapps/<pyapp name>/portal/spaces/alkiradocs`. 
 
 
-###How to Synchronize your Files to the Server
+##Publishing the Space and Pages
 
-In order for any pages or spaces to be displayed, you need to run the `sync_md_to_lfw.py` script. The script is located in:
+In order for any pages or spaces to be displayed, you need to run the `syncPortal` action in the Q-Shell:
 
-    /opt/qbase5/var/qpackages4/files/pylabs.org/lfw/1.0/generic/scripts
+    p.application.syncPortal('<pyapp name>')
 
-This script analyzes the directory:
+This function makes all changes in the portal directories of your PyApp readily available. You only need to refresh your web browser to see the changes.
 
-    /opt/qbase5/var/qpackages4/files/pylabs.org/lfw/1.0/generic/docs/
 
-and creates a space for every directory in there as long as it has a `Home.md` file. Any folders under a space folder will not have a space created for them.
-
-For example, the `Documentation` space folders contains sub-folders such as `Macros` and `Markdown` but only a `alkiradocs` space is created since only this directory contains the file `Home.md`. 
-This means that when you follow either the `Macros` or `Markdown` link, you go to `alkiradocs/Markdown_Home` not `alkiradocs/Markdown/Markdown_Home`.
+##Packaging Documentation
+Adding the documentation to the Q-Package of your PyApp is identical to [creating a Q-Package][qpcreate]. Make sure that you add the new directories of your spaces in the [codemanagement][codetasklet] tasklet.

@@ -3,7 +3,7 @@ The `generic` macro which renders content based on the PyLabs tags defined in th
 
 The content that this macro renders is a result of the execution of certain tasklets. These tasklets are available in:
 
-    /opt/qbase5/pyapps/<yourapp>/impl/portal
+    /opt/qbase5/pyapps/<yourapp>/impl/portal/pylabsmacro/<macroname>
 
 Currently there are two test tasklets present in that directory:
 
@@ -47,3 +47,5 @@ The tasklet `test2.py` on the other hand, only prints out a default message. Sam
 
 ---
 [[generic]]a:b demo[[/generic]]
+
+

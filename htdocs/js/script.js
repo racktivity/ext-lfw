@@ -89,6 +89,7 @@ var app = $.sammy(function(app) {
                 classes = ($this.attr('class') || '').split(/\s+/),
                 name = null,
                 context = this,
+                macroname = null,
                 data = $this.html(),
                 params = $.parseJSON(htmlDecode($this.attr('params'))) || new Object();
 
@@ -105,6 +106,8 @@ var app = $.sammy(function(app) {
                     name = class_.replace(/^macro_/, '');
                 }
             }
+            
+            macroname = name;
 
             var render = function() {
 
@@ -127,6 +130,7 @@ var app = $.sammy(function(app) {
                 };
                 console.log('Start rendering macro ' + name + ' - ' + data);
                 try{
+                    options.params.macroname = name;
                     LFW.macros[name].call(context, options);
                 }catch(err){
                     $this.append("<div class='macro_error'>Macro "+ name +" failed to render<br>"+err+"</div>")
@@ -140,7 +144,7 @@ var app = $.sammy(function(app) {
                 // Load macro
                 console.log('Loading macro ' + name);
 
-                var jqxhr = $.get(LFW_CONFIG['uris']['macros'] + name + '.js',
+                var loadmacroscript = function() { $.get(LFW_CONFIG['uris']['macros'] + macroname + '.js',
                     function(data, textStatus, jqXHR) {
 
                     var script = '' +
@@ -173,9 +177,16 @@ data;
                 )
                 .success()
                 .error(function(data, textStatus, jqXHR) {
+                    if (name != 'generic') {
+                        macroname = 'generic';
+                        loadmacroscript();                        
+                        return;
+                    }
                     console.log('Failed to load Macro: ' + textStatus);
                 })
                 .complete();
+                };
+                loadmacroscript();
             }
             else {
                 if(!$.isFunction(LFW.macros[name])) {

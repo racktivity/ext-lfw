@@ -6,11 +6,13 @@ var render = function(options) {
     
     tagstring = tagstring + ' page:' + options.page;
     tagstring = tagstring + ' space:' + options.space;
+    macroname = options.params.macroname || 'generic'
 
     $.get(
     'appserver/rest/ui/portal/generic',
     {
-        tagstring: tagstring
+        tagstring: tagstring,
+        macroname: macroname
     },
     'json'
     )

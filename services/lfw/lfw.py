@@ -245,16 +245,16 @@ class LFWService(object):
         return img_b64
 
     @q.manage.applicationserver.expose
-    def generic(self, tagstring=None):
+    def generic(self, tagstring=None, macroname=None):
         q.logger.log('[GENERIC] Request tagstring: %s' % tagstring, 5)
 
         tags = q.base.tags.getObject(tagstring)
 
         params = {
-            'tags': tags,
+        'tags': tags,
         }
 
-        self._tasklet_engine.execute(params=params, tags=('macro', 'generic', ))
+        self._tasklet_engine.execute(params=params, tags=('pylabsmacro', macroname, ))
 
         result = params.get('result', '')
         q.logger.log('[GENERIC] Result: %s' % result, 5)

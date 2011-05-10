@@ -6,7 +6,8 @@ LFW_CONFIG = {
         'tags': '/appserver/rest/lfw/tags',
         'title': '/appserver/rest/lfw/pages',
         'pages': '/appserver/rest/lfw/page',
-        'macros': '/js/macros/'
+        'macros': '/js/macros/',
+        'showTree': 'True'
     }
 }
 

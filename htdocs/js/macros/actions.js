@@ -1,25 +1,18 @@
 var render = function(options) {
 
     var TEMPLATE_NAME = 'plugin.actions.actionlist';
-    var $this = $(this);    
-    var space = options.space;
-    var page = options.page;
-    var widget_type = 'action';
-    var widget = 'widget2';
+    var $this = $(this); 
     
-    var view = {"action": [
-        {"name": "Print", "description": "Print this page", "uri": "javascript:print();", "target": "", "icon": "ui-icon-print"},
-        {"name": "Google", "description": "Go To Google", "uri": "http://www.google.com", "target": "_blank", "icon": "ui-icon-link"},        
-    ]};
-        
+    tagstring = $.trim(options.body);   
+    tagstring = tagstring + ' page:' + options.page;
+    tagstring = tagstring + ' space:' + options.space;
+    macroname = 'actions'
+    
     $.get(
-        '/appserver/rest/widget_service/getWidgetConfig',
+        'appserver/rest/ui/portal/generic',
         {
-            space: space,
-            pagename: page,
-            widget_id: widget,
-            widget_type: widget_type,
-            parentwidget_id: ''
+        tagstring: tagstring,
+        macroname: macroname
         },
         'json'
     )
@@ -32,10 +25,5 @@ var render = function(options) {
     .error(function (data, textStatus, jqXHR) {
         console.log('Failed to get config: ' + textStatus);
     });
-
-    // @todo: Check if template is already compiled
-    //$.template(TEMPLATE_NAME, '<ul>{{each action}}<li><a href="${uri}" title="${description}}" target="${target}" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-icon-primary" role="button" aria-disabled="false"><span class="ui-button-icon-primary ui-icon {{if icon}}${icon}{{/if}}"></span><span class="ui-button-text">${name}</span></a></li>{{/each}}</ul>')
-    //$.tmpl(TEMPLATE_NAME, config).appendTo(this);
-}
-
+};
 register(render);

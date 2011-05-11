@@ -84,7 +84,7 @@ var app = $.sammy(function(app) {
         console.log('SWAP END: base ' + base);
 
 
-        $('.macro', elem).each(function() {
+        $('.macro').each(function() {
             var $this = $(this),
                 classes = ($this.attr('class') || '').split(/\s+/),
                 name = null,
@@ -216,7 +216,9 @@ data;
 
     var setSpace = function(space) {
         _space = space;
-
+        if (!LFW_CONFIG['uris']['showTree'] ){
+        	$("#maintree").removeClass('macro');
+        }
         var spaces = $('#space option');
         for(var i = 0; i < spaces.length; i++) {
             if(spaces[i].value === space) {

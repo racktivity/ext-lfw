@@ -84,7 +84,7 @@ var app = $.sammy(function(app) {
         console.log('SWAP END: base ' + base);
 
 
-        $('.macro').each(function() {
+        $('.macro', elem).each(function() {
             var $this = $(this),
                 classes = ($this.attr('class') || '').split(/\s+/),
                 name = null,

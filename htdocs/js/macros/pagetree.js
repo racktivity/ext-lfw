@@ -8,7 +8,7 @@ var render = function(options) {
     
 	options.addCss({'id': 'jsicon', 'tag': 'link', 'params': {'rel': 'shortcut icon', 'href': '/favicon.ico'}});
 	options.addCss({'id': 'jstree', 'tag': 'link', 'params': {'rel': 'alternate', 'type': 'application/rss+xml', 'href': 'http://www.jstree.com/feed'}});
-	options.addCss({'id': 'pagetree', 'tag': 'link', 'params': {'rel': 'stylesheet', 'href': 'http://static.jstree.com/v.1.0rc2/_docs/!style.css'}});
+	options.addCss({'id': 'pagetree', 'tag': 'link', 'params': {'rel': 'stylesheet', 'href': '/static/lfw/js/libs/jstree/!style.css'}});
 	options.addCss({'id': 'canonical', 'tag': 'link', 'params': {'rel': 'canonical', 'href': 'http://www.jstree.com/demo'}});
 
     var cb = function(){
@@ -28,7 +28,7 @@ var render = function(options) {
     	
     }
 
-	options.addDependency(cb, ["http://static.jstree.com/v.1.0rc2/jquery.cookie.js", "http://static.jstree.com/v.1.0rc2/jquery.hotkeys.js", "http://static.jstree.com/v.1.0rc2/jquery.jstree.js"]);	
+	options.addDependency(cb, ["/static/lfw/js/libs/jstree/jquery.cookie.js", "/static/lfw/js/libs/jstree/jquery.hotkeys.js", "/static/lfw/js/libs/jstree/jquery.jstree.js"]);	
 };
 
 register(render); 

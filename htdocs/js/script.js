@@ -117,7 +117,10 @@ var app = $.sammy(function(app) {
                     'body': data,
                     'params': params,
                     'pagecontent': elem,
-                    'addDependency': addDependency,
+
+                    'addDependency': function(callback, dependencies, ordered){
+                        addDependency(callback, dependencies, ordered, $this, name);
+                    },
                     'addCss': function(cssobject) {
                     	addCss(cssobject);
                     },
@@ -133,7 +136,7 @@ var app = $.sammy(function(app) {
                     options.params.macroname = name;
                     LFW.macros[name].call(context, options);
                 }catch(err){
-                    $this.append("<div class='macro_error'>Macro "+ name +" failed to render<br>"+err+"</div>")
+                    $this.append("<div class='macro_error'>Macro "+ name +" failed to render<br>"+err+"</div>");
                 }
                 console.log('Stop rendering macro ' + name + ' - ' + data);
             };
@@ -216,9 +219,6 @@ data;
 
     var setSpace = function(space) {
         _space = space;
-        if (!LFW_CONFIG['uris']['showTree'] ){
-        	$("#maintree").removeClass('macro');
-        }
         var spaces = $('#space option');
         for(var i = 0; i < spaces.length; i++) {
             if(spaces[i].value === space) {
@@ -258,7 +258,34 @@ data;
                 }, response);
             }
         );
-    };
+
+        var pageTreeUri = LFW_CONFIG['uris']['pages'] + '?space=' + space +
+                '&name=' + 'pagetree';
+
+        var context = this;
+        var treePage = '#/' + space + '/pagetree'; 
+
+        $.ajax({
+            url: pageTreeUri,
+            success: function(data) {
+                var content = data['content'];
+                if(!content || !content.length || content.length === 0) {
+                    content = "&nbsp;";
+                }
+
+                console.log('Tree source: ' + content);
+                rendered = renderWiki(content);
+                console.log('Tree rendered: ' + rendered);
+
+                swap(rendered, treePage, '#tree');
+            },
+            //cache: false,
+            dataType: 'json',
+            error: function(xhr, text, exc) {
+                swap("&nbsp;", treePage, '#tree');
+            }
+        });
+    }
     var getAppName = function () {
         if( ! _appName ) {
             _appName = LFW_CONFIG['appname'];
@@ -337,7 +364,7 @@ data;
 		return false;
 	}
 
-    var addDependency = function(callback, dependencies, ordered) {
+    var addDependency = function(callback, dependencies, ordered, element, name) {
 
         var seperator = ordered == undefined ? " " : ">";
     	console.log('in adddependency');
@@ -348,7 +375,13 @@ data;
         if (depstring !== ""){
             depstring = depstring.substring(0, depstring.length - 3);
         }
-        dominoes(depstring, callback);
+        dominoes(depstring, function(){
+            try{
+                callback();
+            }catch(err){
+                element.append("<div class='macro_error'>Macro "+ name +" failed <br/>"+err+"</div>");
+            }
+        });
     }
 
     function loadCss() {

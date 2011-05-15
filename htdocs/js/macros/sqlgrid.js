@@ -7,7 +7,7 @@ var render = function(options) {
     var links = body.link;
     var caption = body.name || "SQL Grid";
     var sqlselect = "SELECT ";
-    
+    var hidden = body.hidden || [];
     if (body.sqlselect){
         sqlselect = body.sqlselect;
     }else{
@@ -59,27 +59,20 @@ var render = function(options) {
         return colNames;
     }
     
-    function inArray(element, array) {
-        for (index in array) {
-            if (array[index] == element) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     function setColModel(colNames) {
-        if (links != undefined && links != "") {
-            links = links.split(",");
-            }
+
         var width = 80;
         $.each(colNames, function(index, colname) {
-            if (inArray('fieldwidth', getKeys(body))) {
-                if (inArray(colname, getKeys(body.fieldwidth))) {
+            if (getKeys(body).indexOf('fieldwidth') != -1) {
+                if (getKeys(body.fieldwidth).indexOf(colname) != -1) {
                     width = body.fieldwidth[colname];
                 }
             }
-            if (inArray(colname, links)) {
+            
+            if(hidden.indexOf(colname) != -1){
+                colModel.push({name: colname, index: colname, width: width, hidden:true});
+            }
+            else if (colname in links) {
                 colModel.push({name: colname, index: colname, width: width, edittype: 'select', formatter: linkFormatter});
             }
             else colModel.push({name: colname, index: colname, width: width, align: 'left'});
@@ -87,7 +80,19 @@ var render = function(options) {
     }
     
     function linkFormatter(cellvalue, options, rowObject) {
-        return '<a href= /#/' + space + '/' + cellvalue + '>' + cellvalue + '</a>';
+
+        var idx = rowObject.indexOf(cellvalue);
+        var columname = colNames[idx];
+        var urltemplate = links[columname];
+        var regex = /\$(\w+)\$/g;
+        urltemplate = urltemplate.replace(regex, function(fullmatch, columnname){
+            var colIndx= colNames.indexOf(columnname);
+            var value = rowObject[colIndx];
+            return value;
+            
+        });
+
+        return '<a href= ' + urltemplate + '>'+ cellvalue +'</a>';
     }
     
     function getColModel() {

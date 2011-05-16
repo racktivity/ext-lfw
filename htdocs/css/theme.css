@@ -15,6 +15,7 @@ a.logo {     background: url("../img/logo.png") no-repeat scroll left top transp
 #header select { width:150px;  height:23px; color:#000;}
 #header select option { color:#000 !important;}
 #header div { margin-top:45px;}
+#search { width: auto; }
 #spaces { width:auto; padding-left:155px !important; margin-right:50px !important;}
 #footer { background:#111;}
 #main { border:none; padding:20px 10px 10px}

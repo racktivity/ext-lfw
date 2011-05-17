@@ -270,7 +270,7 @@ data;
             success: function(data) {
                 var content = data['content'];
                 if(!content || !content.length || content.length === 0) {
-                    content = "&nbsp;";
+                    content = "";
                 }
 
                 console.log('Tree source: ' + content);
@@ -282,7 +282,7 @@ data;
             //cache: false,
             dataType: 'json',
             error: function(xhr, text, exc) {
-                swap("&nbsp;", treePage, '#tree');
+                swap("", treePage, '#tree');
             }
         });
     }

@@ -11,9 +11,9 @@ var render = function(options) {
     if (body.sqlselect){
         sqlselect = body.sqlselect;
     }else{
+        
         var columns = body.columns;
         var whereclouse = body.wheredict;
-        
         $.each(columns, function(key, value){
             if(!value){
                 sqlselect += body.table + "." + key+ ", ";
@@ -22,13 +22,18 @@ var render = function(options) {
             }
         });
         sqlselect = sqlselect.substr(0, sqlselect.length-2);
-        sqlselect += " FROM "+body.schema+"."+body.table+" WHERE ";
         
+    if(whereclouse) {
+            sqlselect += " FROM "+body.schema+"."+body.table+" WHERE ";
+            
+            $.each(whereclouse, function(key, value){
+                sqlselect += body.table + "." + key+" = " + "'" + value + "' and ";
+            });
+            sqlselect = sqlselect.substr(0, sqlselect.length-5);
+    }
+      else
+            sqlselect += " FROM "+body.schema+"."+body.table;
         
-        $.each(whereclouse, function(key, value){
-            sqlselect += body.table + "." + key+" = " + "'" + value + "' and ";
-        });
-       sqlselect = sqlselect.substr(0, sqlselect.length-5); 
     }
   
     var colNames = new Array();
@@ -68,7 +73,6 @@ var render = function(options) {
                     width = body.fieldwidth[colname];
                 }
             }
-            
             if(hidden.indexOf(colname) != -1){
                 colModel.push({name: colname, index: colname, width: width, hidden:true});
             }

@@ -329,27 +329,38 @@ data;
 
     var renderWiki = function(mdstring) {
         mdstring = mdstring || '';
-        mdstring = mdstring.replace(/\n?(..)?\[\[(\w+)(:[^\]]+)?\]\]([.\s\S]*?[\s\S])??(\[\[\/\2\]\])/g ,
-            function(fullmatch, _, macroname, paramstring, body, m3){
-                if (fullmatch.substr(0, 2) == "  "){
-                    return fullmatch;
-                }
-                var result = '\n<div class="macro macro_' + macroname + '"'
-                if (paramstring){
-                    paramstring = paramstring.substr(1);
-                    var params = new Object();
-                    $.each(paramstring.split(","), function(idx, param){
-                        if ( param.search("=") != -1){
-                            var keyvalue = param.split("=");
-                            params[keyvalue[0].trim()] = keyvalue[1].trim();
-                        }
-                    });
-                    result += " params='" + htmlEncode($.toJSON(params)) + "'";
-                }
-                body = body || '';
-                result += ">" + body.trim() + "\n</div>"
-                return result;
+        var regex = /\n?(..)?\[\[(\w+)(:[^\]]+)?\]\]([.\s\S]*?[\s\S])??(\[\[\/\2\]\])/g;
+        var regex2 = /\n?(..)?\[\[(\w+)(:[^\]]+)?\/\]\]/g;
+        var replacefunc = function(fullmatch, macroname, paramstring, body){
+            if (fullmatch.substr(0, 2) == "  "){
+                return fullmatch;
+            }
+            var result = '\n<div class="macro macro_' + macroname + '"'
+            if (paramstring){
+                paramstring = paramstring.substr(1);
+                var params = new Object();
+                $.each(paramstring.split(","), function(idx, param){
+                    if ( param.search("=") != -1){
+                        var keyvalue = param.split("=");
+                        params[keyvalue[0].trim()] = keyvalue[1].trim();
+                    }
+                });
+                result += " params='" + htmlEncode($.toJSON(params)) + "'";
+            }
+            body = body || '';
+            result += ">" + body.trim() + "\n</div>"
+            return result;
+        };
+
+        mdstring = mdstring.replace(regex , 
+            function(fullmatch, _, macroname, paramstring, body, _){ 
+                return replacefunc(fullmatch, macroname, paramstring, body);
             });
+        mdstring = mdstring.replace(regex2 , 
+            function(fullmatch, _, macroname, paramstring){ 
+                return replacefunc(fullmatch, macroname, null, null);
+            });
+
         var compiler = new Showdown.converter();
         var result = compiler.makeHtml(mdstring);
         return result;

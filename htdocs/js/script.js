@@ -218,6 +218,8 @@ data;
     };
 
     var setSpace = function(space) {
+        if (space == _space)
+            return
         _space = space;
         var spaces = $('#space option');
         for(var i = 0; i < spaces.length; i++) {

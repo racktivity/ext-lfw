@@ -13,62 +13,87 @@ def sync_to_alkira(appname, path=None):
         MD_PATH = path
     serverapi = p.application.getAPI(appname,context=q.enumerators.AppContext.APPSERVER)
     connection = p.application.getAPI(appname).action
-    macros_homepage = None
     
     for folder in q.system.fs.listDirsInDir(MD_PATH):
-        files = q.system.fs.listFilesInDir(folder, filter='*.md', recursive=True)
         space = folder.split(os.sep)[-1]
-    
-        for f in files:
-            name = q.system.fs.getBaseName(f).split('.')[0]
-            content = q.system.fs.fileGetContents(f)
-    
-            # Check if page exists
-            #f = connection.ui.page.getFilterObject()
-            #f.add('ui_view_page_list', 'name', name, True)
-            #f.add('ui_view_page_list', 'space', space, True)
+        q.console.echo('Syncing space: %s'%space)
+
+        def createPage(page_file, parent=None):
+            name = q.system.fs.getBaseName(page_file).split('.')[0]
+            content = q.system.fs.fileGetContents(page_file)
             page_info = connection.ui.page.find(name=name, space=space, exact_properties=("name", "space"))
+
             if len(page_info['result']) > 1:
                 raise ValueError('Multiple pages found ? ' )
             elif len(page_info['result']) == 1:
                 page = connection.ui.page.getObject(page_info['result'][0])
-                save_f = functools.partial( connection.ui.page.update, page.guid )
+                save_page = functools.partial( connection.ui.page.update, page.guid )
+                q.console.echo('Updating page: %s'%name, indent=4)
             else:
                 page = serverapi.model.ui.page.new()
                 page.name = name
                 page.space = space
                 page.category = 'portal'
-                save_f = connection.ui.page.create
-    
-            if name.startswith('Macro') and name not in ['Macros_Home', 'Macros']:
-                if not macros_homepage:
-                    #check if Macros_Home page is already created, then get its guid to set it as parent guid to other macro pages
-                    macros_page_info = connection.ui.page.find( name = 'Macros_Home', space = space ) 
-                    if len(macros_page_info ['result'] ) == 1:
-                        macros_homepage = connection.ui.page.getObject(macros_page_info['result'][0])
-                page.parent = macros_homepage.guid if macros_homepage else None
-    
-            # content
+                save_page = connection.ui.page.create
+                q.console.echo('Creating page: %s'%name, indent=3, withStar=True)
+
+            # Setting the parent
+            if parent:
+                parent_page_info = connection.ui.page.find(name=parent, space=space, exact_properties=("name", "space"))
+                parent_page = connection.ui.page.getObject(parent_page_info['result'][0])
+                page.parent = parent_page.guid
+ 
+            # Setting content
             page.content = content if content else 'empty'
     
-            # tags
+            # Creating and setting tags
             if page.tags:
                 t = page.tags.split(' ')
             else:
                 t = []
             tags = set(t)
     
-            # page and space 
             tags.add('space:%s' % space)
             tags.add('page:%s' % name)
     
-            # split CamelCase in tags
+            # Split CamelCase in tags
             for tag in re.sub('((?=[A-Z][a-z])|(?<=[a-z])(?=[A-Z]))', ' ', name).strip().split(' '):
                 tags.add(tag)
     
             p.tags = ' '.join(tags)
-            save_f (page.name, page.space, page.category, page.parent, page.tags, page.content)
+            save_page (page.name, page.space, page.category, page.parent, page.tags, page.content)
 
+        folder_paths = q.system.fs.listDirsInDir(folder)
+        main_files = q.system.fs.listFilesInDir(folder, filter='*.md')
+
+        for each_file in main_files:
+            createPage(each_file)
+
+        def alkiraTree(folder_paths, root_parent=None):
+            for folder_path in folder_paths:
+                folder_name = q.system.fs.getBaseName(folder_path).split('.')[0]
+                parent_name = folder_name + '.md' 
+                parent_path = q.system.fs.joinPaths(folder_path, parent_name)
+
+                if root_parent:
+                    createPage(parent_path, parent=root_parent)
+                else:
+                    createPage(parent_path)
+
+                if not q.system.fs.exists(parent_path):
+                    q.errorconditionhandler.raiseError('The directory "%s" does not have a page "%s" specified for it.'%(folder_path, parent_name))
+    
+                children_files = q.system.fs.listFilesInDir(folder_path, filter='*.md')
+                for child_file in children_files:
+                    if child_file != parent_path:
+                        createPage(child_file, parent=folder_name)
+    
+                sub_folders = q.system.fs.listDirsInDir(folder_path)
+                if sub_folders:
+                    alkiraTree(sub_folders, root_parent=folder_name)
+
+        alkiraTree(folder_paths)
+        
 
 if __name__ == "__main__":
 

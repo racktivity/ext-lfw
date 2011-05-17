@@ -41,7 +41,6 @@ Using the `sqlselect` parameter:
         "table": "ui_view_page_list",
         "schema": "ui_page",
         "sqlselect": "SELECT ui_view_page_list.category, ui_view_page_list.name, ui_view_page_list.parent FROM ui_page.ui_view_page_list WHERE ui_view_page_list.space='doc'",
-        "link": "name",
         "sort": "name",
         "pagesize": 10,
         "width": 600,
@@ -69,7 +68,7 @@ Using the `columns` and `wheredict` parameters:
         "wheredict": {
             "space": "alkiradocs"
             },
-        "link": "Macro name",
+        "link": {"name": "/sampleapp/#/alkiradocs/$name$"},
         "sort": "name",
         "pagesize": 10,
         "width": 600,
@@ -99,7 +98,7 @@ Using the `columns` and `wheredict` parameters:
         "wheredict": {
             "space": "alkiradocs"
             },
-        "link": "Macro name",
+        "link": {"Page name": "/sampleapp/#/alkiradocs/$Page name$"},
         "sort": "name",
         "pagesize": 10,
         "width": 600,

@@ -1,41 +1,66 @@
 var render = function(options) {
-	var $this = $(this);
+    var $this = $(this);
     
     $.template('plugin.page.toc', '<div><div id="toc"></div><div id="content">${options}</div></div>');
     var tocTemplate = $.tmpl('plugin.page.toc', {});
     $this.append(tocTemplate);
     
     var value = "H1, H2, H3, H4, H5, H6";
-    var toc_ul = $('<ul>');
+    var previous = 1;
+    var first = true;
 
-    $("#toc").append('<p><b>Table of Contents:</b></p>');
+    function addAnchor(docURL, headerLink, headerTitle)
+    {
+        var anchor = "<li><a href='" + docURL + "/#" + headerLink + "'>" + headerTitle + "</a>"
+        return anchor
+    }
+
+    var toc_string = "<p><b>Table of Contents:</b></p>";
+    toc_string += "<ul>";
+    
     options.pagecontent.find(value).each(function(i) {
         var current = $(this);
         var headerLink = "header" + i;
+        var headerLevel = this.tagName;
+        
         current.attr("id", headerLink);
-
-        if (this.tagName == 'H1') {
-            toc_ul.append("<li><a id='link" + i + "' href='" + document.URL + "/#" + headerLink + "'>" + current.html() + "</a></li>");
-            toc_ul.append('&nbsp;');
+        headerLevel = headerLevel.split("H")[1];
+        
+        if (headerLevel > previous)
+        {
+            toc_string += "<ul>";
+            toc_string += addAnchor(document.URL, headerLink, current.html())
         }
-        else if (this.tagName == 'H2') {
-            toc_ul.append("<ul><li><a id='link" + i + "' href='" + document.URL + "/#" + headerLink + "'>" + current.html() + "</a></li></ul>");
+        else if (headerLevel < previous)
+        {
+            close_amount = previous - headerLevel;
+            for(i=0;i<close_amount;i++)
+            {
+                toc_string += "</li></ul>";
+            }
+            toc_string += addAnchor(document.URL, headerLink, current.html())
         }
-        else if (this.tagName == 'H3') {
-            toc_ul.append("<ul><ul><li><a id='link" + i + "' href='" + document.URL + "/#" + headerLink + "'>" + current.html() + "</a></li></ul></ul>");
+        else if (headerLevel == previous)
+        {
+            if (first == true)
+            {
+                first = false;
+            }
+            else
+            {
+                toc_string += "</li>";
+            }
+            toc_string += addAnchor(document.URL, headerLink, current.html())
         }
-        else if (this.tagName == 'H4') {
-            toc_ul.append("<ul><ul><ul><li><a id='link" + i + "' href='" + document.URL + "/#" + headerLink + "'>" + current.html() + "</a></li></ul></ul></ul>");
-        }
-        else if (this.tagName == 'H5') {
-            toc_ul.append("<ul><ul><ul><ul><li><a id='link" + i + "' href='" + document.URL + "/#" + headerLink + "'>" + current.html() + "</a></li></ul></ul></ul></ul>");
-        }
-        else if (this.tagName == 'H6') {
-            toc_ul.append("<ul><ul><ul><ul><ul><li><a id='link" + i + "' href='" + document.URL + "/#" + headerLink + "'>" + current.html() + "</a></li></ul></ul></ul></ul></ul>");
-        }
-
+        previous = headerLevel;
     });
-    $('#toc').append(toc_ul);
+
+    for(i=0;i<previous;i++)
+    {
+        toc_string += "</li></ul>";
+    }
+
+    $('#toc').append(toc_string);
 }
 
 register(render);

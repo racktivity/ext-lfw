@@ -1,5 +1,6 @@
 [qpcreate]: http://confluence.incubaid.com/display/PYLABS/Creating+a+Q-Package
 [codetasklet]: http://confluence.incubaid.com/display/PYLABS/Q-Package+Tasklets#codemanagement+Tasklet
+[child]: /sampleapp/#/alkiradocs/Macros/MacroChildren
 
 #Managing Spaces and Pages
 When you create an application, it is possible to add documentation for the application, or you can simply create an application that only contains documentation.
@@ -35,6 +36,34 @@ To make the new space available in your application, you must create the file `H
 To create a page, create a Markdown file in the desired space. A markdown file has always the `.md` extension.
 
 In this case, a 'Home.md' file is created in `/opt/qbase5/pyapps/<pyapp name>/portal/spaces/alkiradocs`. 
+
+
+##Creating Child Pages
+If you want to create a child page to a certain page, create a folder and inside that folder a `.md` file with the exact same name as the folder (case-sensitive). Possible other pages in that directory are also child pages.
+There is no limitation in the number of levels
+
+
+    ~/alkiradocs/Home
+    |-- Home.md
+    |-- Child1
+    |   |-- Child1.md (child page of Home)
+    |   |-- child11.md (child page of Home)
+    |   |-- Child12
+    |   |   |-- Child12.md (child page of Home)
+    |   |   `-- child121.md (child page of Child12)
+    |   `-- child13.md (child page of Home)
+    |-- child2.md (child page of Home)
+    `-- Child3
+        |-- Child3.md (child page of Home)
+        |-- child31.md (child page of Home)
+        `-- Child32
+            |-- Child32.md (child page of Home)
+            |-- child33.md (child page of Child32)
+            `-- child34.md (child page of Child32)
+        
+In the given example you can clearly see the relationship between the different pages.
+
+This way you can easily create a complete structure with parent/children relationships between your pages. See the [children macro][child] how you can use this structure inside a page.
 
 
 ##Publishing the Space and Pages

@@ -149,8 +149,9 @@ class LFWService(object):
 
         result = self.connection.page.query(sql)
         data = list()
-        for node in result:
-            
+        for node in result :
+            if node['name'] is 'pagetree':
+                continue
             nodedata = dict()
             children = list()
             state = 'closed' if node['nrofkids'] > 0 else 'leaf'

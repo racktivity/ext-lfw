@@ -15,5 +15,5 @@ If you want to display the table of contents of a page:
 
 ##Sample
 
-[[toc]][[/toc]]
+[[toc/]]
 

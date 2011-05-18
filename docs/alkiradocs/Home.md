@@ -24,6 +24,7 @@
             <li><a href="/sampleapp/#/alkiradocs/Macros_HOWTO">Creating a Macro</a></li>
             <li><a href="/sampleapp/#/alkiradocs/MacrosPylabs">PyLabs Macros</a>
                 <ul>
+                    <li><a href="/sampleapp/#/alkiradocs/MacroChildren">Children</a></li>
                     <li><a href="/sampleapp/#/alkiradocs/MacroGeneric">Generic</a></li>
                     
                 </ul>
@@ -36,10 +37,14 @@
                     <li><a href="/sampleapp/#/alkiradocs/MacroGoogleMaps">Google Maps</a></li>
                     <li><a href="/sampleapp/#/alkiradocs/MacroGraphViz">GraphViz</a></li>
                     <li><a href="/sampleapp/#/alkiradocs/MacroInclude">Include</a></li>
-                    <li><a href="/sampleapp/#/alkiradocs/MacroJqPlot">JqPlot</a></li>
+                    <li><a href="/sampleapp/#/alkiradocs/MacroInformation">Information</a></li>
+                    <li><a href="/sampleapp/#/alkiradocs/MacroJqPlot/MacroJqPlot">JqPlot</a></li>
+                    <li><a href="/sampleapp/#/alkiradocs/MacroNote">Note</a></li>
                     <li><a href="/sampleapp/#/alkiradocs/MacroPageTree">PageTree</a></li>
                     <li><a href="/sampleapp/#/alkiradocs/MacroSqlGrid">SqlGrid</a></li>
+                    <li><a href="/sampleapp/#/alkiradocs/MacroTip">Tip</a></li>
                     <li><a href="/sampleapp/#/alkiradocs/MacroToc">Toc</a></li>
+                    <li><a href="/sampleapp/#/alkiradocs/MacroWarning">Warning</a></li>
                     <li><a href="/sampleapp/#/alkiradocs/MacroWizard">Wizards</a></li>
                 </ul>
             </li>

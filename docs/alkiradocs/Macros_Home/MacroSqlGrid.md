@@ -104,7 +104,7 @@ Using the `columns` and `wheredict` parameters:
         "wheredict": {
             "space": "alkiradocs"
             },
-        "link": {"Page name": "/sampleapp/#/alkiradocs/$Page name$"},
+        "link": {"name": "/sampleapp/#/alkiradocs/$name$"},
         "sort": "name",
         "pagesize": 10,
         "width": 600,

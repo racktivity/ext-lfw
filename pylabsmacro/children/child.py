@@ -13,6 +13,7 @@ def main(q, i, p, params, tags):
     root_page = macro_tags.get('root', 'self')
 
     all_pages = alkira_client.listPages(space)
+    all_pages = filter (lambda a: a != 'pagetree', all_pages)
 
     root_pages = []
     if root_page != 'self':

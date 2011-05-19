@@ -14,7 +14,7 @@ var render = function(options) {
         var extra = options.params.extra || '';
         //appname, domainName, wizardName, applicationserverIp, extra
         var service = "http://" + appserver + "/" + appname + "/appserver/rest/ui/wizard";
-        var action = "JSWizards.launch('" + service + "', '" + domain + "', '" + name + "', '" + extra +')";
+        var action = "JSWizards.launch('" + service + "', '" + domain + "', '" + name + "', '" + extra +"')";
         //var action = "jswizards.start('" + appname + "', '" + domain + "', '"+name+"', '"+appserver+"', '"+extra+"')";
         if (type == "button"){
             element = $("<button>").attr("onClick", action).text(title);

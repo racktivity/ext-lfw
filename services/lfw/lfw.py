@@ -144,7 +144,7 @@ class LFWService(object):
                 pagelist.name,
                 (select count(guid) FROM ui_page.ui_view_page_list WHERE ui_page.ui_view_page_list.parent = pagelist.guid) as nrofkids
                 FROM ONLY ui_page.ui_view_page_list as pagelist
-                WHERE pagelist.space = '%(space)s' %(where)s;
+                WHERE pagelist.space = '%(space)s' %(where)s ORDER BY pagelist.name;
         """ % {'space': space, 'where': where}
 
         result = self.connection.page.query(sql)

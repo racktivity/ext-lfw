@@ -13,7 +13,9 @@ var render = function(options) {
         var domain = options.params.domain || urlitems[idx+3];
         var extra = options.params.extra || '';
         //appname, domainName, wizardName, applicationserverIp, extra
-        var action = "jswizards.start('" + appname + "', '" + domain + "', '"+name+"', '"+appserver+"', '"+extra+"')";
+        var service = "http://" + appserver + "/" + appname + "/appserver/rest/ui/wizard";
+        var action = "JSWizards.launch('" + service + "', '" + domain + "', '" + name + "', '" + extra + "', '" + alert +"')";
+        //var action = "jswizards.start('" + appname + "', '" + domain + "', '"+name+"', '"+appserver+"', '"+extra+"')";
         if (type == "button"){
             element = $("<button>").attr("onClick", action).text(title);
         }
@@ -25,14 +27,13 @@ var render = function(options) {
 	};
 	
     options.addDependency(cb, 
-            ['/static/jswizards/js/jswizards_client.js', 
+            ['/static/jswizards/ext/jquery-ui.min.js',
              '/static/jswizards/js/jswizards.js', 
-             '/static/jswizards/js/jswizards_oldstyle.js',
-             '/static/jswizards/libs/jquery.floatbox.1.0.8.js', 
-             '/static/jswizards/libs/jquery.ui.datetimepicker.js',
-             '/static/jswizards/libs/jQueryBubblePopup.v2.3.1_2/jquery.bubblepopup.v2.3.1.min.js']);
-	options.addCss({'id': 'jquery-ui', 'tag': 'link', 'params': {'rel': 'stylesheet', 'href': '/static/jswizards/style/jquery-ui.css'}});
-	options.addCss({'id': 'floatbox-wizard', 'tag': 'link', 'params': {'rel': 'stylesheet', 'href': '/static/jswizards/style/floatbox-wizard.css'}});
-	options.addCss({'id': 'wizardaction', 'tag': 'link', 'params': {'rel': 'stylesheet', 'href': '/static/jswizards/libs/jQueryBubblePopup.v2.3.1_2/jquery.bubblepopup.v2.3.1.css'}});
+             '/static/jswizards/ext/jquery.floatbox.1.0.8.js', 
+             '/static/jswizards/ext/jquery.ui.datetimepicker.js']);
+	options.addCss({'id': 'jquery-ui', 'tag': 'link', 'params': {'rel': 'stylesheet', 'href': '/static/jswizards/ext/jquery-ui.css'}});
+	options.addCss({'id': 'floatbox-wizard', 'tag': 'link', 'params': {'rel': 'stylesheet', 'href': '/static/jswizards/ext/joshuaclayton-blueprint-css-c20e981/blueprint/screen.css'}});
+        options.addCss({'id': 'floatbox-wizard-btn', 'tag': 'link', 'params': {'rel': 'stylesheet', 'href': '/static/jswizards/ext/joshuaclayton-blueprint-css-c20e981/blueprint/plugins/buttons/screen.css'}});
+	options.addCss({'id': 'wizardaction', 'tag': 'link', 'params': {'rel': 'stylesheet', 'href': '/static/jswizards/style/screen.css'}});
 };
 register(render);

@@ -4,7 +4,7 @@ import optparse
 import os, re
 import functools
 
-def sync_to_alkira(appname, path=None):
+def sync_to_alkira(appname, path=None, sync_space=None):
     from pylabs import p, q
     MD_PATH = ''
     if not path:
@@ -13,8 +13,16 @@ def sync_to_alkira(appname, path=None):
         MD_PATH = path
     serverapi = p.application.getAPI(appname,context=q.enumerators.AppContext.APPSERVER)
     connection = p.application.getAPI(appname).action
-    
-    for folder in q.system.fs.listDirsInDir(MD_PATH):
+
+    if sync_space:
+        space_dir = q.system.fs.joinPaths(MD_PATH, sync_space)
+        if not q.system.fs.exists(space_dir):
+            q.errorconditionhandler.raiseError('Space "%s" does not exist.'%sync_space)
+        portal_spaces = [space_dir]
+    else:
+        portal_spaces = q.system.fs.listDirsInDir(MD_PATH)
+        
+    for folder in portal_spaces:
         space = folder.split(os.sep)[-1]
         q.console.echo('Syncing space: %s'%space)
 

@@ -360,7 +360,7 @@ data;
             });
         mdstring = mdstring.replace(regex2 , 
             function(fullmatch, _, macroname, paramstring){ 
-                return replacefunc(fullmatch, macroname, null, null);
+                return replacefunc(fullmatch, macroname, paramstring, null);
             });
 
         var compiler = new Showdown.converter();

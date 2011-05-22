@@ -12,24 +12,36 @@ def main(q, i, p, params, tags):
     space = macro_tags['space']
     root_page = macro_tags.get('root', 'self')
 
-    all_pages = alkira_client.listPages(space)
-    all_pages = filter (lambda a: a != 'pagetree', all_pages)
+    all_pages_info = alkira_client.listPageInfo(space)
+    all_pages_info = filter(lambda x: x['name'] != 'pagetree', all_pages_info)
+
+    page_guid_dict = dict( [ (x['name'], x['guid']) for x in all_pages_info ] )
+    page_parent_dict = dict( [ (x['name'], x['parent']) for x in all_pages_info ] )
+
+    all_pages = []
+    for i in all_pages_info:
+        all_pages.append(i['name'])
+    all_pages.sort()
 
     root_pages = []
     if root_page != 'self':
         root_pages.append(root_page)
     else:
-        for each_page in all_pages:
-            if not alkira_client.getPage(space, each_page).parent:
-                root_pages.append(each_page)
+        root_pages = [ x['name'] for x in all_pages_info if not x['parent'] ]
+
+    def getGuid(page_name):
+        return page_guid_dict.get(page_name)
+
+    def getParent(page_name):
+        return page_parent_dict.get(page_name)
 
     def childPages(root, pages, tree, tree_depth):
         tree_depth -= 1
         children = {}
-        root_guid = alkira_client.getPage(space, root).guid
+        root_guid = getGuid(root)
 
         for page in pages:
-            page_parent = alkira_client.getPage(space, page).parent
+            page_parent = getParent(page)
             if root_guid == page_parent:
                 children.update({page:{}})
                 all_pages.remove(page)
@@ -54,12 +66,14 @@ def main(q, i, p, params, tags):
                 children_str += indent*' ' + "* <a href='/" + appname + '/#/' + space + '/' + item + "'>" + page_name + '</a>  \n'
                 treePrint(indent+4, value_dict[item])
 
+    values.sort()
     for each_value in values:
         treePrint(0, each_value)
 
+    if (root_page != 'self') and (root_page not in all_pages):
+        children_str = 'Page "%s" does not exist.'%root_page
+
     result = """
-__Children:__
- 
 %s
 - - -
     """%(children_str)

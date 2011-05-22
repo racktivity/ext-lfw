@@ -56,6 +56,17 @@ class Client:
         query = self.connection.page.query(SPACES)
         return map(lambda item: item["space"], query)
 
+    def listPageInfo(self, space):
+        """
+        Lists all the pages in a space with their info.
+
+        @type space: String
+        @param space: The name of the space.
+        """
+        page_info = 'SELECT ui_page.ui_view_page_list."name", ui_page.ui_view_page_list."guid", ui_page.ui_view_page_list."parent" FROM ui_page.ui_view_page_list WHERE ui_page.ui_view_page_list.space = \'%s\'' %space
+        query = self.connection.page.query(page_info)
+        return query
+
     def pageExists(self, space, name):
         """
         Checks whether a page exists or not.

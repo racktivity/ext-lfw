@@ -11,9 +11,15 @@ The `children` macro creates a tree-view of a certain page and all its chilkd pa
 ##Example
 Assuming we want to show the children of the `Macros_Home` page, we would add:
 
-    [[children]]depth:2 root:Macros_Home[[/children]]
+    [[children]]
+    depth:2
+    root:Macros_Home
+    [[/children]]
 
 
 ##Sample
 
-[[children]]depth:2 root:Macros_Home[[/children]]
+[[children]]
+depth:2
+root:Macros_Home
+[[/children]]

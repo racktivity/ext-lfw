@@ -1,44 +1,52 @@
 #Actions Macro
-The Action macro allows you to add actions to a markdown page.
 
-When the Action macro is added to the page and called, it calls the `WidgetService.py` with `getWidgetConfig`. This service is located in:
-
-    /opt/qbase5/apps/applicationserver/services/widget_service
-
-If you check the 'WidgetService.py' you will see that when called with 'getWidgetConfig', it executes the tasklet with tags 'widget' and 'get'. This tasklet is the 'getwidgetconfig.py' tasklet and is located under:
-
-    /opt/qbase5/apps/applicationserver/services/widget_service/tasklets/config
-
-For testing purposes, this returns the position and name of the widget using 'console.log'. Of course you can write your own tasklets and actions that do a lot more than that.
-
+The Actions macro allows users to create a button that performs a certain action.   
+The button information is located in a tasklet that gets executed by the generic service.
 
 ##Parameters
-None
 
+__None.__
+
+##Action Tasklets
+
+The tasklets are located under:
+
+    /opt/qbase5/pyapps/sampleapp/impl/portal/pylabsmacro/actions/
+
+Currently we have a sample tasklet called "test1.py" which contains the information of two buttons.   
+Below is the tasklet code:
+
+    __author__ = "incubaid"
+
+
+    def main(q, i, params, tags):
+
+        l ={"action": [
+            {"name": "Print", "description": "Print this page", "uri": "javascript:print();", "target": "", "icon": "ui-icon-print"},
+            {"name": "Google", "description": "Go To Google", "uri": "http://www.google.com", "target": "_blank", "icon": "ui-icon-link"}
+        ]}
+
+        params['result'] = l
+
+    def match(q, i, params, tags):
+        return True
+
+When defining a button in a tasklet, as shown in the code above, it should contain the following parameters:
+
+* __name:__ is the name that will appear on the button.
+* __description:__ is the help text that will be displayed when you hover on the button.
+* __uri:__ the action call; for example: "http://www.google.com" or "javascript:print();".
+* __target:__ specifies where to open the linked document.
+* __icon:__ is the icon that will be given to the button.
 
 ##Example
+
 To call the Action macro, we use:
 
-    <div class="macro macro_actions"></div>
+    [[actions]][[/actions]]
 
-Adding a button to the page to execute an action:
+Below is the macro output:
 
-    <form method="post" action="#/action/TestAction">
-        <button type="submit" title="Test Action Button"></button>
-    </form>
-
-Where:
-
-* TestAction: is the action name.
-* Test Action Button: is the button title.
-
-__Note:__ The alert message that appears is present in the code for testing purposes and proof of concept, it is not part of the tasklet.
+[[actions]][[/actions]]
 
 
-##Button Sample:
-
-<div class="macro macro_actions"/>
-
-<form method="post" action="#/action/TestAction">
-    <button type="submit" title="Test Action Button">Run test action!</button>
-</form>

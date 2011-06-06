@@ -21,7 +21,7 @@ def sync_to_alkira(appname, path=None, sync_space=None):
         portal_spaces = [space_dir]
     else:
         portal_spaces = q.system.fs.listDirsInDir(MD_PATH)
-        
+
     for folder in portal_spaces:
         space = folder.split(os.sep)[-1]
         q.console.echo('Syncing space: %s'%space)
@@ -31,58 +31,55 @@ def sync_to_alkira(appname, path=None, sync_space=None):
         def pageDuplicate(page):
             page_name = q.system.fs.getBaseName(page)
             if page_name in page_occured:
-                q.errorconditionhandler.raiseWarning("Another page with the name '%s' already exists on this space. Will NOT create/update the following page (%s)"%(page_name, page))
-                q.console.echo("WARNING: Another page with the name '%s' already exists on this space. Will NOT create/update the following page (%s)"%(page_name, page), indent=3, withStar=True)
-                return True
+                q.errorconditionhandler.raiseError("Another page with the name '%s' already exists on this space. Will NOT create/update the following page (%s)"%(page_name, page))
             else:
                 page_occured.append(page_name)
-                return False
 
         def createPage(page_file, parent=None):
-            if not pageDuplicate(page_file):
-                name = q.system.fs.getBaseName(page_file).split('.')[0]
-                content = q.system.fs.fileGetContents(page_file)
-                page_info = connection.ui.page.find(name=name, space=space, exact_properties=("name", "space"))
+            pageDuplicate(page_file)
+            name = q.system.fs.getBaseName(page_file).split('.')[0]
+            content = q.system.fs.fileGetContents(page_file)
+            page_info = connection.ui.page.find(name=name, space=space, exact_properties=("name", "space"))
 
-                if len(page_info['result']) > 1:
-                    raise ValueError('Multiple pages found ? ' )
-                elif len(page_info['result']) == 1:
-                    page = connection.ui.page.getObject(page_info['result'][0])
-                    save_page = functools.partial( connection.ui.page.update, page.guid )
-                    q.console.echo('Updating page: %s'%name, indent=4)
-                else:
-                    page = serverapi.model.ui.page.new()
-                    page.name = name
-                    page.space = space
-                    page.category = 'portal'
-                    save_page = connection.ui.page.create
-                    q.console.echo('Creating page: %s'%name, indent=3, withStar=True)
+            if len(page_info['result']) > 1:
+                raise ValueError('Multiple pages found ? ' )
+            elif len(page_info['result']) == 1:
+                page = connection.ui.page.getObject(page_info['result'][0])
+                save_page = functools.partial( connection.ui.page.update, page.guid )
+                q.console.echo('Updating page: %s'%name, indent=4)
+            else:
+                page = serverapi.model.ui.page.new()
+                page.name = name
+                page.space = space
+                page.category = 'portal'
+                save_page = connection.ui.page.create
+                q.console.echo('Creating page: %s'%name, indent=3, withStar=True)
 
-                # Setting the parent
-                if parent:
-                    parent_page_info = connection.ui.page.find(name=parent, space=space, exact_properties=("name", "space"))
-                    parent_page = connection.ui.page.getObject(parent_page_info['result'][0])
-                    page.parent = parent_page.guid
+            # Setting the parent
+            if parent:
+                parent_page_info = connection.ui.page.find(name=parent, space=space, exact_properties=("name", "space"))
+                parent_page = connection.ui.page.getObject(parent_page_info['result'][0])
+                page.parent = parent_page.guid
      
-                # Setting content
-                page.content = content if content else 'empty'
+            # Setting content
+            page.content = content if content else 'empty'
         
-                # Creating and setting tags
-                if page.tags:
-                    t = page.tags.split(' ')
-                else:
-                    t = []
-                tags = set(t)
+            # Creating and setting tags
+            if page.tags:
+                t = page.tags.split(' ')
+            else:
+                t = []
+            tags = set(t)
         
-                tags.add('space:%s' % space)
-                tags.add('page:%s' % name)
+            tags.add('space:%s' % space)
+            tags.add('page:%s' % name)
         
-                # Split CamelCase in tags
-                for tag in re.sub('((?=[A-Z][a-z])|(?<=[a-z])(?=[A-Z]))', ' ', name).strip().split(' '):
-                    tags.add(tag)
+            # Split CamelCase in tags
+            for tag in re.sub('((?=[A-Z][a-z])|(?<=[a-z])(?=[A-Z]))', ' ', name).strip().split(' '):
+                tags.add(tag)
         
-                p.tags = ' '.join(tags)
-                save_page (page.name, page.space, page.category, page.parent, page.tags, page.content)
+            p.tags = ' '.join(tags)
+            save_page (page.name, page.space, page.category, page.parent, page.tags, page.content)
 
         folder_paths = q.system.fs.listDirsInDir(folder)
         main_files = q.system.fs.listFilesInDir(folder, filter='*.md')
@@ -114,7 +111,6 @@ def sync_to_alkira(appname, path=None, sync_space=None):
                     alkiraTree(sub_folders, root_parent=folder_name)
 
         alkiraTree(folder_paths)
-        
 
 if __name__ == "__main__":
 

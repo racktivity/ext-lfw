@@ -1,16 +1,14 @@
 __author__ = "incubaid"
 
 def main(q, i, p, params, tags):
-    global space
-    global children_str
     macro_tags = params['tags'].tags
+
+    space = macro_tags['space']
+    depth = int(macro_tags['depth'])
+    root_page = macro_tags.get('root', 'self')
 
     appname = p.api.appname
     alkira_client = q.clients.alkira.getClient('127.0.0.1', appname)
-
-    depth = int(macro_tags['depth'])
-    space = macro_tags['space']
-    root_page = macro_tags.get('root', 'self')
 
     all_pages_info = alkira_client.listPageInfo(space)
     all_pages_info = filter(lambda x: x['name'] != 'pagetree', all_pages_info)
@@ -44,7 +42,6 @@ def main(q, i, p, params, tags):
             page_parent = getParent(page)
             if root_guid == page_parent:
                 children.update({page:{}})
-                all_pages.remove(page)
         tree[root].update(children)
         if  tree_depth > 0:
             for child in tree[root].keys():
@@ -55,13 +52,13 @@ def main(q, i, p, params, tags):
     for each_root_page in root_pages:
         values.append(childPages(each_root_page, all_pages, {each_root_page:{}}, depth))
 
+    global children_str
     children_str = ""
 
     def treePrint(indent, value_dict):
         if value_dict:
             for item in value_dict:
                 global children_str
-                global space
                 page_name = item.replace("_", "\_")
                 children_str += indent*' ' + "* <a href='/" + appname + '/#/' + space + '/' + item + "'>" + page_name + '</a>  \n'
                 treePrint(indent+4, value_dict[item])

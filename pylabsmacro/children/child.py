@@ -4,7 +4,7 @@ def main(q, i, p, params, tags):
     macro_tags = params['tags'].tags
 
     space = macro_tags['space']
-    depth = int(macro_tags['depth'])
+    depth = int(macro_tags.get('depth', '1'))
     root_page = macro_tags.get('root', 'self')
 
     appname = p.api.appname

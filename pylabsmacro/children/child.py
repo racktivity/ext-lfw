@@ -4,8 +4,9 @@ def main(q, i, p, params, tags):
     macro_tags = params['tags'].tags
 
     space = macro_tags['space']
+    page = macro_tags['page']
     depth = int(macro_tags.get('depth', '1'))
-    root_page = macro_tags.get('root', 'self')
+    root_page = macro_tags.get('root', page)
 
     appname = p.api.appname
     alkira_client = q.clients.alkira.getClient('127.0.0.1', appname)
@@ -22,7 +23,7 @@ def main(q, i, p, params, tags):
     all_pages.sort()
 
     root_pages = []
-    if root_page != 'self':
+    if root_page != 'all':
         root_pages.append(root_page)
     else:
         root_pages = [ x['name'] for x in all_pages_info if not x['parent'] ]
@@ -67,7 +68,7 @@ def main(q, i, p, params, tags):
     for each_value in values:
         treePrint(0, each_value)
 
-    if (root_page != 'self') and (root_page not in all_pages):
+    if (root_page != 'all') and (root_page not in all_pages):
         children_str = 'Page "%s" does not exist.'%root_page
 
     result = """

@@ -340,13 +340,15 @@ data;
             var result = '\n<div class="macro macro_' + macroname + '"'
             if (paramstring){
                 paramstring = paramstring.substr(1);
+                paramstring = "," + paramstring;
                 var params = new Object();
-                $.each(paramstring.split(","), function(idx, param){
-                    if ( param.search("=") != -1){
-                        var keyvalue = param.split("=");
-                        params[keyvalue[0].trim()] = keyvalue[1].trim();
-                    }
-                });
+                var pieces = paramstring.split(/,\s*(\w+)\s*=\s*/);
+                for (var i = 1; i < pieces.length; i+=2)
+                {
+                    var key = pieces[i];
+                    var param = pieces[i+1];
+                    params[key] = param;
+                }
                 result += " params='" + htmlEncode($.toJSON(params)) + "'";
             }
             body = body || '';

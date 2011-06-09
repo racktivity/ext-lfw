@@ -5,10 +5,10 @@ var render = function(options) {
     var src = options.params.src;
     var func = function() {};
     if (src){
-        dominoes("$css(" + src + ")", func);
+        dominoes(src, func);
     }
     if (body){
-        var script = $("<style>").text(body);
+        var script = $("<script>").text(body);
         $("head").append(script);
     }
 

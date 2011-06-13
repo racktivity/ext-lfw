@@ -96,7 +96,10 @@ def sync_to_alkira(appname, path=None, sync_space=None):
             tags = set(t)        
             tags.add('space:%s' % space)
             tags.add('page:%s' % name)
-        
+            
+            if name == "Home":
+                tags.add('spaceorder:%s' %page_content_dict.get('spaceorder',1000))
+    
             # Split CamelCase in tags
             for tag in re.sub('((?=[A-Z][a-z])|(?<=[a-z])(?=[A-Z]))', ' ', name).strip().split(' '):
                 tags.add(tag)

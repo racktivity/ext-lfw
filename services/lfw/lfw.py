@@ -31,7 +31,7 @@ class LFWService(object):
     def spaces(self, term=None):
         sql = "SELECT distinct  space, substring (tags from 'spaceorder:([0-9])+') FROM ui_page.ui_view_page_list where name = 'Home' order by substring (tags from 'spaceorder:([0-9])+') "
         qr = self.connection.page.query(sql)
-        result = map(lambda _: _['space'], qr)
+        result = [ x['space'] for x in qr ]
         return result
 
     @q.manage.applicationserver.expose

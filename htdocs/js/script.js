@@ -585,6 +585,14 @@ data;
                 if(xhr.status === 404) {
                     context.notFound();
                 }
+                else if (xhr.status === 401){
+                 swap("<p class='error'> Invalid User Name /Password</p>", '#/' + space + '/' + page);
+                }
+               
+                else if (xhr.responseText.indexOf("Authorization failed") >0){
+                 swap("<p class='error'> Authorization failed</p>", '#/' + space + '/' + page);
+                }
+                
                 else {
                     app.error('Unknown error: ' + text, exc);
                 }

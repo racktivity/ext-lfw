@@ -56,17 +56,23 @@ def main(q, i, p, params, tags):
     global children_str
     children_str = ""
 
-    def treePrint(indent, value_dict):
+    def treePrint(indent, value_dict, hide):
         if value_dict:
             for item in value_dict:
-                global children_str
-                page_name = item.replace("_", "\_")
-                children_str += indent*' ' + "* <a href='/" + appname + '/#/' + space + '/' + item + "'>" + page_name + '</a>  \n'
-                treePrint(indent+4, value_dict[item])
+                if hide == True:
+                    treePrint(0, value_dict[item], False)
+                else:
+                    global children_str
+                    page_name = item.replace("_", "\_")
+                    children_str += indent*' ' + "* <a href='/" + appname + '/#/' + space + '/' + item + "'>" + page_name + '</a>  \n'
+                    treePrint(indent+4, value_dict[item], False)
 
     values.sort()
     for each_value in values:
-        treePrint(0, each_value)
+        if root_page == 'all':
+            treePrint(0, each_value, False)
+        else:
+            treePrint(0, each_value, True)
 
     if (root_page != 'all') and (root_page not in all_pages):
         children_str = 'Page "%s" does not exist.'%root_page

@@ -150,7 +150,7 @@ class Client:
             self.connection.page.delete(page_guid)
                 
 
-    def createPage(self, space, name, content, tagsList=[], category='portal', parent=None, contentIsFilePath=False):
+    def createPage(self, space, name, content, order=None, title=None, tagsList=[], category='portal', parent=None, contentIsFilePath=False):
         """
         Creates a new page.
 
@@ -162,6 +162,12 @@ class Client:
 
         @type content: String
         @param content: The content of the page. This can also be a file path; in this case you should set contentIsFilePath=True.
+
+        @type order: Integer
+        @param order: Order of the page
+
+        @type title: String
+        @param title: Title of the page
 
         @type tagsList: List
         @param tagsList: A list containing all the tags you want to add to the page.
@@ -183,6 +189,16 @@ class Client:
             page.name = name
             page.category = category
 
+            if title:
+                page.title = title
+            else:
+                page.title = name
+
+            if order:
+                page.order = order
+            else:
+                page.order = 10000
+
             if contentIsFilePath:
                 content = q.system.fs.fileGetContents(content)
 
@@ -199,7 +215,7 @@ class Client:
 
             self.connection.page.save(page)
 
-    def updatePage(self, old_space, old_name, space=None, name=None, tagsList=None, content=None, parent=None, category=None, contentIsFilePath=False):
+    def updatePage(self, old_space, old_name, space=None, name=None, tagsList=None, content=None, order=None, title=None, parent=None, category=None, contentIsFilePath=False):
         """
         Updates an existing page.
 
@@ -220,6 +236,12 @@ class Client:
 
         @type content: String
         @param content: The new content of the page. This can also be a file path; in this case you should set contentIsFilePath=True.
+
+        @type order: Integer
+        @param order: Order of the page
+
+        @type title: String
+        @param title: Title of the page
 
         @type category: String
         @param category: Gives the page a new category.
@@ -250,6 +272,12 @@ class Client:
             if contentIsFilePath:
                 content = q.system.fs.fileGetContents(content) 
             page.content = content
+
+        if order:
+            page.order = order
+
+        if title:
+            page.title = title
 
         if parent:
             parent_page = self.getPage(old_space, parent)

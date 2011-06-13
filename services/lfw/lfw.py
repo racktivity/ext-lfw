@@ -92,7 +92,7 @@ class LFWService(object):
             return {}
 
         page = self.connection.page.get(qr[0]['guid'])
-        props = ['name', 'space', 'category', 'content', 'creationdate']
+        props = ['name', 'space', 'category', 'content', 'creationdate', 'title']
 
         result = dict([(prop, getattr(page, prop)) for prop in props]) 
         result['tags'] = page.tags.split(' ') if page.tags else []

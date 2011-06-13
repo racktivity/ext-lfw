@@ -35,6 +35,24 @@ def sync_to_alkira(appname, path=None, sync_space=None):
             else:
                 page_occured.append(page_name)
 
+        def filterContent(page_content):
+            content_dict = {}
+            page_lines = page_content.splitlines()
+            while page_lines[0].startswith('@metadata'):
+                meta_line = page_lines.pop(0)
+                meta_line = meta_line.replace('@metadata', "")
+                meta_list = meta_line.split('=')
+
+                header = meta_list[0].strip()
+                value = meta_list[1].strip()
+
+                content_dict[header] = value
+
+            filtered_content = "\n".join(page_lines)
+            content_dict['content'] = filtered_content
+
+            return content_dict
+
         def createPage(page_file, parent=None):
             pageDuplicate(page_file)
             name = q.system.fs.getBaseName(page_file).split('.')[0]
@@ -42,10 +60,10 @@ def sync_to_alkira(appname, path=None, sync_space=None):
             page_info = connection.ui.page.find(name=name, space=space, exact_properties=("name", "space"))
 
             if len(page_info['result']) > 1:
-                raise ValueError('Multiple pages found ? ' )
+                raise ValueError('Multiple pages found!')
             elif len(page_info['result']) == 1:
                 page = connection.ui.page.getObject(page_info['result'][0])
-                save_page = functools.partial( connection.ui.page.update, page.guid )
+                save_page = functools.partial(connection.ui.page.update, page.guid)
                 q.console.echo('Updating page: %s'%name, indent=4)
             else:
                 page = serverapi.model.ui.page.new()
@@ -61,16 +79,21 @@ def sync_to_alkira(appname, path=None, sync_space=None):
                 parent_page = connection.ui.page.getObject(parent_page_info['result'][0])
                 page.parent = parent_page.guid
      
-            # Setting content
-            page.content = content if content else 'empty'
-        
+            # Setting content and metadata
+            page_content_dict = filterContent(content)
+            page.content = page_content_dict.get('content', 'Page is empty.')
+            page.title = page_content_dict.get('title', name)
+            page.order = int(page_content_dict.get('order', '10000'))
+
             # Creating and setting tags
+            page.tags = page_content_dict.get('tagstring')
+
             if page.tags:
                 t = page.tags.split(' ')
             else:
                 t = []
-            tags = set(t)
-        
+
+            tags = set(t)        
             tags.add('space:%s' % space)
             tags.add('page:%s' % name)
         
@@ -78,8 +101,8 @@ def sync_to_alkira(appname, path=None, sync_space=None):
             for tag in re.sub('((?=[A-Z][a-z])|(?<=[a-z])(?=[A-Z]))', ' ', name).strip().split(' '):
                 tags.add(tag)
         
-            p.tags = ' '.join(tags)
-            save_page (page.name, page.space, page.category, page.parent, page.tags, page.content)
+            page.tags = ' '.join(tags)
+            save_page (page.name, page.space, page.category, page.parent, page.tags, page.content, page.order, page.title)
 
         folder_paths = q.system.fs.listDirsInDir(folder)
         main_files = q.system.fs.listFilesInDir(folder, filter='*.md')

@@ -454,7 +454,7 @@ data;
     }
 
     this.setTitle(function(title) {
-        return [title, getSpace(), 'LFW'].join(' / ');
+        return [title, getSpace()].join(' - ');
     });
 
     var clearFields = function() {
@@ -556,7 +556,7 @@ data;
         $.ajax({
             url: pageUri,
             success: function(data) {
-                context.title(page);
+                context.title(data['title']);
 
                 var content = data['content'];
 

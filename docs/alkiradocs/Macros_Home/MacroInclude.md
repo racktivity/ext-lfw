@@ -12,6 +12,9 @@ The `include` macro includes the content of another page in the current page.
 Assuming we want to include the page [SubPage][] at the end of this page, we would add:
 
     [[include:name=SubPage]][[/include]]
+    [[include:space=anotherSpace, name=SubPageOfAnotherSpace]][[/include]]
+    
+    
 
 
 ##Sample

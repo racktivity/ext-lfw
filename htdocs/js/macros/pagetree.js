@@ -2,7 +2,7 @@ var render = function(options) {
 
     var TEMPLATE_NAME = 'plugin.page.treeview';
     var $this = $(this);    
-    var space = options.space;
+    var space = options.params.space || options.space;
     var page = options.page;
     var root = options.params.root || 0;
     

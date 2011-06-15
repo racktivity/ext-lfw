@@ -63,7 +63,7 @@ class Client:
         @type space: String
         @param space: The name of the space.
         """
-        page_info = 'SELECT ui_page.ui_view_page_list."name", ui_page.ui_view_page_list."guid", ui_page.ui_view_page_list."parent" FROM ui_page.ui_view_page_list WHERE ui_page.ui_view_page_list.space = \'%s\'' %space
+        page_info = 'SELECT ui_page.ui_view_page_list."name", ui_page.ui_view_page_list."guid", ui_page.ui_view_page_list."parent", ui_page.ui_view_page_list."title", ui_page.ui_view_page_list."order" FROM ui_page.ui_view_page_list WHERE ui_page.ui_view_page_list.space = \'%s\'' %space
         query = self.connection.page.query(page_info)
         return query
 

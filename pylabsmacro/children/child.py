@@ -16,23 +16,27 @@ def main(q, i, p, params, tags):
 
     page_guid_dict = dict( [ (x['name'], x['guid']) for x in all_pages_info ] )
     page_parent_dict = dict( [ (x['name'], x['parent']) for x in all_pages_info ] )
+    page_title_dict = dict( [ (x['name'], x['title']) for x in all_pages_info ] )
+    page_order_dict = dict( [ (x['name'], x['order']) for x in all_pages_info ] )
 
-    all_pages = []
-    for i in all_pages_info:
-        all_pages.append(i['name'])
-    all_pages.sort()
+    all_pages = [x['name'] for x in all_pages_info]
 
-    root_pages = []
     if root_page != 'all':
-        root_pages.append(root_page)
+        root_pages = [root_page]
     else:
         root_pages = [ x['name'] for x in all_pages_info if not x['parent'] ]
+
+    if (root_page != 'all') and (root_page not in all_pages):
+        children_str = 'Page "%s" does not exist.'%root_page
 
     def getGuid(page_name):
         return page_guid_dict.get(page_name)
 
     def getParent(page_name):
         return page_parent_dict.get(page_name)
+
+    def getTitle(page_name):
+        return page_title_dict.get(page_name)
 
     def childPages(root, pages, tree, tree_depth):
         tree_depth -= 1
@@ -42,8 +46,8 @@ def main(q, i, p, params, tags):
         for page in pages:
             page_parent = getParent(page)
             if root_guid == page_parent:
-                children.update({page:{}})
-        tree[root].update(children)
+                children[page] = {}
+        tree[root] = children
         if  tree_depth > 0:
             for child in tree[root].keys():
                 childPages(child, all_pages, tree[root], tree_depth)
@@ -55,27 +59,30 @@ def main(q, i, p, params, tags):
 
     global children_str
     children_str = ""
+    
+    def pageSorter(page1, page2):
+        result = cmp(page_order_dict[page1], page_order_dict[page2])
+        if result == 0:
+            return cmp(page1, page2)
+        else:
+            return result
 
     def treePrint(indent, value_dict, hide):
         if value_dict:
-            for item in value_dict:
+            for item in sorted(value_dict, cmp=pageSorter):
                 if hide == True:
                     treePrint(0, value_dict[item], False)
                 else:
                     global children_str
-                    page_name = item.replace("_", "\_")
-                    children_str += indent*' ' + "* <a href='/" + appname + '/#/' + space + '/' + item + "'>" + page_name + '</a>  \n'
+                    page_title = getTitle(item).replace("_", "\_")
+                    children_str += indent*' ' + "* <a href='/" + appname + '/#/' + space + '/' + item + "'>" + page_title + '</a>  \n'
                     treePrint(indent+4, value_dict[item], False)
 
-    values.sort()
     for each_value in values:
         if root_page == 'all':
             treePrint(0, each_value, False)
         else:
             treePrint(0, each_value, True)
-
-    if (root_page != 'all') and (root_page not in all_pages):
-        children_str = 'Page "%s" does not exist.'%root_page
 
     result = """
 %s

@@ -146,9 +146,11 @@ class LFWService(object):
         SELECT DISTINCT pagelist.guid,
                 pagelist.parent,
                 pagelist.name,
+                pagelist.title,
+                pagelist.order,
                 (select count(guid) FROM ui_page.ui_view_page_list WHERE ui_page.ui_view_page_list.parent = pagelist.guid) as nrofkids
                 FROM ONLY ui_page.ui_view_page_list as pagelist
-                WHERE pagelist.space = '%(space)s' %(where)s ORDER BY pagelist.name;
+                WHERE pagelist.space = '%(space)s' %(where)s ORDER BY pagelist.order, pagelist.title;
         """ % {'space': space, 'where': where}
 
         result = self.connection.page.query(sql)
@@ -159,7 +161,7 @@ class LFWService(object):
             nodedata = dict()
             children = list()
             state = 'closed' if node['nrofkids'] > 0 else 'leaf'
-            nodedata = {'data': {'title': node['name'],
+            nodedata = {'data': {'title': node['title'],
                                  'type': 'link',
                                  'attr': {'href': '#/%s/%s' % (space, node['name'])},
                                  'children':[]

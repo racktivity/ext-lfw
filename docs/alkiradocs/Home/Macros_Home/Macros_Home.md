@@ -1,3 +1,5 @@
+@metadata title=Alkira Macros
+
 [howto]: /sampleapp/#/alkiradocs/Macros\_HOWTO
 [pylabs]: /sampleapp/#/alkiradocs/MacrosPylabs
 [js]: /sampleapp/#/alkiradocs/MacrosJavascript

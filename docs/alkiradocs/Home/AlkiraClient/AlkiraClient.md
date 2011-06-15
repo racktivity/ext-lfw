@@ -1,3 +1,6 @@
+@metadata title=Alkira Client
+
+
 #Alkira Client
 The Alkira client is an extension for interaction with the Alkira database/server. Instead of having to access the database files manually, a set of methods are implemented to in order to, for example create, update, or remove a page. This section gives you an overview of the Alkira client functions.
 

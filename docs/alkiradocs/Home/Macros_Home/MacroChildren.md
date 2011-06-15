@@ -1,5 +1,5 @@
 # Children Macro
-The `children` macro creates a tree-view of a certain page and all its chilkd pages.
+The `children` macro creates a tree-view of a certain page and all its child pages.
 
 
 ##Parameters

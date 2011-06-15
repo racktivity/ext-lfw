@@ -1,3 +1,5 @@
+@metadata title=Alkira
+
 [macros]: /sampleapp/#/alkiradocs/Macros\_Home
 [md]: /sampleapp/#/alkiradocs/Markdown\_Home
 [pl]: http://confluence.incubaid.com/display/PYLABS/Home

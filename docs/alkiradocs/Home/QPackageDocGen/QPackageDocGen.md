@@ -1,3 +1,6 @@
+@metadata title=Generating Documentation
+
+
 Alkira Q-Package Documentation Generator
 ========================================
 

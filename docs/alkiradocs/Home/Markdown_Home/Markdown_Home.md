@@ -1,3 +1,5 @@
+@metadata title=Markdown Documentation
+
 Markdown: Home
 ================
 

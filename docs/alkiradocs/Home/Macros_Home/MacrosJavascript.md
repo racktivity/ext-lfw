@@ -2,21 +2,21 @@
 @metadata order=12
 @metadata tagstring=macro javascript js
 
-[actions]: /pylabsdoc/#/alkiradocs/MacroActions
-[code]: /pylabsdoc/#/alkiradocs/MacroCode
-[dashboard]: /pylabsdoc/#/alkiradocs/MacroDashboard
-[maps]: /pylabsdoc/#/alkiradocs/MacroGoogleMaps
-[graphviz]: /pylabsdoc/#/alkiradocs/MacroGraphViz
-[include]: /pylabsdoc/#/alkiradocs/MacroInclude
-[info]: /pylabsdoc/#/alkiradocs/MacroInformation
-[jqplot]: /pylabsdoc/#/alkiradocs/MacroJqPlot/MacroJqPlot
-[note]: /pylabsdoc/#/alkiradocs/MacroNote
-[pagetree]: /pylabsdoc/#/alkiradocs/MacroPageTree
-[sqlgrid]: /pylabsdoc/#/alkiradocs/MacroSqlGrid
-[tip]: /pylabsdoc/#/alkiradocs/MacroTip
-[toc]: /pylabsdoc/#/alkiradocs/MacroToc
-[warning]: /pylabsdoc/#/alkiradocs/MacroWarning
-[wizard]: /pylabsdoc/#/alkiradocs/MacroWizard
+[actions]: /#/alkiradocs/MacroActions
+[code]: /#/alkiradocs/MacroCode
+[dashboard]: /#/alkiradocs/MacroDashboard
+[maps]: /#/alkiradocs/MacroGoogleMaps
+[graphviz]: /#/alkiradocs/MacroGraphViz
+[include]: /#/alkiradocs/MacroInclude
+[info]: /#/alkiradocs/MacroInformation
+[jqplot]: /#/alkiradocs/MacroJqPlot/MacroJqPlot
+[note]: /#/alkiradocs/MacroNote
+[pagetree]: /#/alkiradocs/MacroPageTree
+[sqlgrid]: /#/alkiradocs/MacroSqlGrid
+[tip]: /#/alkiradocs/MacroTip
+[toc]: /#/alkiradocs/MacroToc
+[warning]: /#/alkiradocs/MacroWarning
+[wizard]: /#/alkiradocs/MacroWizard
 
 ##JavaScript Macros
 * [Actions Macro][actions]  

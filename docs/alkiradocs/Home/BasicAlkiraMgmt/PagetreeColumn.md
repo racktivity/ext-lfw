@@ -2,7 +2,7 @@
 @metadata order=30
 @metadata tagstring=pagetree add page column
 
-[pagetree]: /pylabsdoc/#/Macros_Home/MacroPagetree
+[pagetree]: /#/Macros_Home/MacroPagetree
 
 
 #Adding a Pagetree Column

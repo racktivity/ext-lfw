@@ -3,7 +3,7 @@
 @metadata tagstring=jqplot chart line
 
 [line chart]:http://www.jqplot.com/tests/coretests.php
-[createmacro]: /pylabsdoc/#/alkiradocs/Macros_HOWTO
+[createmacro]: /#/alkiradocs/Macros_HOWTO
 
 # Line Chart
 

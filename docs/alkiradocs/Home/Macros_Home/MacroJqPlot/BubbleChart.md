@@ -3,7 +3,7 @@
 @metadata tagstring=jqplot chart bubble
 
 [jqplot options]:http://www.jqplot.com/docs/files/jqPlotOptions-txt.html#jqPlot_Options
-[createmacro]: /pylabsdoc/#/alkiradocs/Macros_HOWTO
+[createmacro]: /#/alkiradocs/Macros_HOWTO
 
 
 # Bubble Chart

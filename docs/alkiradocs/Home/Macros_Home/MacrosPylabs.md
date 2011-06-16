@@ -2,8 +2,8 @@
 @metadata order=11
 @metadata tagstring=macro pylabs list
 
-[generic]: /pylabsdoc/#/alkiradocs/MacroGeneric
-[child]: /pylabsdoc/#/alkiradocs/MacroChildren
+[generic]: /#/alkiradocs/MacroGeneric
+[child]: /#/alkiradocs/MacroChildren
 
 
 ##PyLabs Macros

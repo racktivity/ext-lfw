@@ -3,7 +3,7 @@
 @metadata tagstring=jqplot chart pie
 
 [pie chart]:http://www.jqplot.com/tests/pieTests.php
-[createmacro]: /pylabsdoc/#/alkiradocs/Macros_HOWTO
+[createmacro]: /#/alkiradocs/Macros_HOWTO
 
 # Pie Chart
 

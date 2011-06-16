@@ -1,6 +1,7 @@
 @metadata title=Managing Alkira
+@metadata order=10
 
 
 #Basic Alkira Management
 
-[[children]]depth:1 root:BasicAlkiraMgmt[[/children]]
+[[children/]]

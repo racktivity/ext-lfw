@@ -1,6 +1,10 @@
-[qpcreate]: http://confluence.incubaid.com/display/PYLABS/Creating+a+Q-Package
-[codetasklet]: http://confluence.incubaid.com/display/PYLABS/Q-Package+Tasklets#codemanagement+Tasklet
-[child]: /sampleapp/#/alkiradocs/Macros/MacroChildren
+@metadata title=Spaces and Pages
+@metadata order=10
+
+[qpcreate]: /pylabsdoc/#/Q-Packages/QPCreate
+[codetasklet]: /pylabsdoc/#/Q-Packages/CodeManagement
+[child]: /pylabsdoc/#/alkiradocs/Macros/MacroChildren
+
 
 #Managing Spaces and Pages
 When you create an application, it is possible to add documentation for the application, or you can simply create an application that only contains documentation.
@@ -49,15 +53,15 @@ There is no limitation in the number of levels
     |   |-- Child1.md (child page of Home)
     |   |-- child11.md (child page of Home)
     |   |-- Child12
-    |   |   |-- Child12.md (child page of Home)
+    |   |   |-- Child12.md (child page of Child1)
     |   |   `-- child121.md (child page of Child12)
-    |   `-- child13.md (child page of Home)
+    |   `-- child13.md (child page of Child1)
     |-- child2.md (child page of Home)
     `-- Child3
         |-- Child3.md (child page of Home)
-        |-- child31.md (child page of Home)
+        |-- child31.md (child page of Child3)
         `-- Child32
-            |-- Child32.md (child page of Home)
+            |-- Child32.md (child page of Child3)
             |-- child33.md (child page of Child32)
             `-- child34.md (child page of Child32)
         

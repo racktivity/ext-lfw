@@ -1,5 +1,13 @@
+@metadata title=JqPlot Macro
+
 [new jqplt chart]:http://www.jqplot.com/docs/files/usage-txt.html
 [jqPlot Examples]:http://www.jqplot.com/tests/
+[line]: /pylabsdoc/#/alkiradocs/LineChart
+[bar]: /pylabsdoc/#/alkiradocs/BarChart
+[pie]: /pylabsdoc/#/alkiradocs/PieChart
+[block]: /pylabsdoc/#/alkiradocs/BlockChart
+[bubble]: /pylabsdoc/#/alkiradocs/BubbleChart
+
 
 #JqPlot Macro 
 The `jqplot` is a jQuery plugin to generate pure client-side JavaScript charts in your web pages.
@@ -12,7 +20,8 @@ The body contains the data to generate the chart.
 
 ##Examples
 
-###[Line Chart](/sampleapp/#/alkiradocs/LineChart)
+###[Line Chart][line]
+
     [[jqplot]]
     {"width" : 400,
      "height" : 400,
@@ -32,7 +41,8 @@ The body contains the data to generate the chart.
 
 <br />
 
-###[Bar Chart](/sampleapp/#/alkiradocs/BarChart)
+###[Bar Chart][bar]
+
     [[jqplot]]
     {"width" : 400,
      "height" : 400,
@@ -54,7 +64,7 @@ The body contains the data to generate the chart.
 
 <br />
 
-###[Pie Chart](/sampleapp/#/alkiradocs/PieChart)
+###[Pie Chart][pie]
     [[jqplot]]
     {"width" : 400,
      "height" : 400,
@@ -76,7 +86,8 @@ The body contains the data to generate the chart.
 
 <br />
 
-###[Block Chart](/sampleapp/#/alkiradocs/BlockChart)
+###[Block Chart][block]
+
     [[jqplot]]
     {"width" : 400,
      "height" : 400,
@@ -98,7 +109,8 @@ The body contains the data to generate the chart.
 
 <br />
 
-###[Bubble Chart](/sampleapp/#/alkiradocs/BubbleChart)
+###[Bubble Chart][bubble]
+
     [[jqplot]]
     {"width" : 400,
      "height" : 400,

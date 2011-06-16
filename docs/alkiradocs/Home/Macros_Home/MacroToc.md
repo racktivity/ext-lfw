@@ -1,4 +1,6 @@
-#Page Tree Macro
+@metadata title=TOC Macro
+
+#Table of Contents Macro
 
 This macro shows the table of contents of a page, for sure very useful in case of long pages.
 

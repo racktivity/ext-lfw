@@ -1,8 +1,12 @@
 @metadata title=Alkira
+@metadata order=1
 
-[macros]: /sampleapp/#/alkiradocs/Macros\_Home
-[md]: /sampleapp/#/alkiradocs/Markdown\_Home
-[pl]: http://confluence.incubaid.com/display/PYLABS/Home
+[macros]: /pylabsdoc/#/alkiradocs/Macros\_Home
+[md]: /pylabsdoc/#/alkiradocs/Markdown\_Home
+[pl]: /pylabsdoc/#/PyLabs50/Home
+[incubaid]: http://www.incubaid.com
+[mdsyntax]: http://daringfireball.net/projects/markdown/syntax
+
 
 #Welcome to the Alkira Project
 
@@ -11,7 +15,7 @@ The Alkira Project is an effort to have a powerful and customizable documentatio
 - - -
 
 ##What is Alkira?
-Alkira is a wiki documentation platform, developed by [Incubaid](http://www.incubaid.com). Alkira uses the [Markdown syntax](http://daringfireball.net/projects/markdown/syntax), which is a plain text format. 
+Alkira is a wiki documentation platform, developed by [Incubaid][incubaid]. Alkira uses the [Markdown syntax][mdsyntax], which is a plain text format. 
 The platform converts the wiki files into HTML, with the advantage that you can completely customize the look and feel of the HTML output.
 
 Alkira is integrated in [PyLabs 5][pl], which gives you to possibility to modify or extend it to your own needs.

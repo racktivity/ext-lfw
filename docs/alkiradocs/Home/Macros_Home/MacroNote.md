@@ -1,8 +1,10 @@
+@metadata title=Note Macro
+
 #Macro Note
 The note macro is used to highlight a note on a page with a yellow box.
 
 
-## Prameters
+## Parameters
 
 The body of the macro is the note which should be highlighted.
 

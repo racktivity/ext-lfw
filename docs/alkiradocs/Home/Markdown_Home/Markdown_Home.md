@@ -1,71 +1,67 @@
 @metadata title=Markdown Documentation
+@metadata order=20
 
-Markdown: Home
-================
+[mdhome]: /pylabsdoc/#/alkiradocs/Markdown_Home
+[basics]: /pylabsdoc/#/alkiradocs/Basics
+[syntax]: http://daringfireball.net/projects/markdown/syntax
+[license]: /pylabsdoc/#/alkiradocs/License
+[dl]: http://daringfireball.net/projects/downloads/Markdown_1.0.1.zip
+[dingus]: http://daringfireball.net/projects/markdown/dingus
+[sourcehome]: /pylabsdoc/#/alkiradocs/HomeSource
+[s_src]: http://daringfireball.net/projects/markdown/syntax.text
+[l_src]: http://daringfireball.net/projects/markdown/license.text
+[pl]: http://daringfireball.net/projects/markdown/license
+[md5]: http://search.cpan.org/dist/Digest-MD5/MD5.pm
+[sp]: http://daringfireball.net/projects/smartypants/
+[meta]: http://www.blosxom.com/plugins/meta/meta.htm
+[Aaron Swartz]:     http://www.aaronsw.com/
+[Nathaniel Irons]:  http://bumppo.net/
+[Dan Benjamin]:     http://hivelogic.com/
+[Daniel Bogan]:     http://waferbaby.com/
+[Jason Perkins]:        http://pressedpants.com/
+[Michel Fortin]:        http://www.michelf.com/projects/php-markdown/
+[html2text]:          http://www.aaronsw.com/2002/html2text/
+[imgTextformat]: md\_images/mt\_textformat\_menu.png
 
-<ul id="ProjectSubmenu">
-    <li><a href="/sampleapp/#/alkiradocs/Markdown_Home" class="selected" title="Markdown Project Page">Home</a></li>
-    <li><a href="/sampleapp/#/alkiradocs/Basics" title="Markdown Basics">Basics</a></li>
-    <li><a href="/sampleapp/#/alkiradocs/Syntax" title="Markdown Syntax Documentation">Syntax</a></li>
-    <li><a href="/sampleapp/#/alkiradocs/License" title="Pricing and License Information">License</a></li>
-</ul>
 
-Download
---------
+#Markdown: Home
+
+* [Home][mdhome]
+* [Markdown Basics][basics]
+* [Syntax][syntax]
+* [License][license]
+
+
+##Download
 
 [Markdown 1.0.1][dl] (18 KB) -- 17 Dec 2004
 
-[dl]: http://daringfireball.net/projects/downloads/Markdown_1.0.1.zip
 
-
-Introduction
-------------
+##Introduction
 
 Markdown is a text-to-HTML conversion tool for web writers. Markdown allows you to write using an easy-to-read, easy-to-write plain text format, then convert it to structurally valid XHTML (or HTML).
 
 Thus, "Markdown" is two things: (1) a plain text formatting syntax; and (2) a software tool, written in Perl, that converts the plain text formatting to HTML. See the [Syntax][] page for details pertaining to Markdown's formatting syntax. 
 You can try it out, right now, using the online [Dingus][].
 
-  [syntax]: /projects/markdown/syntax
-  [dingus]: /projects/markdown/dingus
-
 The overriding design goal for Markdown's formatting syntax is to make it as readable as possible. The idea is that a Markdown-formatted document should be publishable as-is, as plain text, without looking like it's been marked up with tags or formatting instructions. 
 While Markdown's syntax has been influenced by several existing text-to-HTML filters, the single biggest source of inspiration for Markdown's syntax is the format of plain text email.
 
-The best way to get a feel for Markdown's formatting syntax is simply to look at a Markdown-formatted document. For example, you can view the Markdown source for the article text on this page here:
-<http://daringfireball.net/projects/markdown/index.text>
+The best way to get a feel for Markdown's formatting syntax is simply to look at a Markdown-formatted document. For example, you can view the Markdown source for the article text on this page [here][sourcehome].
 
 (You can use this '.text' suffix trick to view the Markdown source for the content of each of the pages in this section, e.g. the [Syntax][s_src] and [License][l_src] pages.)
 
-  [s_src]: /projects/markdown/syntax.text
-  [l_src]: /projects/markdown/license.text
 
 Markdown is free software, available under a BSD-style open source license. See the [License] [pl] page for more information.
 
-  [pl]: /projects/markdown/license
 
-
-Discussion List <a id="discussion-list" />
----------------
-
-I've set up a public [mailing list for discussion about Markdown] [ml].
-Any topic related to Markdown -- both its formatting syntax and its software -- is fair game for discussion. Anyone who is interested is welcome to join.
-
-It's my hope that the mailing list will lead to good ideas for future improvements to Markdown.
-
-  [ml]: http://six.pairlist.net/mailman/listinfo/markdown-discuss
-
-
-Installation and Requirements <a id="install" />
------------------------------
+##Installation and Requirements 
 
 Markdown requires Perl 5.6.0 or later. Welcome to the 21st Century.
 Markdown also requires the standard Perl library module [Digest::MD5][md5], which is probably already installed on your server.
 
-  [md5]: http://search.cpan.org/dist/Digest-MD5/MD5.pm
 
-
-### Movable Type ###
+###Movable Type
 
 Markdown works with Movable Type version 2.6 or later (including Movable Type 3.0).
 
@@ -75,7 +71,7 @@ Markdown works with Movable Type version 2.6 or later (including Movable Type 3.
 
 2.  Once installed, Markdown will appear as an option in Movable Type's Text Formatting pop-up menu. This is selectable on a per-post basis:
 	
-	![mt\_textformat\_menu](md\_images/mt\_textformat\_menu.png)
+	![mt\_textformat\_menu][imgTextformat]
 	
 	Markdown translates your posts to HTML when you publish; the posts themselves are stored in your MT database in Markdown format.
 
@@ -86,11 +82,8 @@ Markdown works with Movable Type version 2.6 or later (including Movable Type 3.
 
 Note that by default, Markdown produces XHTML output. To configure Markdown to produce HTML 4 output, see "Configuration", below.
 
-  [sp]: http://daringfireball.net/projects/smartypants/
 
-
-
-### Blosxom ###
+### Blosxom
 
 Markdown works with Blosxom version 2.0 or later.
 
@@ -103,10 +96,8 @@ Markdown works with Blosxom version 2.0 or later.
 4.	If you'd like to apply Markdown formatting only to certain posts, rather than all of them, Markdown can optionally be used in conjunction with Blosxom's [Meta][] plug-in. First, install the Meta plug-in. 
     Next, open the Markdown plug-in file in a text editor, and set the configuration variable `$g_blosxom_use_meta`to 1. Then, simply include a "`meta-markup: Markdown`" header line at the top of each post you compose using Markdown.
 
-  [meta]: http://www.blosxom.com/plugins/meta/meta.htm
 
-
-### BBEdit ###
+### BBEdit
 
 Markdown works with BBEdit 6.1 or later on Mac OS X. It also works with BBEdit 5.1 or later and MacPerl 5.6.1 on Mac OS 8.6 or later. If you're running Mac OS X 10.2 (Jaguar), you may need to install the Perl module [Digest::MD5] [md5] from CPAN; Digest::MD5 comes pre-installed on Mac OS X 10.3 (Panther).
 
@@ -122,8 +113,7 @@ Markdown works with BBEdit 6.1 or later on Mac OS X. It also works with BBEdit 5
 
 
 
-Configuration  <a id="configuration"></a>
--------------
+##Configuration
 
 By default, Markdown produces XHTML output for tags with empty elements.
 E.g.:
@@ -135,7 +125,7 @@ Markdown can be configured to produce HTML-style tags; e.g.:
     <br>
 
 
-### Movable Type ###
+### Movable Type
 
 You need to use a special `MTMarkdownOptions` container tag in each Movable Type template where you want HTML 4-style output:
 
@@ -152,7 +142,7 @@ To suppress Markdown processing in a particular template, i.e. to publish the ra
     </MTMarkdownOptions>
 
 
-### Command-Line ###
+### Command-Line 
 
 Use the `--html4tags` command-line switch to produce HTML output from a Unix-style command line. 
 E.g.:
@@ -162,21 +152,11 @@ E.g.:
 Type `perldoc Markdown.pl`, or read the POD documentation within the Markdown.pl source code for more information.
 
 
-Acknowledgements <a id="acknowledgements" />
-----------------
+##Acknowledgements
 
 [Aaron Swartz][] deserves a tremendous amount of credit for helping to design Markdown's formatting syntax. Markdown is *much* better thanks to Aaron's ideas, feedback, and testing. Also, Aaron's [html2text][] is a very handy (and free) utility for turning HTML into Markdown-formatted plain text.
 
 [Nathaniel Irons][], [Dan Benjamin][], [Daniel Bogan][], and [Jason Perkins][] also deserve thanks for their feedback.
 
 [Michel Fortin][] has ported Markdown to PHP; it's a splendid port, and highly recommended for anyone looking for a PHP implementation of Markdown.
-
-  [Aaron Swartz]:		http://www.aaronsw.com/
-  [Nathaniel Irons]:	http://bumppo.net/
-  [Dan Benjamin]:		http://hivelogic.com/
-  [Daniel Bogan]:		http://waferbaby.com/
-  [Jason Perkins]:		http://pressedpants.com/
-  [Michel Fortin]:		http://www.michelf.com/projects/php-markdown/
-  [html2text]:          http://www.aaronsw.com/2002/html2text/
  
-  [tfmenu]: /graphics/markdown/mt_textformat_menu.png

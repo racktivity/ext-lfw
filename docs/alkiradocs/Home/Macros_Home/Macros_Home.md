@@ -1,4 +1,5 @@
 @metadata title=Alkira Macros
+@metadata order=30
 
 [howto]: /sampleapp/#/alkiradocs/Macros\_HOWTO
 [pylabs]: /sampleapp/#/alkiradocs/MacrosPylabs

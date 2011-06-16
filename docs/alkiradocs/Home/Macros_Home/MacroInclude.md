@@ -1,3 +1,5 @@
+@metadata title=Include Macro
+
 # Include Macro
 The `include` macro includes the content of another page in the current page.
 

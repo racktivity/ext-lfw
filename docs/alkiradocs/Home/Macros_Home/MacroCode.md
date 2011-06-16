@@ -1,3 +1,5 @@
+@metadata title=Code Macro
+
 #Code Macro
 The `code` macro is used to display source code on a page.
 Syntax language is detected automatically and highlighted accordingly.

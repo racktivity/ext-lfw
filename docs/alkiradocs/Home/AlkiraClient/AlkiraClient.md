@@ -1,4 +1,5 @@
 @metadata title=Alkira Client
+@metadata order=40
 
 
 #Alkira Client
@@ -10,7 +11,7 @@ In this document, we assume that we have the following data in our Alkira server
 * Pages: Dev\_Home, Docs\_Home
 
 
-###Getting a Client Connection
+##Getting a Client Connection
 
 To access all the methods the client offers, you need to get a client connection. You can establish a connection by running the following command:  
 
@@ -19,11 +20,11 @@ To access all the methods the client offers, you need to get a client connection
 __Note:__ The 'hostname' can be any IP that contains an Alkira Database.
 
 
-###Client Methods
+##Client Methods
 Now that you have a client object, you can perform the tasks below.
 
 
-#####Listing the Current Spaces
+###Listing the Current Spaces
     
     alkiraclient.listSpaces()
 
@@ -35,7 +36,7 @@ __Example:__
     Out[1]: ['Dev', 'Docs']
 
 
-#####Listing the Pages in a Space
+###Listing the Pages in a Space
 
     alkiraclient.listPages(space)
 
@@ -47,7 +48,7 @@ __Example:__
     Out[1]: ['Docs_Home']
 
 
-#####Checking if a Page Exists
+###Checking if a Page Exists
 
     alkiraclient.pageExists(space, name)
 
@@ -62,7 +63,7 @@ __Example:__
     Out[1]: False
 
 
-#####Getting a Page Object
+###Getting a Page Object
 
     alkiraclient.getPage(space, name)
 
@@ -79,7 +80,7 @@ Now you can check all the page properties:
     docshome.category         docshome.creationdate     docshome.guid             docshome.parent           docshome.space            docshome.version     
 
 
-#####Creating a New Page
+###Creating a New Page
 
     alkiraclient.createPage(space, name, content, tagsList=[], category='portal', parent=None, contentIsFilePath=False)
 
@@ -105,7 +106,7 @@ It is also possible to include the content of one page in another page. Assume t
     In [1]: alkiraclient.createPage('Docs', 'Docs_Other', '/my_files/test_info.md', parent='Docs_Home', contentIsFilePath=True)
 
 
-#####Updating an Existing Page
+###Updating an Existing Page
 
     alkiraclient.updatePage(old_space, old_name, space=None, name=None, tagsList=None, content=None, parent=None, category=None, contentIsFilePath=False)
 
@@ -118,7 +119,7 @@ If you want `Docs_Other` to contain 'Adjusted test page.' instead of 'This is a 
     In [1]: alkiraclient.updatePage('Docs', 'Docs_Other', content='Adjusted test page.')
 
 
-#####Deleting a Page
+###Deleting a Page
 
     alkiraclient.deletePage(space, name)
 
@@ -131,7 +132,7 @@ If you want to delete the page `Docs_Other`:
     In [1]: alkiraclient.deletePage('Docs', 'Docs_Other')
 
 
-#####Deleting a Page and Children
+###Deleting a Page and Children
 
     alkiraclient.deletePageAndChildren(space, name)
 

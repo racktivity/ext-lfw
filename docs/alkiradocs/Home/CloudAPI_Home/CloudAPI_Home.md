@@ -1,4 +1,5 @@
 @metadata title=Cloud API
+@metadata order=50
 
 # Cloud API Home
 

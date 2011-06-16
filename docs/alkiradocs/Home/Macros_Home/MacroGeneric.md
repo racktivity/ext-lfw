@@ -1,3 +1,5 @@
+@metadata title=Generic Macro
+
 #Generic Macro
 The `generic` macro which renders content based on the PyLabs tags defined in the body of the macro and the context of the page.
 

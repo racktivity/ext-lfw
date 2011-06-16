@@ -1,3 +1,5 @@
+@metadata title=Google Maps Macro
+
 #Google Maps Macro
 
 The `googlemaps` macro displays a Google map on the page.

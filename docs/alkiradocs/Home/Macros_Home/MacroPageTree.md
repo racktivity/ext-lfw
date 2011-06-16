@@ -1,3 +1,5 @@
+@metadata title=Pagetree Macro
+
 #Page Tree Macro
 
 The `pagetree` macro shows a flexible hierarchical tree view.

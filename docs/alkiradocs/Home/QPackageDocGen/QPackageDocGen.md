@@ -1,8 +1,8 @@
 @metadata title=Generating Documentation
+@metadata order=60
 
 
-Alkira Q-Package Documentation Generator
-========================================
+#Alkira Q-Package Documentation Generator
 
 The Alkira Q-Package documentation generator extension consists of three methods that contribute to the generation and publication of the documentation:
 
@@ -24,8 +24,7 @@ __Destination to clone in:__ /my\_dest/files
 __Destination to generate documentation in:__ /my\_dest/docs  
 
 
-Cloning the Metadata Repository
--------------------------------
+##Cloning the Metadata Repository
 
 The cloning method (cloneMetaDataRepo) is used to clone the metadata repository to certain destination on your local machine. It takes the following arguments:
 
@@ -41,8 +40,7 @@ With the given settings, run the command as follows:
 Running this command will simply clone the metadata repository to `/my_dest/files`.
 
 
-Generating the Documentation
-----------------------------
+##Generating the Documentation
 
 The generate documentation method (`generateDocumentation`) is used to generate Alkira documentation locally, for example in case you want to quickly have a look at the layout of the documentation. 
 The method takes two arguments:
@@ -58,8 +56,7 @@ With the given settings, run the command as follows:
 Running this command will generate Alkira formatted documentation in '/my\_test/docs'.
 
 
-Publishing Documentation to Alkira
-----------------------------------
+##Publishing Documentation to Alkira
 To publish your documentation in Alkira, use the `publishDocsToAlkira` method. This method takes the following arguments:
 
 * __space:__ The name of the space on Alkira. If it does not exist, it is automatically created.
@@ -70,5 +67,3 @@ To publish your documentation in Alkira, use the `publishDocsToAlkira` method. T
 With the given settings, run the command with the following arguments:
 
     q.generator.qpackages.publishDocsToAlkira('QP_DOC', 'Q-Package Documentation', '/my_test/docs', hostname='127.0.0.1')
-
-

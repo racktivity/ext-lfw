@@ -1,3 +1,5 @@
+@metadata title=SQL Grid Macro
+
 #SQL Grid Macro
 The `sqlgrid` macro executes a given SQL query and shows the result in a SQL grid, with support of paging.
 

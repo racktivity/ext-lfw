@@ -1,3 +1,5 @@
+@metadata title=Dashboard Macro
+
 #Dashboard Macro
 The `dashboard` macro allows you to add pages or other macros as widgets in your Alkira page.
 

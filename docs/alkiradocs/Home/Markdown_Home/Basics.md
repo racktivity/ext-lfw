@@ -1,16 +1,24 @@
-Markdown: Basics
-================
+@metadata title:Markdown Basics
+@metadata order=10
 
-<ul id="ProjectSubmenu">
-    <li><a href="/sampleapp/#/alkiradocs/Markdown_Home" title="Markdown Project Page">Home</a></li>
-    <li><a href="/sampleapp/#/alkiradocs/Basics" class="selected" title="Markdown Basics">Basics</a></li>
-    <li><a href="/sampleapp/#/alkiradocs/Syntax" title="Markdown Syntax Documentation">Syntax</a></li>
-    <li><a href="/sampleapp/#/alkiradocs/License" title="Pricing and License Information">License</a></li>
-</ul>
+[mdhome]: /pylabsdoc/#/alkiradocs/Markdown_Home
+[basics]: /pylabsdoc/#/alkiradocs/Basics
+[syntax]: http://daringfireball.net/projects/markdown/syntax
+[license]: /pylabsdoc/#/alkiradocs/License
+[s]: http://daringfireball.net/projects/markdown/syntax
+[d]: http://daringfireball.net/projects/markdown/dingus
+[src]: http://daringfireball.net/projects/markdown/basics.text
 
 
-Getting the Gist of Markdown's Formatting Syntax
-------------------------------------------------
+#Markdown: Basics
+
+* [Home][mdhome]
+* [Markdown Basics][basics]
+* [Syntax][syntax]
+* [License][license]
+
+
+##Getting the Gist of Markdown's Formatting Syntax
 
 This page offers a brief overview of what it's like to use Markdown. The [syntax page] [s] provides complete, detailed documentation for every feature, but Markdown should be very easy to pick up simply by looking at a few examples of it in action. 
 The examples on this page are written in a before/after style, showing example syntax and the HTML output produced by Markdown.
@@ -18,10 +26,6 @@ The examples on this page are written in a before/after style, showing example s
 It's also helpful to simply try Markdown out; the [Dingus] [d] is a web application that allows you type your own Markdown-formatted text and translate it to XHTML.
 
 **Note:** This document is itself written using Markdown; you can [see the source for it by adding '.text' to the URL] [src].
-
-  [s]: /projects/markdown/syntax  "Markdown Syntax"
-  [d]: /projects/markdown/dingus  "Markdown Dingus"
-  [src]: /projects/markdown/basics.text
 
 
 ## Paragraphs, Headers, Blockquotes ##
@@ -37,11 +41,15 @@ Blockquotes are indicated using email-style '`>`' angle brackets.
 
 Markdown:
 
-    A First Level Header
-    ====================
+    #A First Level Header
     
-    A Second Level Header
-    ---------------------
+    A First Level Header (Alternative)
+    ==================================
+    
+    ##A Second Level Header
+    
+    A Second Level Header (Alternative)
+    -----------------------------------
 
     Now is the time for all good men to come to
     the aid of their country. This is just a
@@ -84,7 +92,7 @@ Output:
 
 
 
-### Phrase Emphasis ###
+### Phrase Emphasis
 
 Markdown uses asterisks and underscores to indicate spans of emphasis.
 
@@ -106,7 +114,7 @@ Output:
    
 
 
-## Lists ##
+## Lists 
 
 Unordered (bulleted) lists use asterisks, pluses, and hyphens (`*`, `+`, and `-`) as list markers. These three markers are interchangable; this:
 
@@ -166,7 +174,7 @@ Output:
     
 
 
-### Links ###
+### Links
 
 Markdown supports two styles for creating links: *inline* and *reference*. With both styles, you use square brackets to delimit the text you want to turn into a link.
 
@@ -218,7 +226,7 @@ Output:
     <a href="http://www.nytimes.com/">The New York Times</a>.</p>
 
 
-### Images ###
+### Images
 
 Image syntax is very much like link syntax.
 
@@ -238,7 +246,7 @@ Both of the above examples produce the same output:
 
 
 
-### Code ###
+### Code
 
 In a regular paragraph, you can create code span by wrapping text in backtick quotes. Any ampersands (`&`) and angle brackets (`<` or `>`) will automatically be translated into HTML entities. This makes it easy to use Markdown to write about HTML example code:
 

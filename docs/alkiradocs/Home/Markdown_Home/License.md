@@ -1,21 +1,25 @@
-Markdown: License
-================
+@metadata title=Markdown License
+@metadata order=40
 
-<ul id="ProjectSubmenu">
-    <li><a href="/sampleapp/#/alkiradocs/Markdown_Home" title="Markdown Project Page">Home</a></li>
-    <li><a href="/sampleapp/#/alkiradocs/Basics" title="Markdown Basics">Basics</a></li>
-    <li><a href="/sampleapp/#/alkiradocs/Syntax" title="Markdown Syntax Documentation">Syntax</a></li>
-    <li><a href="/sampleapp/#/alkiradocs/License" class="selected"  title="Pricing and License Information">License</a></li>
-</ul>
+[mdhome]: /pylabsdoc/#/alkiradocs/Markdown_Home
+[basics]: /pylabsdoc/#/alkiradocs/Basics
+[syntax]: http://daringfireball.net/projects/markdown/syntax
+[license]: /pylabsdoc/#/alkiradocs/License
 
+
+#Markdown: License
+
+* [Home][mdhome]
+* [Markdown Basics][basics]
+* [Syntax][syntax]
+* [License][license]
 
 Markdown is free software, available under the terms of a BSD-style open source license.
 
 If you enjoy Markdown, please considering making a contribution to support its development.
 
 
-License
--------
+#License
 
 <p>Copyright 2004, John Gruber <br />
 <a href="http://daringfireball.net/">http://daringfireball.net/</a> <br />

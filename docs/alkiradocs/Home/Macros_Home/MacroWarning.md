@@ -1,8 +1,10 @@
+@metadata title=Warning Macro
+
 #Macro Warning
 The warning macro is used to highlight a warning on a page with a red box.
 
 
-## Prameters
+## Parameters
 
 The body of the macro is the warning which should be highlighted.
 

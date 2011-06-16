@@ -1,8 +1,10 @@
-#Macro Informaion
+@metadata title=Information Macro
+
+#Macro Information
 The information macro is used to highlight a piece of information on a page with a blue box.
 
 
-## Prameters
+## Parameters
 
 The body of the macro is the piece of information which should be highlighted.
 

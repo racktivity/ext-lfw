@@ -1,3 +1,5 @@
+@metadata title=Children Macro
+
 # Children Macro
 The `children` macro creates a tree-view of a certain page and all its child pages.
 

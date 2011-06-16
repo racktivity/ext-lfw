@@ -1,3 +1,5 @@
+@metadata title=Graphviz Macro
+
 #Graphviz Macro
 The `graphviz` macro creates a graphic by means of a dot file. For more information about Graphviz, visit the [Graphviz website](http://www.graphviz.org).
 

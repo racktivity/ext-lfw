@@ -1,3 +1,5 @@
+@metadata title=Actions Macro
+
 #Actions Macro
 
 The Actions macro allows users to create a button that performs a certain action.   

@@ -1,4 +1,7 @@
-[generic]: /sampleapp/#/alkiradocs/MacroGeneric
+@metadata title=How to Create Macros
+@metadata order=20
+
+[generic]: /pylabsdoc/#/alkiradocs/MacroGeneric
 
 #How to Create Macros
 Adding dynamic content to an Alkira page is easy by using macros. There are two ways to add dynamic content:

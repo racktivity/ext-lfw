@@ -102,7 +102,19 @@ class Client:
             page_info = self._getPageInfo(space, name)
             page = self.connection.page.get(page_info[0]['guid'])
             return page
-
+    
+    def deleteSpace(self, space=None):
+        if space is None:
+            spaces = self.listSpaces()
+        else:
+            spaces = [space]
+            
+        for s in spaces:
+            pages = self.listPages(s)
+            for page in pages:
+                self.deletePage(s, page)
+                
+        
     def deletePage(self, space, name):
         """
         Deletes a page.

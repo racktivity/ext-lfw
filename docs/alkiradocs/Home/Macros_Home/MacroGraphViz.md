@@ -89,7 +89,7 @@ digraph {
 
 ##Example 2
 
-    [[graphviz]
+    [[graphviz]]
         digraph finite_state_machine {
 
             rankdir=LR;

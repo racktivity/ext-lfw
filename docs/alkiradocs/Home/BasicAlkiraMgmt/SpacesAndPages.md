@@ -1,5 +1,6 @@
 @metadata title=Spaces and Pages
 @metadata order=10
+@metadata tagstring=space page manage child
 
 [qpcreate]: /pylabsdoc/#/Q-Packages/QPCreate
 [codetasklet]: /pylabsdoc/#/Q-Packages/CodeManagement

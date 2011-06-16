@@ -1,4 +1,6 @@
 @metadata title=Note Macro
+@metadata tagstring=macro alkira note
+
 
 #Macro Note
 The note macro is used to highlight a note on a page with a yellow box.

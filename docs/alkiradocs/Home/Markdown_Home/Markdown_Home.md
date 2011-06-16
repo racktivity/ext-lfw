@@ -1,5 +1,6 @@
 @metadata title=Markdown Documentation
 @metadata order=20
+@metadata tagstring=markdown md doc documentation
 
 [mdhome]: /pylabsdoc/#/alkiradocs/Markdown_Home
 [basics]: /pylabsdoc/#/alkiradocs/Basics

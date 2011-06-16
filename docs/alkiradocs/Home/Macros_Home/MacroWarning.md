@@ -1,4 +1,6 @@
 @metadata title=Warning Macro
+@metadata tagstring=macro alkira warning
+
 
 #Macro Warning
 The warning macro is used to highlight a warning on a page with a red box.

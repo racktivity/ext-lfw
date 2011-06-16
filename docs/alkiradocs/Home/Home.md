@@ -1,5 +1,6 @@
 @metadata title=Alkira
 @metadata order=1
+@metadata tagstring=alkira
 
 [macros]: /pylabsdoc/#/alkiradocs/Macros\_Home
 [md]: /pylabsdoc/#/alkiradocs/Markdown\_Home

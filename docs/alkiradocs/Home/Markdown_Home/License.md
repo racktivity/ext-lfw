@@ -1,5 +1,6 @@
 @metadata title=Markdown License
 @metadata order=40
+@metadata tagstring=markdown license
 
 [mdhome]: /pylabsdoc/#/alkiradocs/Markdown_Home
 [basics]: /pylabsdoc/#/alkiradocs/Basics

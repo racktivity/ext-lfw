@@ -1,4 +1,6 @@
 @metadata title=Generic Macro
+@metadata tagstring=macro pylabs generic
+
 
 #Generic Macro
 The `generic` macro which renders content based on the PyLabs tags defined in the body of the macro and the context of the page.

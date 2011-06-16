@@ -1,5 +1,6 @@
 @metadata title=JqPlot Line Chart
 @metadata order=4
+@metadata tagstring=jqplot chart line
 
 [line chart]:http://www.jqplot.com/tests/coretests.php
 [createmacro]: /pylabsdoc/#/alkiradocs/Macros_HOWTO

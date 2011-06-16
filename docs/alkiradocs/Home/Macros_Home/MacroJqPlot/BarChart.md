@@ -1,5 +1,6 @@
 @metadata title=JqPlot Bar Chart
 @metadata order=1
+@metadata tagstring=jqplot chart bar
 
 [bar chart]: http://www.jqplot.com/tests/barRendererTests.php
 [createmacro]: /pylabsdoc/#/alkiradocs/Macros_HOWTO

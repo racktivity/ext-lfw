@@ -1,5 +1,6 @@
 @metadata title=Syntax
 @metadata order=20
+@metadata tagstring=syntax markdown
 
 [mdhome]: /pylabsdoc/#/alkiradocs/Markdown_Home
 [basics]: /pylabsdoc/#/alkiradocs/Basics

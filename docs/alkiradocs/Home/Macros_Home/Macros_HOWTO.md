@@ -1,5 +1,7 @@
 @metadata title=How to Create Macros
 @metadata order=20
+@metadata tagstring=macro alkira create new howto
+
 
 [generic]: /pylabsdoc/#/alkiradocs/MacroGeneric
 

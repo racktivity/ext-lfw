@@ -1,4 +1,6 @@
 @metadata title=Include Macro
+@metadata tagstring=macro alkira include
+
 
 # Include Macro
 The `include` macro includes the content of another page in the current page.

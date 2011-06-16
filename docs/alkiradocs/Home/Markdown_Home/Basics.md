@@ -1,5 +1,6 @@
 @metadata title:Markdown Basics
 @metadata order=10
+@metadata tagstring=basic basics markdown
 
 [mdhome]: /pylabsdoc/#/alkiradocs/Markdown_Home
 [basics]: /pylabsdoc/#/alkiradocs/Basics

@@ -1,5 +1,6 @@
 @metadata title=JavaScript Macros
 @metadata order=12
+@metadata tagstring=macro javascript js
 
 [actions]: /pylabsdoc/#/alkiradocs/MacroActions
 [code]: /pylabsdoc/#/alkiradocs/MacroCode

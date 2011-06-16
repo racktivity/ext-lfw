@@ -1,5 +1,6 @@
 @metadata title=JqPlot Pie Chart
 @metadata order=5
+@metadata tagstring=jqplot chart pie
 
 [pie chart]:http://www.jqplot.com/tests/pieTests.php
 [createmacro]: /pylabsdoc/#/alkiradocs/Macros_HOWTO

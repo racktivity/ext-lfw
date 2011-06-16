@@ -1,5 +1,6 @@
 @metadata title=JqPlot Block Chart
 @metadata order=2
+@metadata tagstring=jqplot chart block
 
 [jqplot options]:http://www.jqplot.com/docs/files/jqPlotOptions-txt.html#jqPlot_Options
 [createmacro]: /pylabsdoc/#/alkiradocs/Macros_HOWTO

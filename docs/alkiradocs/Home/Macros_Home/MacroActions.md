@@ -1,4 +1,5 @@
 @metadata title=Actions Macro
+@metadata tagstring=macro alkira actions
 
 #Actions Macro
 

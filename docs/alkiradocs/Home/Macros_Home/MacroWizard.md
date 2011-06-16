@@ -1,4 +1,5 @@
 @metadata title=Wizard Macro
+@metadata tagstring=macro alkira wizard
 
 [wizard]: /pylabsdoc/#/doc/formwizardpractical
 

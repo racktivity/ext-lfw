@@ -1,4 +1,5 @@
 @metadata title=Pagetree Macro
+@metadata tagstring=macro alkira pagetree tree page
 
 #Page Tree Macro
 

@@ -1,5 +1,6 @@
 @metadata title=JqPlot Bubble Chart
 @metadata order=3
+@metadata tagstring=jqplot chart bubble
 
 [jqplot options]:http://www.jqplot.com/docs/files/jqPlotOptions-txt.html#jqPlot_Options
 [createmacro]: /pylabsdoc/#/alkiradocs/Macros_HOWTO

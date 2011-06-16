@@ -1,4 +1,5 @@
 @metadata title=JqPlot Macro
+@metadata tagstring=jqplot chart
 
 [new jqplt chart]:http://www.jqplot.com/docs/files/usage-txt.html
 [jqPlot Examples]:http://www.jqplot.com/tests/

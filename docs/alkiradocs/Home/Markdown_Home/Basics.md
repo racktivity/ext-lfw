@@ -1,4 +1,4 @@
-@metadata title:Markdown Basics
+@metadata title=Markdown Basics
 @metadata order=10
 @metadata tagstring=basic basics markdown
 

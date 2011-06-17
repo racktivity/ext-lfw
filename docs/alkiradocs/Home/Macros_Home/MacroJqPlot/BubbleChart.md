@@ -23,7 +23,7 @@ The Bubble chart is an example with explanation of the JqPlot Bubble Chart
 
 ##Example
 
-    <div class="macro macro_jqplot">
+    [[jqplot]]
         {"width" : 400,
          "height" : 400,
          "chart_data" : [[[0.6, 2.6, 12, "Ford"], [0.5, 3, 16, "GM"],
@@ -31,18 +31,18 @@ The Bubble chart is an example with explanation of the JqPlot Bubble Chart
          "chart_div" : "bubble_div",
          "renderer" :"$.jqplot.BubbleRenderer"
         }
-    </div>
+    [[/jqplot]]
 
 If you want to create a macro with a more complicated bubble chart please see [How to Create a Macro][createmacro] and [jqPlot options page][jqplot options].
   
   
 ## Sample Bubble Chart
 
-<div class="macro macro_jqplot">
+[[jqplot]]
 {"width" : 400,
  "height" : 400,
  "chart_data" : [[[0.6, 2.6, 12, "Ford"], [0.5, 3, 16, "GM"], [1.3, 2, 17, "VW"], [1.2, 1.2, 13, "Mini"]]],
  "chart_div" : "bubble_div",
  "renderer" :"$.jqplot.BubbleRenderer"
 }
-</div>
+[[/jqplot]]

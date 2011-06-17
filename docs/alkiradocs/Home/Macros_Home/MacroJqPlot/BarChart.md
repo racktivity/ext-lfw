@@ -24,14 +24,14 @@ Bar charts are rendered with the barRenderer plugin which will be set in the bod
 
 ##Example
 
-    <div class="macro macro_jqplot">
+    [[jqplot]]
         {"width" : 400,
          "height" : 400,
          "chart_data" : [[[1, 2],[2, 4],[3, 6],[4, 8]]],
           "chart_div" : "bar_div",
           "renderer" :"$.jqplot.BarRenderer"
         }
-    </div>
+    [[/jqplot]]
     
     
 If you want to create a macro with a more complicated bar chart please see [How to Create a Macro][createmacro] and [jqPlot bar chart page][bar chart].
@@ -39,11 +39,12 @@ If you want to create a macro with a more complicated bar chart please see [How 
 
 ## Sample Bar Chart
 
-<div class="macro macro_jqplot">
+[[jqplot]]
 {"width" : 400,
  "height" : 400,
  "chart_data" : [[[1, 2],[2, 4],[3, 6],[4, 8]]],
  "chart_div" : "bar_div",
  "renderer" :"$.jqplot.BarRenderer"
 }
-</div>
+[[/jqplot]]
+

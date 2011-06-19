@@ -14,12 +14,36 @@ class AlkiraClient:
 
         @return: A client object.
         """
-        return Client(hostname, appname)
+        return Client(hostname=hostname, appname=appname)
+    
+    def getClientByApi(self, api):
+        """
+        Gets a client object.
+
+        @param api: The application API (p.api)
+
+        @return: A client object.
+        """
+        return Client(api=api)
     
 class Client:
 
-    def __init__(self, hostname, appname):
-        api = p.application.getAPI(appname, host=hostname, context=q.enumerators.AppContext.APPSERVER)
+    def __init__(self, hostname=None, appname=None, api=None):
+        """
+        Initialize a new Alkira Client with the given (hostname, appname) connection
+        but if hostname and appname are not given, the given api is used
+        
+        @param hostname: The hostname of alikra
+        
+        @param appname: The application name
+        
+        @param api: The application api if hostname and appname are not passed
+        """
+        if hostname and appname:
+            api = p.application.getAPI(appname, host=hostname, context=q.enumerators.AppContext.APPSERVER)
+        elif not api:
+            q.errorconditionhandler.raiseError("'api' is not optional if hostname and appname are empty")
+        
         self.connection = api.model.ui
 
     def _getPageInfo(self, space, name):

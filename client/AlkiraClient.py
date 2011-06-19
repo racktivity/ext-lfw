@@ -63,7 +63,7 @@ class Client:
         @type space: String
         @param space: The name of the space.
         """
-        page_info = 'SELECT ui_page.ui_view_page_list."name", ui_page.ui_view_page_list."guid", ui_page.ui_view_page_list."parent" FROM ui_page.ui_view_page_list WHERE ui_page.ui_view_page_list.space = \'%s\'' %space
+        page_info = 'SELECT ui_page.ui_view_page_list."name", ui_page.ui_view_page_list."guid", ui_page.ui_view_page_list."parent", ui_page.ui_view_page_list."title", ui_page.ui_view_page_list."order" FROM ui_page.ui_view_page_list WHERE ui_page.ui_view_page_list.space = \'%s\'' %space
         query = self.connection.page.query(page_info)
         return query
 
@@ -102,7 +102,19 @@ class Client:
             page_info = self._getPageInfo(space, name)
             page = self.connection.page.get(page_info[0]['guid'])
             return page
-
+    
+    def deleteSpace(self, space=None):
+        if space is None:
+            spaces = self.listSpaces()
+        else:
+            spaces = [space]
+            
+        for s in spaces:
+            pages = self.listPages(s)
+            for page in pages:
+                self.deletePage(s, page)
+                
+        
     def deletePage(self, space, name):
         """
         Deletes a page.

@@ -1,6 +1,7 @@
 import os.path
 from pylabs import q, p
 import urllib
+import inspect
 
 # @TODO: use sqlalchemy to construct queries - escape values 
 # @TODO: add space to filter criteria
@@ -13,14 +14,12 @@ SQL_PAGE_TAGS_FILTER = 'SELECT DISTINCT ui_page.ui_view_page_tag_list.%(prop)s F
 
 class LFWService(object):
 
-    def __init__(self, tasklet_path=None):
+    def __init__(self):
         
         # Initialize API
         self.connection = p.api.model.ui
         self.alkira = q.clients.alkira.getClientByApi(p.api)
-        
-        module = os.path.abspath(os.path.dirname(__file__))
-        tasklet_path = os.path.abspath(os.path.join(module, '..', '..', 'portal'))
+        tasklet_path = q.system.fs.joinPaths(q.dirs.pyAppsDir, p.api.appname, 'impl', 'portal')
         self._tasklet_engine = q.taskletengine.get(tasklet_path)
         self._tasklet_engine.addFromPath(os.path.join(q.dirs.baseDir,'lib','python','site-packages','alkira', 'tasklets'))
         self.db_config_path = q.system.fs.joinPaths(q.dirs.cfgDir, 'qconfig', 'dbconnections.cfg')

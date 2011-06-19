@@ -1,6 +1,6 @@
 from pylabs import q, p
 
-import os, re
+import os
 
 
 class AlkiraClient:
@@ -55,7 +55,7 @@ class Client:
     
     def _getSpaceGuid(self, space):
         if isinstance(space, basestring):
-            if re.match('^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$', space):
+            if q.basetype.guid.check(space):
                 return space
             else:
                 spaces = self._getSpaceInfo(space)
@@ -80,12 +80,11 @@ class Client:
 
         return parent_list
 
-    def listPages(self, space):
+    def listPages(self, space=None):
         """
         Lists all the pages in a certain space.
 
-        @type space: String
-        @param space: The name of the space.
+        @param space: The name, guid or space object of the space.
         """
         return map(lambda i: i['name'],
                    self.listPageInfo(space))
@@ -106,18 +105,17 @@ class Client:
         
         return spaces
     
-    def listPageInfo(self, space):
+    def listPageInfo(self, space=None):
         """
         Lists all the pages in a space with their info.
 
-        @type space: String
-        @param space: The name of the space.
+        @param space: The name, guid or space object of the space.
         """
-        
-        space = self._getSpaceGuid(space)
-        
         filter = self.connection.page.getFilterObject()
-        filter.add('ui_view_page_list', 'space', space, True)
+        if space:
+            space = self._getSpaceGuid(space)
+            filter.add('ui_view_page_list', 'space', space, True)
+            
         return self.connection.page.findAsView(filter, 'ui_view_page_list')
     
 

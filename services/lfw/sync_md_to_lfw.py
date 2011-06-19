@@ -6,25 +6,32 @@ import functools
 
 def sync_to_alkira(appname, path=None, sync_space=None):
     from pylabs import p, q
-    MD_PATH = ''
     if not path:
-        MD_PATH = q.system.fs.joinPaths(q.dirs.baseDir, 'pyapps', appname, 'portal', 'spaces')
-    else:
-        MD_PATH = path
-    serverapi = p.application.getAPI(appname,context=q.enumerators.AppContext.APPSERVER)
+        path = q.system.fs.joinPaths(q.dirs.pyAppsDir, appname, 'portal', 'spaces')
+        
+    serverapi = p.application.getAPI(appname, context=q.enumerators.AppContext.APPSERVER)
     connection = p.application.getAPI(appname).action
 
     if sync_space:
-        space_dir = q.system.fs.joinPaths(MD_PATH, sync_space)
+        space_dir = q.system.fs.joinPaths(path, sync_space)
         if not q.system.fs.exists(space_dir):
             q.errorconditionhandler.raiseError('Space "%s" does not exist.'%sync_space)
         portal_spaces = [space_dir]
     else:
-        portal_spaces = q.system.fs.listDirsInDir(MD_PATH)
+        portal_spaces = q.system.fs.listDirsInDir(path)
 
     for folder in portal_spaces:
         space = folder.split(os.sep)[-1]
-        q.console.echo('Syncing space: %s'%space)
+        spaceguid = None
+        spaces = connection.ui.space.find(space)['result']
+        if not spaces:
+            #create space
+            connection.ui.space.create(space)
+            spaceguid = connection.ui.space.find(space)['result'][0]
+        else:
+            spaceguid = spaces[0]
+            
+        q.console.echo('Syncing space: %s' % space)
 
         page_occured = []
 
@@ -57,7 +64,7 @@ def sync_to_alkira(appname, path=None, sync_space=None):
             pageDuplicate(page_file)
             name = q.system.fs.getBaseName(page_file).split('.')[0]
             content = q.system.fs.fileGetContents(page_file)
-            page_info = connection.ui.page.find(name=name, space=space, exact_properties=("name", "space"))
+            page_info = connection.ui.page.find(name=name, space=spaceguid, exact_properties=("name", "space"))
 
             if len(page_info['result']) > 1:
                 raise ValueError('Multiple pages found!')
@@ -68,14 +75,14 @@ def sync_to_alkira(appname, path=None, sync_space=None):
             else:
                 page = serverapi.model.ui.page.new()
                 page.name = name
-                page.space = space
+                page.space = spaceguid
                 page.category = 'portal'
                 save_page = connection.ui.page.create
                 q.console.echo('Creating page: %s'%name, indent=3, withStar=True)
 
             # Setting the parent
             if parent:
-                parent_page_info = connection.ui.page.find(name=parent, space=space, exact_properties=("name", "space"))
+                parent_page_info = connection.ui.page.find(name=parent, space=spaceguid, exact_properties=("name", "space"))
                 parent_page = connection.ui.page.getObject(parent_page_info['result'][0])
                 page.parent = parent_page.guid
      

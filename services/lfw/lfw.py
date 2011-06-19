@@ -8,8 +8,8 @@ import urllib
 SQL_PAGES = 'SELECT DISTINCT ui_page.ui_view_page_list.%(prop)s FROM ui_page.ui_view_page_list %(space_criteria)s'
 SQL_PAGES_FILTER = 'SELECT DISTINCT ui_page.ui_view_page_list.%(prop)s FROM ui_page.ui_view_page_list WHERE ui_page.ui_view_page_list.%(prop)s LIKE \'%(term)s%%\'  %(space_criteria)s'
 
-SQL_PAGE_TAGS = 'SELECT DISTINCT ui_page.ui_view_page_tag_list.%(prop)s FROM ui_page.ui_view_page_tag_list'
-SQL_PAGE_TAGS_FILTER = 'SELECT DISTINCT ui_page.ui_view_page_tag_list.%(prop)s FROM ui_page.ui_view_page_tag_list WHERE ui_page.ui_view_page_tag_list.%(prop)s LIKE \'%(term)s%%\''
+SQL_PAGE_TAGS = 'SELECT DISTINCT ui_page.ui_view_page_list.%(prop)s FROM ui_page.ui_view_page_list WHERE ui_page.ui_view_page_list.space=\'%(space)s\''
+SQL_PAGE_TAGS_FILTER = 'SELECT DISTINCT ui_page.ui_view_page_list.%(prop)s FROM ui_page.ui_view_page_list WHERE ui_page.ui_view_page_list.space=\'%(space)s\' AND ui_page.ui_view_page_list.%(prop)s LIKE \'%%%(term)s%%\''
 
 class LFWService(object):
 
@@ -24,8 +24,16 @@ class LFWService(object):
         self._tasklet_engine.addFromPath(os.path.join(q.dirs.baseDir,'lib','python','site-packages','alkira', 'tasklets'))
 
     @q.manage.applicationserver.expose    
-    def tags(self, term=None):
-        return self.get_items('tag', term)
+    def tags(self, space=None, term=None):
+        results = self.get_items('tags', space=space, term=term)
+        final_result = set()
+        for item in results:
+            tags = item.split(' ')
+            for tag in tags:
+                if term in tag:
+                    final_result.add((tag.strip(',')))
+        result = list(final_result)
+        return result
 
     @q.manage.applicationserver.expose
     def spaces(self, term=None):
@@ -56,10 +64,9 @@ class LFWService(object):
         if tags:
             # MNour - A hackish solution for tags/labels search. @see PYLABS-14.
             # MNOUR - IMO this should be solved in the REST layer.
-            taglist = [tag for tag in urllib.unquote_plus(tags).split(', ') if tag] or []
-
-            for x, tag in enumerate(taglist):
-               sql_from.append('INNER JOIN ui_page.ui_view_page_tag_list tl%(x)s ON tl%(x)s.guid = ui_view_page_list.guid AND tl%(x)s.tag = \'%(tag)s\'' % {'tag': tag, 'x': x})
+            tags = urllib.unquote_plus(tags)
+            tags = tags.strip(', ')
+            sql_where.append('ui_view_page_list.tags LIKE \'%%%s%%\'' %  tags)
 
         if space:
             sql_where.append('ui_view_page_list.space = \'%s\'' % space)
@@ -106,9 +113,9 @@ class LFWService(object):
 
         t = term.split(', ')[-1] if term else ''
 
-        d = {'prop': prop, 'term': t}
+        d = {'prop': prop, 'space': space, 'term': t}
 
-        if prop in ('tag',):
+        if prop in ('tags',):
             sql = SQL_PAGE_TAGS_FILTER % d if t else SQL_PAGE_TAGS % d
         else:
             if t:

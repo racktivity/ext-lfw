@@ -16,12 +16,14 @@ class LFWService(object):
     def __init__(self, tasklet_path=None):
         
         # Initialize API
-        self.connection = p.api.model.core
-        self.db_config_path = q.system.fs.joinPaths(q.dirs.cfgDir, 'qconfig', 'dbconnections.cfg')
+        self.connection = p.api.model.ui
+        self.alkira = q.clients.alkira.getClientByApi(p.api)
+        
         module = os.path.abspath(os.path.dirname(__file__))
-        tasklet_path = os.path.abspath(os.path.join(module, 'tasklets'))
+        tasklet_path = os.path.abspath(os.path.join(module, '..', '..', 'portal'))
         self._tasklet_engine = q.taskletengine.get(tasklet_path)
         self._tasklet_engine.addFromPath(os.path.join(q.dirs.baseDir,'lib','python','site-packages','alkira', 'tasklets'))
+        self.db_config_path = q.system.fs.joinPaths(q.dirs.cfgDir, 'qconfig', 'dbconnections.cfg')
 
     @q.manage.applicationserver.expose    
     def tags(self, term=None):
@@ -29,14 +31,11 @@ class LFWService(object):
 
     @q.manage.applicationserver.expose
     def spaces(self, term=None):
-        sql = "select space from  ( SELECT distinct  space, to_number( substring (tags from 'spaceorder:([0-9]+)'),'0000') FROM ui_page.ui_view_page_list where name = 'Home' order by   to_number(  substring (tags from 'spaceorder:([0-9]+)') ,'0000')) as spaces"
-        qr = self.connection.page.query(sql)
-        result = [ x['space'] for x in qr ]
-        return result
+        return self.alkira.listSpaces()
 
     @q.manage.applicationserver.expose
     def pages(self, space=None, term=None):
-        return self.get_items('name', space, term)
+        return self.alkira.listPages(space)
 
     @q.manage.applicationserver.expose
     def categories(self, space=None, term=None):
@@ -62,7 +61,8 @@ class LFWService(object):
                sql_from.append('INNER JOIN ui_page.ui_view_page_tag_list tl%(x)s ON tl%(x)s.guid = ui_view_page_list.guid AND tl%(x)s.tag = \'%(tag)s\'' % {'tag': tag, 'x': x})
 
         if space:
-            sql_where.append('ui_view_page_list.space = \'%s\'' % space)
+            space = self.alkira.getSpace(space)
+            sql_where.append('ui_view_page_list.space = \'%s\'' % space.guid)
   
         if category:
             sql_where.append('ui_view_page_list.category = \'%s\'' % category)
@@ -78,44 +78,33 @@ class LFWService(object):
 
     @q.manage.applicationserver.expose
     def page(self, space, name):
-        sql = """
-              SELECT 
-                  ui_page.ui_view_page_list.guid 
-              FROM 
-                  ui_page.ui_view_page_list 
-              WHERE 
-                  ui_page.ui_view_page_list.space = \'%(space)s\' 
-                  AND 
-                  ui_page.ui_view_page_list."name" = \'%(name)s\'""" % {'space': space, 'name': name}
-
-
-        qr = self.connection.page.query(sql)
-  
-        if not qr:
+        if not self.alkira.spaceExists(space) or not self.alkira.pageExists(space, name):
             return {}
-
-        page = self.connection.page.get(qr[0]['guid'])
+        
+        page = self.alkira.getPage(space, name)
         props = ['name', 'space', 'category', 'content', 'creationdate', 'title']
-
+        
         result = dict([(prop, getattr(page, prop)) for prop in props]) 
         result['tags'] = page.tags.split(' ') if page.tags else []
-
+        
         return result
 
     def get_items(self, prop, space=None, term=None):
-
+        if space:
+            space = self.alkira.getSpace(space)
+            
         t = term.split(', ')[-1] if term else ''
-
+        
         d = {'prop': prop, 'term': t}
 
         if prop in ('tag',):
             sql = SQL_PAGE_TAGS_FILTER % d if t else SQL_PAGE_TAGS % d
         else:
             if t:
-                d['space_criteria'] = 'AND ui_view_page_list.space = \'%s\'' % space if space else ''
+                d['space_criteria'] = 'AND ui_view_page_list.space = \'%s\'' % space.guid if space else ''
                 sql = SQL_PAGES_FILTER % d
             else:
-                d['space_criteria'] = 'WHERE ui_view_page_list.space = \'%s\'' % space if space else ''
+                d['space_criteria'] = 'WHERE ui_view_page_list.space = \'%s\'' % space.guid if space else ''
                 sql = SQL_PAGES % d
 
         qr = self.connection.page.query(sql)
@@ -126,6 +115,7 @@ class LFWService(object):
 
     @q.manage.applicationserver.expose
     def pageTree(self, space, id):
+        space = self.alkira.getSpace(space)
         where = ""
         if id == 0:
             where = "and pagelist.parent is null"  
@@ -136,7 +126,7 @@ class LFWService(object):
                 SELECT DISTINCT pagelist.guid 
                 FROM ONLY ui_page.ui_view_page_list as pagelist
                 WHERE pagelist.space ='%(space)s' and pagelist.name = '%(id)s';
-                """ % {'space': space, 'id': id}
+                """ % {'space': space.guid, 'id': id}
             
             parent_guid_result = self.connection.page.query(sql1)
             parent_guid = parent_guid_result[0]['guid']
@@ -151,7 +141,7 @@ class LFWService(object):
                 (select count(guid) FROM ui_page.ui_view_page_list WHERE ui_page.ui_view_page_list.parent = pagelist.guid) as nrofkids
                 FROM ONLY ui_page.ui_view_page_list as pagelist
                 WHERE pagelist.space = '%(space)s' %(where)s ORDER BY pagelist.order, pagelist.title;
-        """ % {'space': space, 'where': where}
+        """ % {'space': space.guid, 'where': where}
 
         result = self.connection.page.query(sql)
         data = list()
@@ -163,7 +153,7 @@ class LFWService(object):
             state = 'closed' if node['nrofkids'] > 0 else 'leaf'
             nodedata = {'data': {'title': node['title'],
                                  'type': 'link',
-                                 'attr': {'href': '#/%s/%s' % (space, node['name'])},
+                                 'attr': {'href': '#/%s/%s' % (space.name, node['name'])},
                                  'children':[]
                                  },
                         'attr': {

@@ -254,3 +254,36 @@ class LFWService(object):
         q.logger.log('[GENERIC] Result: %s' % result, 5)
 
         return result
+
+    @q.manage.applicationserver.expose
+    def importSpace(self, space, filename):
+        import tarfile
+        def filterFiler(filename):
+            return (filename.startswith("/") or filename.startswith(".."))
+        q.logger.log('importing file %s for space %s' % (filename,space), 5)
+        appname = p.api.appname
+        tarFile = tarfile.open(filename)
+        invalidlinks = filter(filterFiler, tarFile.getnames())
+        if invalidlinks:
+            #Prepare error message
+            if len(invalidlinks) > 15:
+                invalidlinks = invalidlinks[:14]
+                invalidlinks.append("...")
+            raise ValueError("File names must be relative, please remove the following files\n"%"\n".join(invalidlinks))
+        dest = q.system.fs.joinPaths(q.dirs.pyAppsDir, appname, "portal", "spaces")
+        q.system.fs.removeDirTree(q.system.fs.joinPaths(dest, space))
+        tarFile.extractall(dest)
+        p.application.syncPortal(appname, space)
+        tarFile.close()
+
+    @q.manage.applicationserver.expose
+    def exportSpace(self, space, filename):
+        if q.system.fs.exists(filename):
+            q.system.fs.removeFile(filename)
+        import tarfile
+        q.logger.log('exporting space %s to file %s' % (space, filename), 5)
+        appname = p.api.appname
+        tarFile = tarfile.open(filename, mode="w|gz")
+        dest = q.system.fs.joinPaths(q.dirs.pyAppsDir, appname,"portal", "spaces", space)
+        tarFile.add(dest, space)
+        tarFile.close()

@@ -323,7 +323,7 @@ class Client:
 
             self.connection.page.save(page)
 
-    def updateSpace(self, space, newname=None, tagslist=None):
+    def updateSpace(self, space, newname=None, tagslist=None, repository=None):
         space = self.getSpace(space)
 
         if newname != None and newname != space.name:
@@ -333,6 +333,9 @@ class Client:
 
         if tagslist:
             space.tags = ' '.join(tagslist)
+
+        if repository:
+            space.repository = repository
 
         self.connection.space.save(space)
 

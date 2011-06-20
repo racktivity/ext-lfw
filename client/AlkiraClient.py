@@ -67,6 +67,22 @@ class Client:
         query = self.connection.page.query(page_info)
         return query
 
+    def listChildPages(self, space, name):
+        """
+        Lists child pages of page "name"
+
+        @type space: String
+        @param space: The name of the space.
+        
+        @type name: String
+        @param name: The name of the parent page.
+        """
+        #Get page guid
+        guid = self._getPageInfo(space, name)[0]["guid"]
+        page_info = 'SELECT "name" FROM ui_page.ui_view_page_list WHERE parent = \'%s\'' %guid
+        query = self.connection.page.query(page_info)
+        return list(name["name"] for name in query)
+
     def pageExists(self, space, name):
         """
         Checks whether a page exists or not.

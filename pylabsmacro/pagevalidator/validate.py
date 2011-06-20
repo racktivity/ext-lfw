@@ -29,19 +29,23 @@ def getLinks(body):
 def getMacros(body):
     return macroRe.findall(body)
 
-def getPageReport(client, space, name, recursive = False):    
+def getPageReport(client, space, name, recursive = False, showValid = True):
     result = list()
     page = client.getPage(space, name)
     #Check links
     links = getLinks(page.content)
     for link in links:
         ok = linkExists(link, client)
+        if ok and not showValid:
+            continue
         result.append((space + "/" + page.name, "link", link, ok))
 
     #Check Macros
     macros = getMacros(page.content)
     for macro in macros:
         ok = macroExists(macro, space)
+        if ok and not showValid:
+            continue
         result.append((space + "/" + page.name, "macro", macro, ok))
 
     if recursive:
@@ -49,7 +53,7 @@ def getPageReport(client, space, name, recursive = False):
             result += getPageReport(client, space, childpage, True)
     return result
 
-def getInvalidLinks(appname, spaces = None, pages = None):
+def getInvalidLinks(appname, spaces = None, pages = None, showValid = True):
     result = list()
     client = q.clients.alkira.getClient("localhost", appname)
     if not spaces:
@@ -59,17 +63,16 @@ def getInvalidLinks(appname, spaces = None, pages = None):
         for page in client.listPages(space):
             if pages and (page not in pages):
                 continue
-            result += getPageReport(client, space, page, False)
+            result += getPageReport(client, space, page, False, showValid = showValid)
     return result
 
 def main(q, i, p, params, tags):
-    #import rpdb2
-    #rpdb2.start_embedded_debugger("mypass", fAllowRemote=True)
     tags = params["tags"].tags
     appname = p.api.appname
     client = q.clients.alkira.getClient("localhost", appname)
     #
     pages = spaces = None
+    showValid = True
     if "pages" in tags:
         pages = list(item.strip() for item in tags["pages"].split(","))
     if "spaces" in tags:
@@ -77,11 +80,13 @@ def main(q, i, p, params, tags):
             spaces = client.listSpaces()
         else:
             spaces = list(item.strip() for item in tags["spaces"].split(","))
+    if "showvalid" in tags:
+		showValid = (tags["showvalid"].lower() == "true")
     #
     if pages or spaces:
-        result = getInvalidLinks(appname, spaces, pages)
+        result = getInvalidLinks(appname, spaces, pages, showValid = showValid)
     else:
-        result = getPageReport(client, tags["space"], tags["page"], True)
+        result = getPageReport(client, tags["space"], tags["page"], True, showValid = showValid)
     html = "<TABLE><TR><TD>Page</TD><TD>URL</TD><TD>Status</TD></TR>\n"
     row = "<TR><TD>%s</TD><TD>%s</TD><TD>%s</TD><TR>\n"
     for item in result:

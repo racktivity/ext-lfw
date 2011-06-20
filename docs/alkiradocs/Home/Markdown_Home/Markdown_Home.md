@@ -22,7 +22,7 @@
 [Jason Perkins]:        http://pressedpants.com/
 [Michel Fortin]:        http://www.michelf.com/projects/php-markdown/
 [html2text]:          http://www.aaronsw.com/2002/html2text/
-[imgTextformat]: md\_images/mt\_textformat\_menu.png
+[imgTextformat]: images/images50/md_images/mt_textformat_menu.png
 
 
 #Markdown: Home
@@ -72,7 +72,7 @@ Markdown works with Movable Type version 2.6 or later (including Movable Type 3.
 
 2.  Once installed, Markdown will appear as an option in Movable Type's Text Formatting pop-up menu. This is selectable on a per-post basis:
 	
-	![mt\_textformat\_menu][imgTextformat]
+	![mt_textformat_menu][imgTextformat]
 	
 	Markdown translates your posts to HTML when you publish; the posts themselves are stored in your MT database in Markdown format.
 

@@ -3,7 +3,7 @@ from pylabs import q, p
 import urllib
 import inspect
 
-# @TODO: use sqlalchemy to construct queries - escape values 
+# @TODO: use sqlalchemy to construct queries - escape values
 # @TODO: add space to filter criteria
 
 SQL_PAGES = 'SELECT DISTINCT ui_page.ui_view_page_list.%(prop)s FROM ui_page.ui_view_page_list %(space_criteria)s'
@@ -15,7 +15,7 @@ SQL_PAGE_TAGS_FILTER = 'SELECT DISTINCT ui_page.ui_view_page_tag_list.%(prop)s F
 class LFWService(object):
 
     def __init__(self):
-        
+
         # Initialize API
         self.connection = p.api.model.ui
         self.alkira = q.clients.alkira.getClientByApi(p.api)
@@ -24,13 +24,13 @@ class LFWService(object):
         self._tasklet_engine.addFromPath(os.path.join(q.dirs.baseDir,'lib','python','site-packages','alkira', 'tasklets'))
         self.db_config_path = q.system.fs.joinPaths(q.dirs.cfgDir, 'qconfig', 'dbconnections.cfg')
 
-    @q.manage.applicationserver.expose    
+    @q.manage.applicationserver.expose
     def tags(self, term=None):
         return self.get_items('tag', term)
 
     @q.manage.applicationserver.expose
-    def spaces(self, term=None):
-        return self.alkira.listSpaces()
+    def spaces(self, term=None, fullInfo=False):
+        return self.alkira.listSpaces(fullInfo)
 
     @q.manage.applicationserver.expose
     def pages(self, space=None, term=None):
@@ -39,8 +39,8 @@ class LFWService(object):
     @q.manage.applicationserver.expose
     def categories(self, space=None, term=None):
         return self.get_items('category', space, term)
- 
-    @q.manage.applicationserver.expose 
+
+    @q.manage.applicationserver.expose
     def search(self, text=None, space=None, category=None, tags=None):
         # ignore tags for now
 
@@ -62,13 +62,13 @@ class LFWService(object):
         if space:
             space = self.alkira.getSpace(space)
             sql_where.append('ui_view_page_list.space = \'%s\'' % space.guid)
-  
+
         if category:
             sql_where.append('ui_view_page_list.category = \'%s\'' % category)
 
         if text:
             sql_where.append('ui_view_page_list.content LIKE \'%%%s%%\'' % text)
- 
+
         query = 'SELECT %s FROM %s WHERE %s' % (sql_select, ' '.join(sql_from), ' AND '.join(sql_where))
 
         result = self.connection.page.query(query)
@@ -79,21 +79,21 @@ class LFWService(object):
     def page(self, space, name):
         if not self.alkira.spaceExists(space) or not self.alkira.pageExists(space, name):
             return {}
-        
+
         page = self.alkira.getPage(space, name)
         props = ['name', 'space', 'category', 'content', 'creationdate', 'title']
-        
-        result = dict([(prop, getattr(page, prop)) for prop in props]) 
+
+        result = dict([(prop, getattr(page, prop)) for prop in props])
         result['tags'] = page.tags.split(' ') if page.tags else []
-        
+
         return result
 
     def get_items(self, prop, space=None, term=None):
         if space:
             space = self.alkira.getSpace(space)
-            
+
         t = term.split(', ')[-1] if term else ''
-        
+
         d = {'prop': prop, 'term': t}
 
         if prop in ('tag',):
@@ -117,16 +117,16 @@ class LFWService(object):
         space = self.alkira.getSpace(space)
         where = ""
         if id == 0:
-            where = "and pagelist.parent is null"  
+            where = "and pagelist.parent is null"
         elif q.basetype.guid.check(id):
-            where = "and pagelist.parent = '%s'" % id 
+            where = "and pagelist.parent = '%s'" % id
         else:
             sql1 = """
-                SELECT DISTINCT pagelist.guid 
+                SELECT DISTINCT pagelist.guid
                 FROM ONLY ui_page.ui_view_page_list as pagelist
                 WHERE pagelist.space ='%(space)s' and pagelist.name = '%(id)s';
                 """ % {'space': space.guid, 'id': id}
-            
+
             parent_guid_result = self.connection.page.query(sql1)
             parent_guid = parent_guid_result[0]['guid']
             where = "and pagelist.parent = '%s'" % parent_guid
@@ -165,7 +165,7 @@ class LFWService(object):
         q.logger.log(data, 1)
         return data
 
-    
+
     @q.manage.applicationserver.expose
     def query(self, sqlselect, rows, table, schema, dbconnection='', link='', _search='', nd='', page=1, sidx='', sord='', applicationserver_request='', *args, **kwargs):
         import sqlalchemy
@@ -207,7 +207,7 @@ class LFWService(object):
         if sidx:
             sqlselect += " ORDER BY %s %s" % (sidx, sord)
         sqlselect += ' LIMIT %s OFFSET %s' % (rows, start)
-        
+
         t = engine.text(countquery)
         totalrowcount = t.execute().fetchone()[0]
         t = engine.text(sqlselect)
@@ -254,3 +254,4 @@ class LFWService(object):
         q.logger.log('[GENERIC] Result: %s' % result, 5)
 
         return result
+

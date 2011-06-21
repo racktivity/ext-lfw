@@ -322,7 +322,7 @@ class LFWService(object):
     def createRepoUrl(self, repo):
         from urlparse import urlsplit, urlunsplit
         url = urlsplit(repo.url)
-        return urlunsplit((url.scheme, "%s:%s@%s" % (repo.username, repo.password, url.netloc), url.query,
+        return urlunsplit((url.scheme, "%s:%s@%s" % (repo.username, repo.password, url.netloc), url.path, url.query,
             url.fragment))
 
     @q.manage.applicationserver.expose
@@ -339,7 +339,7 @@ class LFWService(object):
 
         repoUrl = self.createRepoUrl(space.repository)
 
-        q.logger.log('pushing space %s to %s' % space.name, space.repository.url, 5)
+        q.logger.log('pushing space %s to %s' % (space.name, space.repository.url), 5)
 
         hg = q.clients.mercurial.getclient(q.dirs.pyAppsDir + "/" + p.api.appname + "/portal/spaces/" + space.name,
             repoUrl)
@@ -369,7 +369,7 @@ class LFWService(object):
         repoUrl = self.createRepoUrl(space.repository)
 
         #pull everything
-        q.logger.log('pulling space %s from %s' % space.name, space.repository.url, 5)
+        q.logger.log('pulling space %s from %s' % (space.name, space.repository.url), 5)
         hg = q.clients.mercurial.getclient(q.dirs.pyAppsDir + "/" + p.api.appname + "/portal/spaces/" + space.name,
             repoUrl)
         hg.pullupdate()

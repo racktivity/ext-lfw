@@ -6,7 +6,7 @@ import functools
 
 def sync_to_alkira(appname, path=None, sync_space=None, clean_up=False):
     from pylabs import p, q
-    
+
     def deletePages(connection, sync_space):
             pages = connection.ui.page.find(space=sync_space)['result']
             for page in pages:
@@ -61,7 +61,7 @@ def sync_to_alkira(appname, path=None, sync_space=None, clean_up=False):
             parent_page_info = connection.ui.page.find(name=parent, space=spaceguid, exact_properties=("name", "space"))
             parent_page = connection.ui.page.getObject(parent_page_info['result'][0])
             page.parent = parent_page.guid
- 
+
         # Setting content and metadata
         page_content_dict = filterContent(content)
         page.content = page_content_dict.get('content', 'Page is empty.')
@@ -76,24 +76,30 @@ def sync_to_alkira(appname, path=None, sync_space=None, clean_up=False):
         else:
             t = []
 
-        tags = set(t)        
+        tags = set(t)
         tags.add('space:%s' % space)
         tags.add('page:%s' % name)
-        
+
         if name == "Home":
             tags.add('spaceorder:%s' %page_content_dict.get('spaceorder',1000))
 
         # Split CamelCase in tags
         for tag in re.sub('((?=[A-Z][a-z])|(?<=[a-z])(?=[A-Z]))', ' ', name).strip().split(' '):
             tags.add(tag)
-    
+
         page.tags = ' '.join(tags)
         save_page (page.name, page.space, page.category, page.parent, page.tags, page.content, page.order, page.title)
-        
+
     def alkiraTree(folder_paths, root_parent=None):
         for folder_path in folder_paths:
-            folder_name = q.system.fs.getBaseName(folder_path).split('.')[0]
-            parent_name = folder_name + '.md' 
+            base_name = q.system.fs.getBaseName(folder_path)
+
+            # Ignore hg dir
+            if base_name == '.hg':
+                continue
+
+            folder_name = base_name.split('.')[0]
+            parent_name = folder_name + '.md'
             parent_path = q.system.fs.joinPaths(folder_path, parent_name)
 
             if not q.system.fs.exists(parent_path):
@@ -122,7 +128,7 @@ def sync_to_alkira(appname, path=None, sync_space=None, clean_up=False):
     connection = p.application.getAPI(appname).action
     if clean_up:
         deletePages(connection, sync_space)
-        
+
     if sync_space:
         space_dir = q.system.fs.joinPaths(MD_PATH, sync_space)
         if not q.system.fs.exists(space_dir):
@@ -141,19 +147,19 @@ def sync_to_alkira(appname, path=None, sync_space=None, clean_up=False):
             spaceguid = connection.ui.space.find(space)['result'][0]
         else:
             spaceguid = spaces[0]
-            
+
         q.console.echo('Syncing space: %s' % space)
-        
+
         page_occured = []
-        
-        
+
+
         folder_paths = q.system.fs.listDirsInDir(folder)
         main_files = q.system.fs.listFilesInDir(folder, filter='*.md')
 
         for each_file in main_files:
             createPage(each_file)
 
-        
+
 
         alkiraTree(folder_paths)
 

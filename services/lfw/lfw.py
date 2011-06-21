@@ -37,8 +37,8 @@ class LFWService(object):
         return result
 
     @q.manage.applicationserver.expose
-    def spaces(self, term=None, fullInfo=False):
-        return self.alkira.listSpaces(fullInfo)
+    def spaces(self, term=None):
+        return self.alkira.listSpaces()
 
     @q.manage.applicationserver.expose
     def createSpace(self, name, tags=""):

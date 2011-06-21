@@ -2,6 +2,7 @@ from pylabs import q, p
 
 import os
 
+ADMINSPACE = "Admin"
 
 class AlkiraClient:
 
@@ -205,14 +206,19 @@ class Client:
 
         @note: Deleting a space will delete all the pages in that space.
         """
-        space = self._getSpaceGuid(space)
+        if space == ADMINSPACE:
+            raise RuntimeError("Invalid space")
+        
+        space = self.getSpace(space)
+        
         pages = self.listPageInfo(space)
 
         for page in pages:
             self.connection.page.delete(page['guid'])
-
-        self.connection.space.delete(space)
-
+        
+        self.connection.space.delete(space.guid)
+        self.deletePage(ADMINSPACE, space.name)
+        
     def deletePage(self, space, name):
         """
         Deletes a page.
@@ -277,7 +283,14 @@ class Client:
         space.repository = repo
 
         self.connection.space.save(space)
-
+        
+        if name == ADMINSPACE:
+            return
+        
+        #create a space page under the default admin space
+        spacectnt = p.core.codemanagement.api.getSpacePage(name)
+        self.createPage(ADMINSPACE, name, spacectnt, title=name, parent="Spaces")
+    
     def createPage(self, space, name, content, order=None, title=None, tagsList=[], category='portal', parent=None, contentIsFilePath=False):
         """
         Creates a new page.
@@ -346,8 +359,12 @@ class Client:
 
     def updateSpace(self, space, newname=None, tagslist=None, repository=None, repo_username=None, repo_password=None):
         space = self.getSpace(space)
-
-        if newname != None and newname != space.name:
+        
+        if space.name == ADMINSPACE:
+            raise ValueError("Invalid space")
+        oldname = space.name
+        
+        if newname != None and newname != oldname:
             if self.spaceExists(newname):
                 q.errorconditionhandler.raiseError("Space %s already exists." % newname)
             space.name = newname
@@ -365,7 +382,11 @@ class Client:
             space.repository.password = repo_password
 
         self.connection.space.save(space)
-
+        
+        if oldname != newname:
+            #rename space page.
+            self.updatePage("Admin", oldname, name=newname)
+        
     def updatePage(self, old_space, old_name, space=None, name=None, tagsList=None, content=None, order=None, title=None, parent=None, category=None, contentIsFilePath=False):
         """
         Updates an existing page.

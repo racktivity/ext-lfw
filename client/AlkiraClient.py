@@ -118,7 +118,7 @@ class Client:
             
         return self.connection.page.findAsView(filter, 'ui_view_page_list')
     
-    def listChildPages(self, space, name):
+    def listChildPages(self, space, name = None):
         """
         Lists child pages of page "name"
 
@@ -128,9 +128,14 @@ class Client:
         @type name: String
         @param name: The name of the parent page.
         """
+        page_info = 'SELECT "name" FROM ui_page.ui_view_page_list WHERE '
         #Get page guid
-        guid = self._getPageInfo(space, name)[0]["guid"]
-        page_info = 'SELECT "name" FROM ui_page.ui_view_page_list WHERE parent = \'%s\'' %guid
+        if name:
+            guid = self._getPageInfo(space, name)[0]["guid"]
+            page_info += 'parent = \'%s\'' %guid
+        else:
+            page_info += 'parent is null'
+        
         query = self.connection.page.query(page_info)
         return list(name["name"] for name in query)
 

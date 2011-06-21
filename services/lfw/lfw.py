@@ -278,12 +278,14 @@ class LFWService(object):
         return result
 
     @q.manage.applicationserver.expose
-    def importSpace(self, space, filename):
+    def importSpace(self, space, filename, cleanImport = False):
+        join = q.system.fs.joinPaths
         import tarfile
         def filterFiler(filename):
             return (filename.startswith("/") or filename.startswith(".."))
         q.logger.log('importing file %s for space %s' % (filename,space), 5)
         appname = p.api.appname
+        client = q.clients.alkira.getClient("localhost", appname)
         tarFile = tarfile.open(filename)
         invalidlinks = filter(filterFiler, tarFile.getnames())
         if invalidlinks:
@@ -292,20 +294,44 @@ class LFWService(object):
                 invalidlinks = invalidlinks[:14]
                 invalidlinks.append("...")
             raise ValueError("File names must be relative, please remove the following files\n"%"\n".join(invalidlinks))
-        dest = q.system.fs.joinPaths(q.dirs.pyAppsDir, appname, "portal", "spaces")
-        q.system.fs.removeDirTree(q.system.fs.joinPaths(dest, space))
-        tarFile.extractall(dest)
-        p.application.syncPortal(appname, space)
+        dest = join(q.dirs.pyAppsDir, appname, "portal", "spaces", space)
+        #if the space already exists, I should remove it first
+        if client.spaceExists(space) and cleanImport:
+            q.system.fs.removeDirTree(dest)
+            q.system.fs.createDir(dest)
+        tarFile.extractall(join(dest, ""))
         tarFile.close()
+        p.application.syncPortal(appname, space)
 
     @q.manage.applicationserver.expose
     def exportSpace(self, space, filename):
-        if q.system.fs.exists(filename):
-            q.system.fs.removeFile(filename)
-        import tarfile
+        join = q.system.fs.joinPaths
+        def buildTree(client, path, space, pagenams = None):
+            if not pagenams:
+                pagenams = client.listChildPages(space)
+            
+            for pagename in pagenams:
+                chidpages = client.listChildPages(space, pagename)
+                pagepath = join(path, pagename)
+                q.system.fs.createDir(pagepath)
+                if chidpages:
+                    buildTree(client, pagepath, space, chidpages)
+                page = client.getPage(space, pagename)
+                filename = join(pagepath, pagename + ".md")
+                fpage = open(filename, "w")
+                fpage.write("@metadata title = %s\n"%page.title)
+                fpage.write("@metadata order = %s\n"%page.order)
+                fpage.write("@metadata tagstring = %s\n"%str(page.tags))
+                fpage.write(page.content)
+                fpage.close()
+        
         q.logger.log('exporting space %s to file %s' % (space, filename), 5)
         appname = p.api.appname
+        client = q.clients.alkira.getClient("localhost", appname)
+        tempdir = join(q.dirs.tmpDir, space)
+        buildTree(client, tempdir, space)
+        import tarfile
         tarFile = tarfile.open(filename, mode="w|gz")
-        dest = q.system.fs.joinPaths(q.dirs.pyAppsDir, appname,"portal", "spaces", space)
-        tarFile.add(dest, space)
+        tarFile.add(tempdir, "")
         tarFile.close()
+        q.system.fs.removeDirTree(tempdir)

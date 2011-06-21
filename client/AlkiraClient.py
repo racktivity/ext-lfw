@@ -128,15 +128,17 @@ class Client:
         @type name: String
         @param name: The name of the parent page.
         """
-        page_info = 'SELECT "name" FROM ui_page.ui_view_page_list WHERE '
+        space = self._getSpaceGuid(space)
+        filter = self.connection.page.getFilterObject()
+        filter.add('ui_view_page_list', 'space', space, True)
         #Get page guid
         if name:
             guid = self._getPageInfo(space, name)[0]["guid"]
-            page_info += 'parent = \'%s\'' %guid
+            filter.add('ui_view_page_list', 'parent', guid, True)
         else:
-            page_info += 'parent is null'
+            filter.add('ui_view_page_list', 'parent', None, True)
         
-        query = self.connection.page.query(page_info)
+        query = self.connection.page.findAsView(filter, 'ui_view_page_list')
         return list(name["name"] for name in query)
 
     def spaceExists(self, name):

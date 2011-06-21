@@ -200,7 +200,7 @@ class Client:
         @note: Deleting a space will delete all the pages in that space.
         """
         if space == ADMINSPACE:
-            return
+            raise RuntimeError("Invalid space")
         
         space = self.getSpace(space)
         
@@ -347,7 +347,11 @@ class Client:
     def updateSpace(self, space, newname=None, tagslist=None):
         space = self.getSpace(space)
         
-        if newname != None and newname != space.name:
+        if space.name == ADMINSPACE:
+            raise ValueError("Invalid space")
+        oldname = space.name
+        
+        if newname != None and newname != oldname:
             if self.spaceExists(newname):
                 q.errorconditionhandler.raiseError("Space %s already exists." % newname)
             space.name = newname
@@ -356,6 +360,10 @@ class Client:
             space.tags = ' '.join(tagslist)
         
         self.connection.space.save(space)
+        
+        if oldname != newname:
+            #rename space page.
+            self.updatePage("Admin", oldname, name=newname)
         
     def updatePage(self, old_space, old_name, space=None, name=None, tagsList=None, content=None, order=None, title=None, parent=None, category=None, contentIsFilePath=False):
         """

@@ -1,6 +1,7 @@
 from pylabs import q, p
 
-import os, re
+import os
+
 
 class AlkiraClient:
 
@@ -13,12 +14,36 @@ class AlkiraClient:
 
         @return: A client object.
         """
-        return Client(hostname, appname)
+        return Client(hostname=hostname, appname=appname)
+    
+    def getClientByApi(self, api):
+        """
+        Gets a client object.
 
+        @param api: The application API (p.api)
+
+        @return: A client object.
+        """
+        return Client(api=api)
+    
 class Client:
 
-    def __init__(self, hostname, appname):
-        api = p.application.getAPI(appname, host=hostname, context=q.enumerators.AppContext.APPSERVER)
+    def __init__(self, hostname=None, appname=None, api=None):
+        """
+        Initialize a new Alkira Client with the given (hostname, appname) connection
+        but if hostname and appname are not given, the given api is used
+        
+        @param hostname: The hostname of alikra
+        
+        @param appname: The application name
+        
+        @param api: The application api if hostname and appname are not passed
+        """
+        if hostname and appname:
+            api = p.application.getAPI(appname, host=hostname, context=q.enumerators.AppContext.APPSERVER)
+        elif not api:
+            q.errorconditionhandler.raiseError("'api' is not optional if hostname and appname are empty")
+        
         self.connection = api.model.ui
 
     def _getPageInfo(self, space, name):
@@ -27,7 +52,25 @@ class Client:
         page_filter.add('ui_view_page_list', 'space', space, True)
         page_info = self.connection.page.findAsView(page_filter, 'ui_view_page_list')
         return page_info
-
+    
+    def _getSpaceGuid(self, space):
+        if isinstance(space, basestring):
+            if q.basetype.guid.check(space):
+                return space
+            else:
+                spaces = self._getSpaceInfo(space)
+                if not spaces:
+                    q.errorconditionhandler.raiseError("Space %s does not exist." % space)
+                return spaces[0]['guid']
+        elif isinstance(space, self.connection.space._ROOTOBJECTTYPE):
+            return space.guid
+        
+    def _getSpaceInfo(self, name):
+        filter = self.connection.space.getFilterObject()
+        filter.add('ui_view_space_list', 'name', name, True)
+        space = self.connection.space.findAsView(filter, 'ui_view_space_list')
+        return space
+    
     def _getParentGUIDS(self, guid_list):
         parent_list = []
         for guid in guid_list:
@@ -37,36 +80,44 @@ class Client:
 
         return parent_list
 
-    def listPages(self, space):
+    def listPages(self, space=None):
         """
         Lists all the pages in a certain space.
 
-        @type space: String
-        @param space: The name of the space.
+        @param space: The name, guid or space object of the space.
         """
-        PAGES = 'SELECT ui_page.ui_view_page_list."name" FROM ui_page.ui_view_page_list WHERE ui_page.ui_view_page_list.space = \'%s\'' %space
-        query = self.connection.page.query(PAGES)
-        return map(lambda item: item["name"], query)
+        return map(lambda i: i['name'],
+                   self.listPageInfo(space))
 
     def listSpaces(self):
         """
         Lists all the spaces.
         """
-        SPACES = 'SELECT DISTINCT ui_page.ui_view_page_list."space" FROM ui_page.ui_view_page_list'
-        query = self.connection.page.query(SPACES)
-        return map(lambda item: item["space"], query)
+        return map(lambda item: item["name"],
+                   self.listSpaceInfo())
 
-    def listPageInfo(self, space):
+    def listSpaceInfo(self):
+        """
+        List all spaces info
+        """
+        spaces = self.connection.space.findAsView(self.connection.space.getFilterObject(),
+                                                  'ui_view_space_list')
+        
+        return spaces
+    
+    def listPageInfo(self, space=None):
         """
         Lists all the pages in a space with their info.
 
-        @type space: String
-        @param space: The name of the space.
+        @param space: The name, guid or space object of the space.
         """
-        page_info = 'SELECT ui_page.ui_view_page_list."name", ui_page.ui_view_page_list."guid", ui_page.ui_view_page_list."parent", ui_page.ui_view_page_list."title", ui_page.ui_view_page_list."order" FROM ui_page.ui_view_page_list WHERE ui_page.ui_view_page_list.space = \'%s\'' %space
-        query = self.connection.page.query(page_info)
-        return query
-
+        filter = self.connection.page.getFilterObject()
+        if space:
+            space = self._getSpaceGuid(space)
+            filter.add('ui_view_page_list', 'space', space, True)
+            
+        return self.connection.page.findAsView(filter, 'ui_view_page_list')
+    
     def listChildPages(self, space, name):
         """
         Lists child pages of page "name"
@@ -83,6 +134,16 @@ class Client:
         query = self.connection.page.query(page_info)
         return list(name["name"] for name in query)
 
+    def spaceExists(self, name):
+        """
+        Checks whether a space exists or not
+        
+        @param name: Space name
+        
+        @return: True if the space exists, False otherwise
+        """
+        return bool(self._getSpaceInfo(name))
+    
     def pageExists(self, space, name):
         """
         Checks whether a page exists or not.
@@ -95,11 +156,22 @@ class Client:
 
         @return: True if the page exists, False otherwise.
         """
+        space = self._getSpaceGuid(space)
         if self._getPageInfo(space, name):
             return True
         else:
             return False        
 
+    def getSpace(self, space):
+        """
+        Gets a space object
+        
+        @param name: The space name, or guid
+        """
+        
+        space = self._getSpaceGuid(space)
+        return self.connection.space.get(space)
+    
     def getPage(self, space, name):
         """
         Gets a page object.
@@ -112,24 +184,27 @@ class Client:
 
         @return: Page object.
         """
-        if not self.pageExists(space, name):
-            q.errorconditionhandler.raiseError("Page %s does not exist."%name)
-        else:
-            page_info = self._getPageInfo(space, name)
-            page = self.connection.page.get(page_info[0]['guid'])
-            return page
+        space = self._getSpaceGuid(space)
+        page_info = self._getPageInfo(space, name)
+        if not page_info:
+            q.errorconditionhandler.raiseError("Page %s does not exist." % name)
+        return self.connection.page.get(page_info[0]['guid'])
     
-    def deleteSpace(self, space=None):
-        if space is None:
-            spaces = self.listSpaces()
-        else:
-            spaces = [space]
-            
-        for s in spaces:
-            pages = self.listPages(s)
-            for page in pages:
-                self.deletePage(s, page)
-                
+    def deleteSpace(self, space):
+        """
+        Delete space
+        
+        @param space: The space name, object or guid to delete
+        
+        @note: Deleting a space will delete all the pages in that space.
+        """
+        space = self._getSpaceGuid(space)
+        pages = self.listPageInfo(space)
+        
+        for page in pages:
+            self.connection.page.delete(page['guid'])
+        
+        self.connection.space.delete(space)
         
     def deletePage(self, space, name):
         """
@@ -141,6 +216,7 @@ class Client:
         @type name: String
         @param name: The name of the page.
         """
+        space = self._getSpaceGuid(space)
         page = self.getPage(space, name)
         self.connection.page.delete(page.guid)
 
@@ -154,6 +230,8 @@ class Client:
         @type name: String
         @param name: The name of the page.
         """
+        space = self._getSpaceGuid(space)
+        
         space_filter = self.connection.page.getFilterObject()
         space_filter.add('ui_view_page_list', 'space', space, True)
         space_guids = self.connection.page.find(space_filter)
@@ -177,7 +255,16 @@ class Client:
         for page_guid in delete_list:
             self.connection.page.delete(page_guid)
                 
-
+    def createSpace(self, name, tagslist=[]):
+        if self.spaceExists(name):
+            q.errorconditionhandler.raiseError("Space %s already exists." % name)
+        
+        space = self.connection.space.new()
+        space.name = name
+        space.tags = ' '.join(tagslist)
+        
+        self.connection.space.save(space)
+    
     def createPage(self, space, name, content, order=None, title=None, tagsList=[], category='portal', parent=None, contentIsFilePath=False):
         """
         Creates a new page.
@@ -209,6 +296,7 @@ class Client:
         @type contentIsFilePath: Boolean
         @param contentIsFilePath: If the content you gave is a file path, set this value to True. Default is False.
         """
+        space = self._getSpaceGuid(space)
         if self.pageExists(space, name):
             q.errorconditionhandler.raiseError("Page %s already exists."%name)
         else:
@@ -216,33 +304,46 @@ class Client:
             page.space = space
             page.name = name
             page.category = category
-
+    
             if title:
                 page.title = title
             else:
                 page.title = name
-
+    
             if order:
                 page.order = order
             else:
                 page.order = 10000
-
+    
             if contentIsFilePath:
                 content = q.system.fs.fileGetContents(content)
-
+    
             page.content = content
-
+    
             tags = set(tagsList)
             tags.add('space:%s' % space)
             tags.add('page:%s' % name)
             page.tags = ' '.join(tags)
-
+    
             if parent:
                 parent_page = self.getPage(space, parent)
                 page.parent = parent_page.guid
-
+    
             self.connection.page.save(page)
 
+    def updateSpace(self, space, newname=None, tagslist=None):
+        space = self.getSpace(space)
+        
+        if newname != None and newname != space.name:
+            if self.spaceExists(newname):
+                q.errorconditionhandler.raiseError("Space %s already exists." % newname)
+            space.name = newname
+        
+        if tagslist:
+            space.tags = ' '.join(tagslist)
+        
+        self.connection.space.save(space)
+        
     def updatePage(self, old_space, old_name, space=None, name=None, tagsList=None, content=None, order=None, title=None, parent=None, category=None, contentIsFilePath=False):
         """
         Updates an existing page.
@@ -280,9 +381,12 @@ class Client:
         @type contentIsFilePath: Boolean
         @param contentIsFilePath: If the content you gave is a file path, set this value to True. Default is False.
         """
+        old_space = self._getSpaceGuid(old_space)
+        
         page = self.getPage(old_space, old_name)
 
         if space:
+            space = self._getSpaceGuid(space)
             page.space = space
 
         if name:

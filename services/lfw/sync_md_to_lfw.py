@@ -40,7 +40,7 @@ def sync_to_alkira(appname, path=None, sync_space=None, clean_up=False):
         pageDuplicate(page_file)
         name = q.system.fs.getBaseName(page_file).split('.')[0]
         content = q.system.fs.fileGetContents(page_file)
-        page_info = connection.ui.page.find(name=name, space=space, exact_properties=("name", "space"))
+        page_info = connection.ui.page.find(name=name, space=spaceguid, exact_properties=("name", "space"))
 
         if len(page_info['result']) > 1:
             raise ValueError('Multiple pages found!')
@@ -51,14 +51,14 @@ def sync_to_alkira(appname, path=None, sync_space=None, clean_up=False):
         else:
             page = serverapi.model.ui.page.new()
             page.name = name
-            page.space = space
+            page.space = spaceguid
             page.category = 'portal'
             save_page = connection.ui.page.create
             q.console.echo('Creating page: %s'%name, indent=3, withStar=True)
 
         # Setting the parent
         if parent:
-            parent_page_info = connection.ui.page.find(name=parent, space=space, exact_properties=("name", "space"))
+            parent_page_info = connection.ui.page.find(name=parent, space=spaceguid, exact_properties=("name", "space"))
             parent_page = connection.ui.page.getObject(parent_page_info['result'][0])
             page.parent = parent_page.guid
  
@@ -133,8 +133,17 @@ def sync_to_alkira(appname, path=None, sync_space=None, clean_up=False):
 
     for folder in portal_spaces:
         space = folder.split(os.sep)[-1]
-        q.console.echo('Syncing space: %s'%space)
-
+        spaceguid = None
+        spaces = connection.ui.space.find(space)['result']
+        if not spaces:
+            #create space
+            connection.ui.space.create(space)
+            spaceguid = connection.ui.space.find(space)['result'][0]
+        else:
+            spaceguid = spaces[0]
+            
+        q.console.echo('Syncing space: %s' % space)
+        
         page_occured = []
         
         

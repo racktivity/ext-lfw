@@ -255,3 +255,49 @@ class LFWService(object):
 
         return result
 
+    @q.manage.applicationserver.expose
+    def hgPush(self, spaceGuid, repository, username=None):
+        if not repository:
+            return "Please give a repository to push to."
+
+        spaceInfo = self.alkira.getSpace(spaceGuid)
+
+        #check if we need to update the repo in osis
+        if repository != spaceInfo.repository:
+            self.alkira.updateSpace(spaceGuid, repository=repository)
+
+        hg = q.clients.mercurial.getclient(q.dirs.pyAppsDir + "/" + p.api.appname + "/portal/spaces/" + spaceInfo.name,
+            repository.encode("utf-8"))
+
+        #check if we already have the latest version
+        retval, msg = hg._hgCmdExecutor("incoming", source=hg.getUrl(), die=False, autoCheckFix=False)
+        if retval == 1 and "no changes found" in msg: #no changes we can push
+            if username:
+                #set the username for the commit
+                hg._ui.environ["HGUSER"] = username
+            hg.pushcommit("automated commit by Alkira", addRemoveUntrackedFiles=True)
+            return True
+        else:
+            return False
+
+    @q.manage.applicationserver.expose
+    def hgPull(self, spaceGuid, repository, dontSync=False):
+        if not repository:
+            return "Please give a repository to pull from."
+
+        spaceInfo = self.alkira.getSpace(spaceGuid)
+
+        #check if we need to update the repo in osis
+        if repository != spaceInfo.repository:
+            self.alkira.updateSpace(spaceGuid, repository=repository)
+
+        #pull everything
+        hg = q.clients.mercurial.getclient(q.dirs.pyAppsDir + "/" + p.api.appname + "/portal/spaces/" + spaceInfo.name,
+            repository.encode("utf-8"))
+        hg.pullupdate()
+
+        #resync pages
+        if not dontSync:
+            p.application.syncPortal(p.api.appname)
+
+        return True

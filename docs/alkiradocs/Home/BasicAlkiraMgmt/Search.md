@@ -1,5 +1,6 @@
 @metadata title=Searching in Alkira
 @metadata order=40
+@metadata tagstring=search look page label
 
 
 #Searching in Alkira

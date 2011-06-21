@@ -1,9 +1,11 @@
 @metadata title=Alkira
 @metadata order=1
+@metadata tagstring=alkira
+@metadata spaceorder=140
 
-[macros]: /pylabsdoc/#/alkiradocs/Macros\_Home
-[md]: /pylabsdoc/#/alkiradocs/Markdown\_Home
-[pl]: /pylabsdoc/#/PyLabs50/Home
+[macros]: /#/alkiradocs/Macros\_Home
+[md]: /#/alkiradocs/Markdown\_Home
+[pl]: /#/PyLabs50/Home
 [incubaid]: http://www.incubaid.com
 [mdsyntax]: http://daringfireball.net/projects/markdown/syntax
 

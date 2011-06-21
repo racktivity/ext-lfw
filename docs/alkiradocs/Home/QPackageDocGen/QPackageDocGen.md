@@ -1,5 +1,6 @@
 @metadata title=Generating Documentation
 @metadata order=60
+@metadata tagstring=generate generation doc documentation
 
 
 #Alkira Q-Package Documentation Generator

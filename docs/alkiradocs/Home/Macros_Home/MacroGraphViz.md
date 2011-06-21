@@ -1,7 +1,10 @@
 @metadata title=Graphviz Macro
+@metadata tagstring=macro alkira graphviz
+
+[graphviz]: http://www.graphviz.org
 
 #Graphviz Macro
-The `graphviz` macro creates a graphic by means of a dot file. For more information about Graphviz, visit the [Graphviz website](http://www.graphviz.org).
+The `graphviz` macro creates a graphic by means of a dot file. For more information about Graphviz, visit the [Graphviz website][graphviz].
 
 
 ##Parameters
@@ -89,7 +92,7 @@ digraph {
 
 ##Example 2
 
-    [[graphviz]
+    [[graphviz]]
         digraph finite_state_machine {
 
             rankdir=LR;

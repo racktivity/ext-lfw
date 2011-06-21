@@ -1,4 +1,5 @@
 @metadata title=SQL Grid Macro
+@metadata tagstring=macro alkira sql grid sqlgrid
 
 #SQL Grid Macro
 The `sqlgrid` macro executes a given SQL query and shows the result in a SQL grid, with support of paging.
@@ -34,8 +35,8 @@ To configure remote databases this configuration should be in file under locatio
     [db_sampleapp]
     dbtype = postgresql
     dbpasswd = 
-    dblogin = sampleapp
-    dbname = sampleapp
+    dblogin = pylabsdoc
+    dbname = pylabsdoc
     dbserver = 127.0.0.1
 
 ##Macro Example
@@ -43,11 +44,11 @@ Using the `sqlselect` parameter:
 
     [[sqlgrid]]
     {
-        "dbconnection": "sampleapp",
+        "dbconnection": "pylabsdoc",
         "table": "ui_view_page_list",
         "schema": "ui_page",
         "sqlselect": "SELECT ui_view_page_list.category, ui_view_page_list.name, ui_view_page_list.parent FROM ui_page.ui_view_page_list WHERE ui_view_page_list.space='doc'",
-        "link": {"name": "/sampleapp/#/alkiradocs/$name$"},
+        "link": {"name": "/pylabsdoc/#/alkiradocs/$name$"},
         "sort": "name",
         "hidden": ["guid"],
         "pagesize": 10,
@@ -65,7 +66,7 @@ Using the `columns` and `wheredict` parameters:
 
     [[sqlgrid]]
     {
-        "dbconnection": "sampleapp",
+        "dbconnection": "pylabsdoc",
         "table": "ui_view_page_list",
         "schema": "ui_page",
         "columns": {
@@ -76,7 +77,7 @@ Using the `columns` and `wheredict` parameters:
         "wheredict": {
             "space": "alkiradocs"
             },
-        "link": {"name": "/sampleapp/#/alkiradocs/$name$"},
+        "link": {"name": "/pylabsdoc/#/alkiradocs/$name$"},
         "sort": "name",
         "pagesize": 10,
         "width": 600,
@@ -95,7 +96,7 @@ Using the `columns` and `wheredict` parameters:
 
 [[sqlgrid]]
     {
-        "dbconnection": "sampleapp",
+        "dbconnection": "pylabsdoc",
         "table": "ui_view_page_list",
         "schema": "ui_page",
         "columns": {
@@ -106,7 +107,7 @@ Using the `columns` and `wheredict` parameters:
         "wheredict": {
             "space": "alkiradocs"
             },
-        "link": {"name": "/sampleapp/#/alkiradocs/$name$"},
+        "link": {"name": "/pylabsdoc/#/alkiradocs/$name$"},
         "sort": "name",
         "pagesize": 10,
         "width": 600,

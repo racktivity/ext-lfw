@@ -1,8 +1,9 @@
 @metadata title=JqPlot Pie Chart
 @metadata order=5
+@metadata tagstring=jqplot chart pie
 
 [pie chart]:http://www.jqplot.com/tests/pieTests.php
-[createmacro]: /pylabsdoc/#/alkiradocs/Macros_HOWTO
+[createmacro]: /#/alkiradocs/Macros_HOWTO
 
 # Pie Chart
 
@@ -21,14 +22,14 @@ The Pie Chart is an example with explanation of the JqPlot Pie Chart.
 
 ##Example
 
-    <div class="macro macro_jqplot">
+    [[jqplot]]
         {"width" : 400,
          "height" : 400,
          "chart_data" : [[[1, 2],[2, 4],[3, 6],[4, 8]]],
          "chart_div" : "pie_div",
          "renderer" :"$.jqplot.PieRenderer"
         }
-    </div>
+    [[/jqplot]]
 
 
 If you want to create a macro with a more complicated bar chart please see [How to Create a Macro][createmacro] and [jqPlot pie chart page][pie chart].
@@ -36,11 +37,11 @@ If you want to create a macro with a more complicated bar chart please see [How 
 
 ## Sample Pie Chart
 
-<div class="macro macro_jqplot">
+[[jqplot]]
 {"width" : 400,
  "height" : 400,
  "chart_data" : [[[1, 2],[2, 4],[3, 6],[4, 8]]],
  "chart_div" : "pie_div",
  "renderer" :"$.jqplot.PieRenderer"
 }
-</div>
+[[/jqplot]]

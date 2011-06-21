@@ -1,7 +1,9 @@
 @metadata title=How to Create Macros
 @metadata order=20
+@metadata tagstring=macro alkira create new howto
 
-[generic]: /pylabsdoc/#/alkiradocs/MacroGeneric
+
+[generic]: /#/alkiradocs/MacroGeneric
 
 #How to Create Macros
 Adding dynamic content to an Alkira page is easy by using macros. There are two ways to add dynamic content:

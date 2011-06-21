@@ -1,5 +1,6 @@
 @metadata title=Alkira Client
 @metadata order=40
+@metadata tagstring=client qshell alkira
 
 
 #Alkira Client

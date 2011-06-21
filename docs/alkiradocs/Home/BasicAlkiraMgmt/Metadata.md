@@ -1,5 +1,6 @@
 @metadata title=Metadata
 @metadata order=20
+@metadata tagstring=metadata title order tagstring
 
 #Metadata
 @todo: add the different metadata and mechanisms

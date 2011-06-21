@@ -1,4 +1,5 @@
 @metadata title=Code Macro
+@metadata tagstring=macro alkira code
 
 #Code Macro
 The `code` macro is used to display source code on a page.

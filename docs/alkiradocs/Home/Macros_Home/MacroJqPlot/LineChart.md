@@ -1,8 +1,9 @@
 @metadata title=JqPlot Line Chart
 @metadata order=4
+@metadata tagstring=jqplot chart line
 
 [line chart]:http://www.jqplot.com/tests/coretests.php
-[createmacro]: /pylabsdoc/#/alkiradocs/Macros_HOWTO
+[createmacro]: /#/alkiradocs/Macros_HOWTO
 
 # Line Chart
 
@@ -20,23 +21,23 @@ The Line chart is an example with explanation of the JqPlot Line Chart
 
 ##Example
 
-    <div class="macro macro_jqplot">
+    [[jqplot]]
         {"width" : 400,
          "height" : 400,
          "chart_data" : [[[1, 3], [3, 5], [5, 7], [7, 9], [9, 11], [11, 13]]],
          "chart_div" : "line_div",
         }
-    </div>
+    [[/jqplot]]
     
 If you want to create a macro with a more complicated line chart please see [How to Create a Macro][createmacro] and [jqPlot line chart page][line chart].
 
 
 ## Sample Line Chart
 
-<div class="macro macro_jqplot">
+[[jqplot]]
 {"width" : 400,
  "height" : 400,
  "chart_data" : [[[1, 3], [3, 5], [5, 7], [7, 9], [9, 11], [11, 13]]],
  "chart_div" : "line_div"
 }
-</div>
+[[/jqplot]]

@@ -1,13 +1,14 @@
 @metadata title=Markdown Documentation
 @metadata order=20
+@metadata tagstring=markdown md doc documentation
 
-[mdhome]: /pylabsdoc/#/alkiradocs/Markdown_Home
-[basics]: /pylabsdoc/#/alkiradocs/Basics
+[mdhome]: /#/alkiradocs/Markdown_Home
+[basics]: /#/alkiradocs/Basics
 [syntax]: http://daringfireball.net/projects/markdown/syntax
-[license]: /pylabsdoc/#/alkiradocs/License
+[license]: /#/alkiradocs/License
 [dl]: http://daringfireball.net/projects/downloads/Markdown_1.0.1.zip
 [dingus]: http://daringfireball.net/projects/markdown/dingus
-[sourcehome]: /pylabsdoc/#/alkiradocs/HomeSource
+[sourcehome]: /#/alkiradocs/HomeSource
 [s_src]: http://daringfireball.net/projects/markdown/syntax.text
 [l_src]: http://daringfireball.net/projects/markdown/license.text
 [pl]: http://daringfireball.net/projects/markdown/license
@@ -21,7 +22,7 @@
 [Jason Perkins]:        http://pressedpants.com/
 [Michel Fortin]:        http://www.michelf.com/projects/php-markdown/
 [html2text]:          http://www.aaronsw.com/2002/html2text/
-[imgTextformat]: md\_images/mt\_textformat\_menu.png
+[imgTextformat]: images/images50/md_images/mt_textformat_menu.png
 
 
 #Markdown: Home
@@ -71,7 +72,7 @@ Markdown works with Movable Type version 2.6 or later (including Movable Type 3.
 
 2.  Once installed, Markdown will appear as an option in Movable Type's Text Formatting pop-up menu. This is selectable on a per-post basis:
 	
-	![mt\_textformat\_menu][imgTextformat]
+	![mt_textformat_menu][imgTextformat]
 	
 	Markdown translates your posts to HTML when you publish; the posts themselves are stored in your MT database in Markdown format.
 

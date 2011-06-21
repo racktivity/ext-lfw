@@ -363,7 +363,7 @@ class Client:
         
         if oldname != newname:
             #rename space page.
-            self.updatePage("Admin", oldname, name=newname)
+            self.updatePage(ADMINSPACE, oldname, name=newname)
         
     def updatePage(self, old_space, old_name, space=None, name=None, tagsList=None, content=None, order=None, title=None, parent=None, category=None, contentIsFilePath=False):
         """

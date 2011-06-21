@@ -12,7 +12,9 @@
 [jqplot]: /#/alkiradocs/MacroJqPlot/MacroJqPlot
 [note]: /#/alkiradocs/MacroNote
 [pagetree]: /#/alkiradocs/MacroPageTree
+[script]: /#/alkiradocs/MacroScript
 [sqlgrid]: /#/alkiradocs/MacroSqlGrid
+[style]: /#/alkiradocs/MacroStyle
 [tip]: /#/alkiradocs/MacroTip
 [toc]: /#/alkiradocs/MacroToc
 [warning]: /#/alkiradocs/MacroWarning
@@ -28,8 +30,10 @@
 * [Information Macro][info] 
 * [JqPlot Macro][jqplot]  
 * [Note Macro][note]
-* [PageTree Macro][pagetree]  
-* [SqlGrid Macro][sqlgrid]  
+* [PageTree Macro][pagetree]
+* [Script Macro][script]  
+* [SqlGrid Macro][sqlgrid]
+* [Style Macro][style]  
 * [Tip Macro][tip]
 * [Toc Macro][toc]  
 * [Warning Macro][warning]

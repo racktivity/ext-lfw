@@ -1,10 +1,11 @@
-@metadata title:Markdown Basics
+@metadata title=Markdown Basics
 @metadata order=10
+@metadata tagstring=basic basics markdown
 
-[mdhome]: /pylabsdoc/#/alkiradocs/Markdown_Home
-[basics]: /pylabsdoc/#/alkiradocs/Basics
+[mdhome]: /#/alkiradocs/Markdown_Home
+[basics]: /#/alkiradocs/Basics
 [syntax]: http://daringfireball.net/projects/markdown/syntax
-[license]: /pylabsdoc/#/alkiradocs/License
+[license]: /#/alkiradocs/License
 [s]: http://daringfireball.net/projects/markdown/syntax
 [d]: http://daringfireball.net/projects/markdown/dingus
 [src]: http://daringfireball.net/projects/markdown/basics.text

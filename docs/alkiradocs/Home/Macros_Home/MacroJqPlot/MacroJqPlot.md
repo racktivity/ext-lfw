@@ -1,12 +1,13 @@
 @metadata title=JqPlot Macro
+@metadata tagstring=jqplot chart
 
 [new jqplt chart]:http://www.jqplot.com/docs/files/usage-txt.html
 [jqPlot Examples]:http://www.jqplot.com/tests/
-[line]: /pylabsdoc/#/alkiradocs/LineChart
-[bar]: /pylabsdoc/#/alkiradocs/BarChart
-[pie]: /pylabsdoc/#/alkiradocs/PieChart
-[block]: /pylabsdoc/#/alkiradocs/BlockChart
-[bubble]: /pylabsdoc/#/alkiradocs/BubbleChart
+[line]: /#/alkiradocs/LineChart
+[bar]: /#/alkiradocs/BarChart
+[pie]: /#/alkiradocs/PieChart
+[block]: /#/alkiradocs/BlockChart
+[bubble]: /#/alkiradocs/BubbleChart
 
 
 #JqPlot Macro 

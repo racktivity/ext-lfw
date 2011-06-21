@@ -1,4 +1,5 @@
 @metadata title=Google Maps Macro
+@metadata tagstring=macro alkira google maps
 
 #Google Maps Macro
 

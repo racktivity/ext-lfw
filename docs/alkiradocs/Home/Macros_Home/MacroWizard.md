@@ -1,6 +1,7 @@
 @metadata title=Wizard Macro
+@metadata tagstring=macro alkira wizard
 
-[wizard]: /pylabsdoc/#/doc/formwizardpractical
+[wizard]: /#/doc/formwizardpractical
 
 #Wizards Macro
 The `wizard` macro allows you to add a created [wizard][] in an Alkira page.

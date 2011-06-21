@@ -1,4 +1,5 @@
 @metadata title=TOC Macro
+@metadata tagstring=macro alkira toc table contents
 
 #Table of Contents Macro
 

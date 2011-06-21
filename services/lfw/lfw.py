@@ -326,56 +326,73 @@ class LFWService(object):
             url.fragment))
 
     @q.manage.applicationserver.expose
-    def hgPushSpace(self, spaceGuid, repository, repo_username, repo_password=None):
+    def hgPushSpace(self, space, repository, repo_username, repo_password=None):
         if not repository:
             return "Please give a repository to push to."
 
-        space = self.alkira.getSpace(spaceGuid)
+        spaceInfo = self.alkira.getSpace(space)
 
         #check if we need to update the repo in osis
-        if self.hgCheckInfo(space, repository, repo_username, repo_password):
+        if self.hgCheckInfo(spaceInfo, repository, repo_username, repo_password):
             #update to reflect changes
-            space = self.alkira.getSpace(spaceGuid)
+            spaceInfo = self.alkira.getSpace(space)
 
-        repoUrl = self.createRepoUrl(space.repository)
+        repoUrl = self.createRepoUrl(spaceInfo.repository)
 
-        q.logger.log('pushing space %s to %s' % (space.name, space.repository.url), 5)
+        q.logger.log('pushing space %s to %s' % (spaceInfo.name, spaceInfo.repository.url), 5)
 
-        hg = q.clients.mercurial.getclient(q.dirs.pyAppsDir + "/" + p.api.appname + "/portal/spaces/" + space.name,
+        hg = q.clients.mercurial.getclient(q.dirs.pyAppsDir + "/" + p.api.appname + "/portal/spaces/" + spaceInfo.name,
             repoUrl)
 
         #check if we already have the latest version
         retval, msg = hg._hgCmdExecutor("incoming", source=hg.getUrl(), die=False, autoCheckFix=False)
         if retval == 1 and "no changes found" in msg: #no changes we can push
             #set the username for the commit
-            hg._ui.environ["HGUSER"] = space.repository.username
+            hg._ui.environ["HGUSER"] = spaceInfo.repository.username
             hg.pushcommit("automated commit by Alkira", addRemoveUntrackedFiles=True)
             return True
         else:
             return False
 
     @q.manage.applicationserver.expose
-    def hgPullSpace(self, spaceGuid, repository, repo_username, repo_password=None, dontSync=False):
+    def hgPullSpace(self, space, repository, repo_username, repo_password=None, dontSync=False):
         if not repository:
             return "Please give a repository to pull from."
 
-        space = self.alkira.getSpace(spaceGuid)
+        spaceInfo = self.alkira.getSpace(space)
 
         #check if we need to update the repo in osis
-        if self.hgCheckInfo(space, repository, repo_username, repo_password):
+        if self.hgCheckInfo(spaceInfo, repository, repo_username, repo_password):
             #update to reflect changes
-            space = self.alkira.getSpace(spaceGuid)
+            spaceInfo = self.alkira.getSpace(space)
 
-        repoUrl = self.createRepoUrl(space.repository)
+        repoUrl = self.createRepoUrl(spaceInfo.repository)
 
         #pull everything
-        q.logger.log('pulling space %s from %s' % (space.name, space.repository.url), 5)
-        hg = q.clients.mercurial.getclient(q.dirs.pyAppsDir + "/" + p.api.appname + "/portal/spaces/" + space.name,
+        q.logger.log('pulling space %s from %s' % (spaceInfo.name, spaceInfo.repository.url), 5)
+        hg = q.clients.mercurial.getclient(q.dirs.pyAppsDir + "/" + p.api.appname + "/portal/spaces/" + spaceInfo.name,
             repoUrl)
         hg.pullupdate()
 
         #resync pages for space
         if not dontSync:
-            p.application.syncPortal(p.api.appname, space=space.name)
+            p.application.syncPortal(p.api.appname, space=spaceInfo.name)
 
         return True
+
+    @q.manage.applicationserver.expose
+    def space(self, space):
+        if not self.alkira.spaceExists(space):
+            return {}
+
+        space = self.alkira.getSpace(space)
+        result = {
+            'name': space.name,
+            'repository': {
+                'url': space.repository.url,
+                'username': space.repository.username
+            },
+            'tags': space.tags.split(' ') if space.tags else []
+        }
+
+        return result

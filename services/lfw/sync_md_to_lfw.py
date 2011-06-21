@@ -21,15 +21,16 @@ def sync_to_alkira(appname, path=None, sync_space=None, clean_up=False):
     def filterContent(page_content):
         content_dict = {}
         page_lines = page_content.splitlines()
-        while page_lines[0].startswith('@metadata'):
-            meta_line = page_lines.pop(0)
-            meta_line = meta_line.replace('@metadata', "")
-            meta_list = meta_line.split('=')
+        if len(page_lines):
+            while page_lines[0].startswith('@metadata'):
+                meta_line = page_lines.pop(0)
+                meta_line = meta_line.replace('@metadata', "")
+                meta_list = meta_line.split('=')
 
-            header = meta_list[0].strip()
-            value = meta_list[1].strip()
+                header = meta_list[0].strip()
+                value = meta_list[1].strip()
 
-            content_dict[header] = value
+                content_dict[header] = value
 
         filtered_content = "\n".join(page_lines)
         content_dict['content'] = filtered_content

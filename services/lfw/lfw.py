@@ -24,7 +24,7 @@ class LFWService(object):
         self._tasklet_engine.addFromPath(os.path.join(q.dirs.baseDir,'lib','python','site-packages','alkira', 'tasklets'))
         self.db_config_path = q.system.fs.joinPaths(q.dirs.cfgDir, 'qconfig', 'dbconnections.cfg')
 
-    @q.manage.applicationserver.expose    
+    @q.manage.applicationserver.expose
     def tags(self, space=None, term=None):
         results = self.get_items('tags', space=space, term=term)
         final_result = set()
@@ -43,18 +43,18 @@ class LFWService(object):
     @q.manage.applicationserver.expose
     def createSpace(self, name, tags=""):
         return self.alkira.createSpace(name, tags.split(' '))
-    
+
     @q.manage.applicationserver.expose
     def deleteSpace(self, name):
         if name == "Admin":
             raise ValueError("Admin space is not deletable")
-        
+
         return self.alkira.deleteSpace(name)
-    
+
     @q.manage.applicationserver.expose
     def updateSpace(self, name, newname=None, tags=""):
         return self.alkira.updateSpace(name, newname, tags.split(' '))
-    
+
     @q.manage.applicationserver.expose
     def pages(self, space=None, term=None):
         return self.alkira.listPages(space)
@@ -310,49 +310,72 @@ class LFWService(object):
         tarFile.add(dest, space)
         tarFile.close()
 
+    def hgCheckInfo(self, space, repository, repo_username, repo_password):
+        if space.repository.url != repository or space.repository.username != repo_username or \
+            (repo_password and space.repository.password != repo_password):
+
+            self.alkira.updateSpace(space.guid, repository=repository, repo_username=repo_username,
+                repo_password=repo_password)
+            return True
+        return False
+
+    def createRepoUrl(self, repo):
+        from urlparse import urlsplit, urlunsplit
+        url = urlsplit(repo.url)
+        return urlunsplit((url.scheme, "%s:%s@%s" % (repo.username, repo.password, url.netloc), url.query,
+            url.fragment))
+
     @q.manage.applicationserver.expose
-    def hgPush(self, spaceGuid, repository, username=None):
+    def hgPushSpace(self, spaceGuid, repository, repo_username, repo_password=None):
         if not repository:
             return "Please give a repository to push to."
 
-        spaceInfo = self.alkira.getSpace(spaceGuid)
+        space = self.alkira.getSpace(spaceGuid)
 
         #check if we need to update the repo in osis
-        if repository != spaceInfo.repository:
-            self.alkira.updateSpace(spaceGuid, repository=repository)
+        if self.hgCheckInfo(space, repository, repo_username, repo_password):
+            #update to reflect changes
+            space = self.alkira.getSpace(spaceGuid)
 
-        hg = q.clients.mercurial.getclient(q.dirs.pyAppsDir + "/" + p.api.appname + "/portal/spaces/" + spaceInfo.name,
-            repository.encode("utf-8"))
+        repoUrl = self.createRepoUrl(space.repository)
+
+        q.logger.log('pushing space %s to %s' % space.name, space.repository.url, 5)
+
+        hg = q.clients.mercurial.getclient(q.dirs.pyAppsDir + "/" + p.api.appname + "/portal/spaces/" + space.name,
+            repoUrl)
 
         #check if we already have the latest version
         retval, msg = hg._hgCmdExecutor("incoming", source=hg.getUrl(), die=False, autoCheckFix=False)
         if retval == 1 and "no changes found" in msg: #no changes we can push
-            if username:
-                #set the username for the commit
-                hg._ui.environ["HGUSER"] = username
+            #set the username for the commit
+            hg._ui.environ["HGUSER"] = space.repository.username
             hg.pushcommit("automated commit by Alkira", addRemoveUntrackedFiles=True)
             return True
         else:
             return False
 
     @q.manage.applicationserver.expose
-    def hgPull(self, spaceGuid, repository, dontSync=False):
+    def hgPullSpace(self, spaceGuid, repository, repo_username, repo_password=None, dontSync=False):
         if not repository:
             return "Please give a repository to pull from."
 
-        spaceInfo = self.alkira.getSpace(spaceGuid)
+        space = self.alkira.getSpace(spaceGuid)
 
         #check if we need to update the repo in osis
-        if repository != spaceInfo.repository:
-            self.alkira.updateSpace(spaceGuid, repository=repository)
+        if self.hgCheckInfo(space, repository, repo_username, repo_password):
+            #update to reflect changes
+            space = self.alkira.getSpace(spaceGuid)
+
+        repoUrl = self.createRepoUrl(space.repository)
 
         #pull everything
-        hg = q.clients.mercurial.getclient(q.dirs.pyAppsDir + "/" + p.api.appname + "/portal/spaces/" + spaceInfo.name,
-            repository.encode("utf-8"))
+        q.logger.log('pulling space %s from %s' % space.name, space.repository.url, 5)
+        hg = q.clients.mercurial.getclient(q.dirs.pyAppsDir + "/" + p.api.appname + "/portal/spaces/" + space.name,
+            repoUrl)
         hg.pullupdate()
 
-        #resync pages
+        #resync pages for space
         if not dontSync:
-            p.application.syncPortal(p.api.appname)
+            p.application.syncPortal(p.api.appname, space=space.name)
 
         return True

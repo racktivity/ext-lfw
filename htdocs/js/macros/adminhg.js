@@ -20,17 +20,16 @@ var render = function(options) {
     "</table>");
 
     //perform the pull
-    function pull(spaceGuid, repository, callback) {
+    function pull(spaceInfo, callback) {
         $(this).parents("tr").find("td span.loading").html("<img src='img/ajax-loader.gif' />");
-        $.get("appserver/rest/ui/portal/hgPull", { spaceGuid: spaceGuid, repository: repository }, "json")
+        $.get(LFW_CONFIG.uris.hgPullSpace, spaceInfo, "json")
             .success($.proxy((callback ? callback : pullSuccess), this)).error($.proxy(pullError, this));
     }
 
     //perform the push
-    function push(spaceGuid, repository) {
+    function push(spaceInfo) {
         $(this).parents("tr").find("td span.loading").html("<img src='img/ajax-loader.gif' />");
-        ///TODO add username to call
-        $.get("appserver/rest/ui/portal/hgPush", { spaceGuid: spaceGuid, repository: repository }, "json")
+        $.get(LFW_CONFIG.uris.hgPushSpace, spaceInfo, "json")
             .success($.proxy(pushSuccess, this)).error($.proxy(pushError, this));
     }
 
@@ -45,7 +44,8 @@ var render = function(options) {
 
                         var spaceGuid = $(this).parents("tr")[0].id,
                             repository = $(this).parents("tr").find(".repository").val();
-                        pull.apply(this, [spaceGuid, repository, function() { push(spaceGuid, repository); }]);
+                            spaceInfo = {spaceGuid: spaceGuid, repository: repository, repo_username: "", repo_password: ""};
+                        pull.apply(this, [spaceInfo, function() { push(spaceGuid, repository); }]);
                 }
             } else {
                 alert("Push done for space '" + $(this).parents("tr").find(".name").html() + "'.");
@@ -92,14 +92,14 @@ var render = function(options) {
         jq.find("table td button.push").click(function() {
             var spaceGuid = $(this).parents("tr")[0].id,
                 repository = $(this).parents("tr").find(".repository").val();
-            push.apply(this, [spaceGuid, repository]);
+            push.call(this, {spaceGuid: spaceGuid, repository: repository, repo_username: "", repo_password: ""});
         });
 
         //make the pull work
         jq.find("table td button.pull").click(function() {
             var spaceGuid = $(this).parents("tr")[0].id,
                 repository = $(this).parents("tr").find(".repository").val();
-            pull.apply(this, [spaceGuid, repository]);
+            pull.call(this, {spaceGuid: spaceGuid, repository: repository, repo_username: "", repo_password: ""});
         });
     });
 };

@@ -124,14 +124,14 @@ class Client:
             filter.add('ui_view_page_list', 'space', space, True)
 
         return self.connection.page.findAsView(filter, 'ui_view_page_list')
-    
+
     def listChildPages(self, space, name):
         """
         Lists child pages of page "name"
 
         @type space: String
         @param space: The name of the space.
-        
+
         @type name: String
         @param name: The name of the parent page.
         """
@@ -262,13 +262,19 @@ class Client:
         for page_guid in delete_list:
             self.connection.page.delete(page_guid)
 
-    def createSpace(self, name, tagslist=[]):
+    def createSpace(self, name, tagslist=[], repository="", repo_username="", repo_password=""):
         if self.spaceExists(name):
             q.errorconditionhandler.raiseError("Space %s already exists." % name)
 
         space = self.connection.space.new()
         space.name = name
         space.tags = ' '.join(tagslist)
+
+        repo = space.repository.new()
+        repo.url = repository
+        repo.username = repo_username
+        repo.password = repo_password
+        space.repository = repo
 
         self.connection.space.save(space)
 
@@ -338,7 +344,7 @@ class Client:
 
             self.connection.page.save(page)
 
-    def updateSpace(self, space, newname=None, tagslist=None, repository=None):
+    def updateSpace(self, space, newname=None, tagslist=None, repository=None, repo_username=None, repo_password=None):
         space = self.getSpace(space)
 
         if newname != None and newname != space.name:
@@ -350,7 +356,13 @@ class Client:
             space.tags = ' '.join(tagslist)
 
         if repository:
-            space.repository = repository
+            space.repository.url = repository
+
+        if repo_username:
+            space.repository.username = repo_username
+
+        if repo_password:
+            space.repository.password = repo_password
 
         self.connection.space.save(space)
 

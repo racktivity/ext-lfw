@@ -23,25 +23,25 @@ The Block chart is an example with explanation of the JqPlot Block Chart
 
 ##Example
 
-    <div class="macro macro_jqplot">
+    [[jqplot]]
         {"width" : 400,
          "height" : 400,
          "chart_data" : [[[1, 2, "red"],[2, 4, "blue"],[3, 6, "blach"],[4, 8,"green"]]],
          "chart_div" : "block_div",
          "renderer" :"$.jqplot.BlockRenderer"
         }
-    </div>
+    [[/jqplot]]
 
 If you want to create a macro with a more complicated block chart please see [How to Create a Macro][createmacro] and [jqPlot options page][jqplot options].
 
   
 ## Sample Block Chart
 
-<div class="macro macro_jqplot">
+[[jqplot]]
 {"width" : 400,
  "height" : 400,
  "chart_data" : [[[1, 2, "red"],[2, 4, "blue"],[3, 6, "blach"],[4, 8,"green"]]],
  "chart_div" : "block_div",
  "renderer" :"$.jqplot.BlockRenderer"
 }
-</div>
+[[/jqplot]]

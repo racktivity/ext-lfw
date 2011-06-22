@@ -23,7 +23,7 @@ To call the script macro:
 
     [[script]]
     $('#mybutton').click(function() {
-      alert("This is IncubAid!");
+      alert("This is Incubaid!");
     });
     [[/script]]
 
@@ -39,7 +39,7 @@ or
 
 [[script]]
 $('#mybutton').click(function() {
-  alert("This is IncubAid!");
+  alert("This is Incubaid!");
 });
 [[/script]]
 

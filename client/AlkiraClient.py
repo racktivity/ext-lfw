@@ -1,6 +1,7 @@
 from pylabs import q, p
 
 import os
+import inspect
 
 ADMINSPACE = "Admin"
 
@@ -169,7 +170,24 @@ class Client:
             return True
         else:
             return False        
-
+    
+    def pageFind(self, name='', space='', category='', parent='', tags='', order=None, title='', exact_properties=None):
+        filterObject = self.connection.page.getFilterObject()
+        exact_properties = exact_properties or ()
+        
+        space = self._getSpaceGuid(space) if space else ''
+        
+        frame = inspect.currentframe()
+        args, _, _, values = inspect.getargvalues(frame)
+        
+        properties = ('name', 'space', 'category', 'parent', 'tags', 'order', 'title')
+        for property_name, value in values.iteritems():
+            if property_name in properties and not value in (None, ''):
+                exact = property_name in exact_properties
+                filterObject.add('ui_view_page_list', property_name, value, exactMatch=exact)
+    
+        return self.connection.page.find(filterObject)
+    
     def getSpace(self, space):
         """
         Gets a space object
@@ -197,6 +215,15 @@ class Client:
         if not page_info:
             q.errorconditionhandler.raiseError("Page %s does not exist." % name)
         return self.connection.page.get(page_info[0]['guid'])
+    
+    def getPageByGUID(self, guid):
+        """
+        Get a page object by guid
+        
+        @param guid: Page guid
+        """
+        
+        return self.connection.page.get(guid)
     
     def deleteSpace(self, space):
         """
@@ -232,7 +259,15 @@ class Client:
         space = self._getSpaceGuid(space)
         page = self.getPage(space, name)
         self.connection.page.delete(page.guid)
-
+    
+    def deletePageByGUID(self, guid):
+        """
+        Delete a page by guid
+        
+        @param guid: page guid
+        """
+        self.connection.page.delete(guid)
+        
     def deletePageAndChildren(self, space, name):
         """
         Deletes a page and its chlidren (recursively).

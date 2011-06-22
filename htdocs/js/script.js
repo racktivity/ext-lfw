@@ -345,6 +345,9 @@ data;
         return _page;
     }
 
+    this.getPage = getPage;
+    this.getSpace = getSpace;
+    
     var htmlEncode = function(value){
         if (!value){
             return '';
@@ -788,6 +791,38 @@ $(function() {
             $(this).hide();
         })
         .hide();
+    
+    
+});
+
+$(function(){
+    //build editor buttons and dialog
+    var dialog = $("<div>")
+                .editor()
+                .dialog({autoOpen: false,
+                        modal: true,
+                        width: '80%',
+                        height: 600,
+                        title: "Page Editor",
+                        buttons: {Cancel: function(){
+                                $(this).dialog("close");
+                                 },
+                                 Save: function(){
+                                     alert($(this).editor("content"));
+                                     $(this).dialog("close");
+                                }}
+                        });
+                                    
+    $("#toolbar > #newpage").button({icons: {primary: 'ui-icon-document'}}).click(function(){
+        dialog.editor("content", app.getSpace() + "/" + app.getPage());
+        
+        dialog.dialog("open");
+    });
+    
+    $("#toolbar > #editpage").button({icons: {primary: 'ui-icon-gear'}}).click(function(){
+        dialog.editor("content", "Edit Page");
+        dialog.dialog("open");
+    });
 });
 
 })(this.jQuery);

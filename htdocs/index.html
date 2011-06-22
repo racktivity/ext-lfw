@@ -315,13 +315,13 @@
             }
         }
         OAuth.completeRequest(message, accessor);
-        OAuth.SignatureMethod.sign(message, accessor);
         var oauth_header_params = {
             oauth_consumer_key: '',
             oauth_token: 'token_$('+tokenKey+')',
             oauth_verifier: '',
             oauth_nonce: message.parameters.oauth_nonce,
-            oauth_timestamp: message.parameters.oauth_timestamp
+            oauth_timestamp: message.parameters.oauth_timestamp,
+            oauth_signature: message.parameters.oauth_signature
        };
         authorization_header = OAuth.getAuthorizationHeader('racktivity',oauth_header_params);
         jQuery.ajaxSetup({

@@ -44,7 +44,7 @@ var app = $.sammy(function(app) {
     var _space = null,
         _page = null;
     var csses = new Array();
-	var cssLoaded = false;
+    var cssLoaded = false;
 
     var swap = function(html, base, root) {
 
@@ -106,7 +106,7 @@ var app = $.sammy(function(app) {
                     name = class_.replace(/^macro_/, '');
                 }
             }
-            
+
             macroname = name;
 
             var render = function() {
@@ -122,23 +122,53 @@ var app = $.sammy(function(app) {
                         addDependency(callback, dependencies, ordered, $this, name);
                     },
                     'addCss': function(cssobject) {
-                    	addCss(cssobject);
+                        addCss(cssobject);
                     },
                     'swap': function(html) {
-                    	swap(html, base, $this);
+                        swap(html, base, $this);
                     },
                     'renderWiki': function(mdstring) {
-                    	return renderWiki(mdstring);
+                        return renderWiki(mdstring);
                     }
                 };
-                console.log('Start rendering macro ' + name + ' - ' + data);
-                try{
-                    options.params.macroname = name;
-                    LFW.macros[name].call(context, options);
-                }catch(err){
-                    $this.append("<div class='macro_error'>Macro "+ name +" failed to render<br>"+err+"</div>");
+
+                var renderMacro = function() {
+                    console.log('Start rendering macro ' + name + ' - ' + data);
+                    try{
+                        options.params.macroname = name;
+                        LFW.macros[name].call(context, options);
+                    }catch(err){
+                        $this.append("<div class='macro_error'>Macro "+ name +" failed to render<br>"+err+"</div>");
+                    }
+                    console.log('Stop rendering macro ' + name + ' - ' + data);
+                };
+
+                if (typeof(options.params.call) === 'string') {
+                    // Call the url
+                    console.log('Calling data from ' + options.params.call + ' for macro ' + name);
+                    $.ajax({
+                        url: options.params.call,
+                        dataType: 'text',
+                        success: function(data) {
+                                console.log('Got the data for macro ' + name + ' from ' + options.params.call);
+                                options.body = data;
+                                renderMacro();
+                            },
+                        error: function() {
+                            console.log('Error loading macro data for ' + name + ' from ' + options.params.call);
+                            if (options.body.trim().length) {
+                                // We have a default body, so pass that
+                                console.log('Loading macro ' + name + ' with default data ' + options.body);
+                                renderMacro();
+                            } else {
+                                // Show error
+                                options.swap('Error loading ' + options.params.call + ' for macro ' + name);
+                            }
+                        }
+                    });
+                } else {
+                    renderMacro();
                 }
-                console.log('Stop rendering macro ' + name + ' - ' + data);
             };
 
             if(!LFW.macros[name]) {
@@ -182,7 +212,7 @@ data;
                 .error(function(data, textStatus, jqXHR) {
                     if (name != 'generic') {
                         macroname = 'generic';
-                        loadmacroscript();                        
+                        loadmacroscript();
                         return;
                     }
                     console.log('Failed to load Macro: ' + textStatus);
@@ -265,7 +295,7 @@ data;
                 '&name=' + 'pagetree';
 
         var context = this;
-        var treePage = '#/' + space + '/pagetree'; 
+        var treePage = '#/' + space + '/pagetree';
 
         $.ajax({
             url: pageTreeUri,
@@ -314,7 +344,7 @@ data;
         getPage = function() {
         return _page;
     }
-    
+
     var htmlEncode = function(value){
         if (!value){
             return '';
@@ -356,12 +386,12 @@ data;
             return result;
         };
 
-        mdstring = mdstring.replace(regex , 
-            function(fullmatch, _, macroname, paramstring, body, _){ 
+        mdstring = mdstring.replace(regex ,
+            function(fullmatch, _, macroname, paramstring, body, _){
                 return replacefunc(fullmatch, macroname, paramstring, body);
             });
-        mdstring = mdstring.replace(regex2 , 
-            function(fullmatch, _, macroname, paramstring){ 
+        mdstring = mdstring.replace(regex2 ,
+            function(fullmatch, _, macroname, paramstring){
                 return replacefunc(fullmatch, macroname, paramstring, null);
             });
 
@@ -370,19 +400,19 @@ data;
         return result;
     }
 
-	function inArray(element, array) {
-		for (index in array) {
-			if (array[index] == element) {
-				return true;
-			}
-		}
-		return false;
-	}
+    function inArray(element, array) {
+        for (index in array) {
+            if (array[index] == element) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     var addDependency = function(callback, dependencies, ordered, element, name) {
 
         var seperator = ordered == undefined ? " " : ">";
-    	console.log('in adddependency');
+        console.log('in adddependency');
         var depstring = "";
         $.each(dependencies, function(idx, script){
             depstring += script + " " + seperator + " ";
@@ -400,57 +430,57 @@ data;
     }
 
     function loadCss() {
-    	csslinks = $('link');
-    	$.each(csslinks, function(index, csslink) {
-    		id = csslink.id;
-    		if (id != undefined) addCssId(id);
-    	});
-    	cssStyles = $('style');
-    	$.each(cssStyles, function(index, cssStyle) {
-    		id = cssStyle.id;
-    		if (id != undefined) addCssId(id);
-    	})
-    	cssLoaded = true;
+        csslinks = $('link');
+        $.each(csslinks, function(index, csslink) {
+            id = csslink.id;
+            if (id != undefined) addCssId(id);
+        });
+        cssStyles = $('style');
+        $.each(cssStyles, function(index, cssStyle) {
+            id = cssStyle.id;
+            if (id != undefined) addCssId(id);
+        })
+        cssLoaded = true;
     };
 
-	var addCssId = function(id) {
-		console.log('adding cdd with id: ' + id);
-		if (!inArray(id, csses)) {
-			csses.push(id);
-			return true;
-		}
-		return false;
-	};
+    var addCssId = function(id) {
+        console.log('adding cdd with id: ' + id);
+        if (!inArray(id, csses)) {
+            csses.push(id);
+            return true;
+        }
+        return false;
+    };
 
-	var addCss = function(cssobject) {
-		console.log('in addCss');
-    	if (cssLoaded == false) {
-    		loadCss();
-    	}
-    	id = cssobject['id'];
-    	if (addCssId(id) == true) {
-    		tagname = cssobject['tag'];
-    		params = cssobject['params'];
-			var head = document.getElementsByTagName("head")[0] || document.documentElement;
-			var cssNode = document.createElement(tagname);
-			cssNode.id = id;
+    var addCss = function(cssobject) {
+        console.log('in addCss');
+        if (cssLoaded == false) {
+            loadCss();
+        }
+        id = cssobject['id'];
+        if (addCssId(id) == true) {
+            tagname = cssobject['tag'];
+            params = cssobject['params'];
+            var head = document.getElementsByTagName("head")[0] || document.documentElement;
+            var cssNode = document.createElement(tagname);
+            cssNode.id = id;
 
-    		if (tagname == 'link'){
-				//To add a css link i.e. <link rel="stylesheet" href="mystyle.css">
-				cssNode.type = params['type'] || 'text/css';
-				cssNode.rel = params['rel'];
-				cssNode.href = params['href'];
-    		}
-    		else {
-    			// To add a css style i.e.   <style type="text/css">
-    										//html { height: 100% }
-    										//body { height: 100%; margin: 0px; padding: 0px }
-    										//#map_canvas { height: 100% }
-  											//</style>
-				cssNode.innerHTML += params;
-    		}
-    		head.insertBefore( cssNode, head.firstChild );
-    	}
+            if (tagname == 'link'){
+                //To add a css link i.e. <link rel="stylesheet" href="mystyle.css">
+                cssNode.type = params['type'] || 'text/css';
+                cssNode.rel = params['rel'];
+                cssNode.href = params['href'];
+            }
+            else {
+                // To add a css style i.e.   <style type="text/css">
+                                            //html { height: 100% }
+                                            //body { height: 100%; margin: 0px; padding: 0px }
+                                            //#map_canvas { height: 100% }
+                                            //</style>
+                cssNode.innerHTML += params;
+            }
+            head.insertBefore( cssNode, head.firstChild );
+        }
     }
 
     this.setTitle(function(title) {
@@ -588,11 +618,11 @@ data;
                 else if (xhr.status === 401){
                  swap("<p class='error'> Invalid User Name /Password</p>", '#/' + space + '/' + page);
                 }
-               
+
                 else if (xhr.responseText.indexOf("Authorization failed") >0){
                  swap("<p class='error'> Authorization failed</p>", '#/' + space + '/' + page);
                 }
-                
+
                 else {
                     app.error('Unknown error: ' + text, exc);
                 }

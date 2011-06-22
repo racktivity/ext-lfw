@@ -74,7 +74,13 @@ def sync_to_alkira(appname, path=None, sync_space=None, clean_up=False):
 
     def alkiraTree(alkira, folder_paths, root_parent=None):
         for folder_path in folder_paths:
-            folder_name = q.system.fs.getBaseName(folder_path).split('.')[0]
+            base_name = q.system.fs.getBaseName(folder_path)
+
+            # Ignore hg dir
+            if base_name == '.hg':
+                continue
+
+            folder_name = base_name.split('.')[0]
             parent_name = folder_name + '.md'
             parent_path = q.system.fs.joinPaths(folder_path, parent_name)
 

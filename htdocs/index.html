@@ -87,7 +87,17 @@
 </head>
 
 <body>
-
+  <div id='login' align='right' class='span-19 last'>
+     <form name='login-form' id='login-form' method='get'>
+        <label for='user name'>User name:</label>
+        <input type='username' name='username' id='username' placeholder='user name' class='input.text' />
+        <input type='hidden' name='type' value='username' />
+        <label for='password'>Password:</label>
+        <input type='password' name='password' id='password' placeholder='password' class='input.text' />
+        <input type='hidden' name='type' value='password' />
+        <input type='button' name='login' value='login' onclick='javascript:doLogin()' />
+     </form>
+  </div>
   <div id="container">
   <a class="logo"></a>
     <div id='header' class='span-24 last'>
@@ -98,8 +108,6 @@
         <img src='/static/lfw/img/pixel.gif'/>
       </div>
       <div class='span-19 last' id='search'>
-      
-        
         
         <label for='title'>Title:</label>
         <input id='title' name='q' placeholder='PageTitle' class='text' />
@@ -110,7 +118,6 @@
             placeholder='label, label' class='text' />
           <input type='hidden' name='type' value='labels' />
         </form>
-
         <form name='fulltext-search' id='fulltext-search' method='get'>
           <label for='text'>Search:</label>
           <input type='search' name='q' id='text' required
@@ -171,6 +178,8 @@
   
   
   <script src='/static/lfw/js/libs/jquery-ui.js'></script>
+  <script src='/static/lfw/js/libs/oauth.js'></script>
+  <script src='/static/lfw/js/libs/sha1.js'></script>
   <script>!window.jQuery.ui && document.write(unescape('%3Cscript src="/static/lfw/js/libs/jquery-ui-1.8.7.js"%3E%3C/script%3E'))</script>
   <script src='/static/lfw/js/libs/jquery.tmpl.js'></script>
   <script src='/static/lfw/js/libs/jquery.json-2.2.js'></script>
@@ -200,6 +209,129 @@
   
   <script>
   manageDebug();
+  </script>
+  <script>
+    function doLogin()
+    {
+        alert("Ajax call here");
+        alert(LFW_CONFIG['oauthservice']);
+        makeOAuthRequest("test", "test");
+     }
+    
+    COOKIE_NAME = "oauth_token";
+    addAuthenticationHeader();
+    //GUID generator
+    function guidGenerator() {
+        var S4 = function() {
+        return (((1+Math.random())*0x10000)|0).toString(16).substring(1);
+        };
+        return (S4()+S4()+"-"+S4()+"-"+S4()+"-"+S4()+"-"+S4()+S4()+S4());
+    }
+
+    //Cookies managment functions
+    function createCookie(name,value,days) {
+      if (days) {
+          var date = new Date();
+          date.setTime(date.getTime()+(days*24*60*60*1000));
+          var expires = "; expires="+date.toGMTString();
+      }
+      else var expires = "";
+      document.cookie = name+"="+value+expires+"; path=/";
+    }
+    function readCookie(name) {
+        var nameEQ = name + "=";
+        var ca = document.cookie.split(';');
+        for(var i=0;i < ca.length;i++) {
+            var c = ca[i];
+            while (c.charAt(0)==' ') c = c.substring(1,c.length);
+            if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
+        }
+        return null;
+      }
+    function eraseCookie(name) {
+        createCookie(name,"",-1);
+    }
+    //Token generation function
+    function makeOAuthRequest(username, password)
+    {
+        var url = LFW_CONFIG['oauthservice'];
+        var accessor = {
+            token: "",
+            tokenSecret: "",
+            consumerKey : guidGenerator(),
+            consumerSecret: guidGenerator()
+        };
+
+        var message = {
+            action: url,
+            method: "GET",
+            parameters: {'user': username, 'password': password}
+        };
+
+        OAuth.completeRequest(message, accessor);
+        OAuth.SignatureMethod.sign(message, accessor);
+        url = url + '?' + OAuth.formEncode(message.parameters);
+        jQuery.ajax({
+            type: "GET",
+            dataType: 'jsonp',
+            jsonp: '_jsonp',
+            url: url,
+            success: function(data){createCookie(COOKIE_NAME, data, 1/24); },
+        });
+
+    }
+    //Add the authentication info to the header of all Ajax request
+    function addAuthenticationHeader()
+    {
+        var url = "http://incubaid/pylabs5";
+        var accessor = {
+            token: "",
+            tokenSecret: "",
+            consumerKey : "",
+            consumerSecret: ""
+        };
+
+        var message = {
+          action: url,
+          method: "GET",
+          parameters: {'user': '', 'password': ''}
+        };
+        var token = readCookie(COOKIE_NAME);
+        var tokenKey, tokenSecret;
+        if(token != null)
+        {
+            var parts = token.split("&");
+            var firstPart = parts[0];
+            var secondPart = parts[1];
+            if(firstPart.split("=")[0] == "oauth_token")
+            {
+                tokenKey = firstPart.split("=")[1];
+                tokenSecret = secondPart.split("=")[1];
+            }
+            else
+            {
+                tokenKey = secondPart.split("=")[1];
+                tokenSecret = firstPart.split("=")[1];
+            }
+        }
+        OAuth.completeRequest(message, accessor);
+        OAuth.SignatureMethod.sign(message, accessor);
+        var oauth_header_params = {
+            oauth_consumer_key: '',
+            oauth_token: 'token_$('+tokenKey+')',
+            oauth_verifier: '',
+            oauth_nonce: message.parameters.oauth_nonce,
+            oauth_timestamp: message.parameters.oauth_timestamp
+       };
+        authorization_header = OAuth.getAuthorizationHeader('racktivity',oauth_header_params);
+        jQuery.ajaxSetup({
+            'beforeSend': function(xhr) {
+                                            xhr.setRequestHeader("authorization", authorization_header);
+                                            xhr.setRequestHeader("oauth_token", 'token_$('+tokenKey+')');
+                                            xhr.setRequestHeader("oauth_consumer_key", '');
+                                         }
+        });
+    }
   </script>
 </body>
 </html>

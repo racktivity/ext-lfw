@@ -395,6 +395,34 @@ data;
                 return replacefunc(fullmatch, macroname, paramstring, null);
             });
 
+        // Allow anchors to space and page
+        // These regexes are taking from the Showdown source
+        // See https://github.com/coreyti/showdown/blob/master/src/showdown.js for more information
+        // Specifically function _StripLinkDefinitions and _DoAnchors
+        var simpleAnchorRegex = /(\[((?:\[[^\]]*\]|[^\[\]])*)\]\([ \t]*()<?(.*?)>?[ \t]*((['"])(.*?)\6[ \t]*)?\))/g;
+        var linkDefinitionsRegex = /^[ ]{0,3}\[(.+)\]:[ \t]*\n?[ \t]*<?(\S+?)>?[ \t]*\n?[ \t]*(?:(\n*)["(](.+?)[")][ \t]*)?(?:\n+|\Z)/gm;
+        var replaceLink = function(url) {
+            if (!url.length) {
+                return url;
+            }
+            if (url.indexOf("#/") === 0) {
+                // Match for "#/space/page" links
+                return "/" + getAppName() + "/" + url;
+            } else if (url.indexOf(":") === -1 && url.indexOf("#") !== 0) {
+                // Match for "page" links, all external links in markdown need : to work afaik
+                // We ignore # as well if we're linking to an anchor
+                return "/" + getAppName() + "/#/" + getSpace() + "/" + url;
+            }
+            return url;
+        };
+
+        mdstring = mdstring.replace(simpleAnchorRegex, function(fullMatch, m1, m2, m3, url) {
+            return fullMatch.replace(url, replaceLink(url));
+        });
+        mdstring = mdstring.replace(linkDefinitionsRegex, function(fullMatch, m1, url) {
+            return fullMatch.replace(url, replaceLink(url));
+        });
+
         var compiler = new Showdown.converter();
         var result = compiler.makeHtml(mdstring);
         return result;

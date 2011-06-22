@@ -114,7 +114,7 @@ var app = $.sammy(function(app) {
                 var options = {
                     'space': getSpace(),
                     'page': getPage(),
-                    'body': data,
+                    'body': htmlDecode(data),
                     'params': params,
                     'pagecontent': elem,
 
@@ -352,7 +352,7 @@ data;
                 result += " params='" + htmlEncode($.toJSON(params)) + "'";
             }
             body = body || '';
-            result += ">" + body.trim() + "\n</div>"
+            result += ">" + htmlEncode(body.trim()) + "\n</div>"
             return result;
         };
 

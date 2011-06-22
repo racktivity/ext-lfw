@@ -138,6 +138,9 @@ def sync_to_alkira(appname, path=None, sync_space=None, clean_up=False):
     else:
         portal_spaces = q.system.fs.listDirsInDir(MD_PATH)
 
+    #make the first space is the Admin Space
+    portal_spaces = sorted(portal_spaces, lambda x,y: -1 if x.endswith("/Admin") else 1)
+    
     for folder in portal_spaces:
         space = folder.split(os.sep)[-1]
         spaceguid = None

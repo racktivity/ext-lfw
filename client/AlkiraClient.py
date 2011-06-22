@@ -118,8 +118,8 @@ class Client:
             filter.add('ui_view_page_list', 'space', space, True)
 
         return self.connection.page.findAsView(filter, 'ui_view_page_list')
-
-    def listChildPages(self, space, name):
+    
+    def listChildPages(self, space, name = None):
         """
         Lists child pages of page "name"
 
@@ -129,10 +129,17 @@ class Client:
         @type name: String
         @param name: The name of the parent page.
         """
+        space = self._getSpaceGuid(space)
+        filter = self.connection.page.getFilterObject()
+        filter.add('ui_view_page_list', 'space', space, True)
         #Get page guid
-        guid = self._getPageInfo(space, name)[0]["guid"]
-        page_info = 'SELECT "name" FROM ui_page.ui_view_page_list WHERE parent = \'%s\'' %guid
-        query = self.connection.page.query(page_info)
+        if name:
+            guid = self._getPageInfo(space, name)[0]["guid"]
+            filter.add('ui_view_page_list', 'parent', guid, True)
+        else:
+            filter.add('ui_view_page_list', 'parent', None, True)
+        
+        query = self.connection.page.findAsView(filter, 'ui_view_page_list')
         return list(name["name"] for name in query)
 
     def spaceExists(self, name):
@@ -378,8 +385,8 @@ class Client:
 
         if oldname != newname:
             #rename space page.
-            self.updatePage("Admin", oldname, name=newname)
-
+            self.updatePage(ADMINSPACE, oldname, name=newname)
+        
     def updatePage(self, old_space, old_name, space=None, name=None, tagsList=None, content=None, order=None, title=None, parent=None, category=None, contentIsFilePath=False):
         """
         Updates an existing page.

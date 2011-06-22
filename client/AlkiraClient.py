@@ -302,24 +302,30 @@ class Client:
 
         for page_guid in delete_list:
             self.connection.page.delete(page_guid)
-                
-    def createSpace(self, name, tagslist=[]):
+
+    def createSpace(self, name, tagslist=[], repository="", repo_username="", repo_password=""):
         if self.spaceExists(name):
             q.errorconditionhandler.raiseError("Space %s already exists." % name)
-        
+
         space = self.connection.space.new()
         space.name = name
         space.tags = ' '.join(tagslist)
-        
+
+        repo = space.repository.new()
+        repo.url = repository
+        repo.username = repo_username
+        repo.password = repo_password
+        space.repository = repo
+
         self.connection.space.save(space)
-        
+
         if name == ADMINSPACE:
             return
-        
+
         #create a space page under the default admin space
         spacectnt = p.core.codemanagement.api.getSpacePage(name)
         self.createPage(ADMINSPACE, name, spacectnt, title=name, parent="Spaces")
-    
+
     def createPage(self, space, name, content, order=None, title=None, tagsList=[], category='portal', parent=None, contentIsFilePath=False):
         """
         Creates a new page.
@@ -386,7 +392,7 @@ class Client:
     
             self.connection.page.save(page)
 
-    def updateSpace(self, space, newname=None, tagslist=None):
+    def updateSpace(self, space, newname=None, tagslist=None, repository=None, repo_username=None, repo_password=None):
         space = self.getSpace(space)
         
         if space.name == ADMINSPACE:
@@ -400,7 +406,16 @@ class Client:
         
         if tagslist:
             space.tags = ' '.join(tagslist)
-        
+
+        if repository:
+            space.repository.url = repository
+
+        if repo_username:
+            space.repository.username = repo_username
+
+        if repo_password:
+            space.repository.password = repo_password
+
         self.connection.space.save(space)
         
         if oldname != newname:
@@ -465,7 +480,7 @@ class Client:
 
         if content:
             if contentIsFilePath:
-                content = q.system.fs.fileGetContents(content) 
+                content = q.system.fs.fileGetContents(content)
             page.content = content
 
         if order:

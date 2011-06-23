@@ -428,9 +428,10 @@ data;
             if (url.indexOf("#/") === 0) {
                 // Match for "#/space/page" links
                 return "/" + getAppName() + "/" + url;
-            } else if (url.indexOf(":") === -1 && url.indexOf("#") !== 0) {
+            } else if (url.indexOf(":") === -1 && url.indexOf("#") !== 0 && url.indexOf("/") === -1) {
                 // Match for "page" links, all external links in markdown need : to work afaik
                 // We ignore # as well if we're linking to an anchor
+                // Anything containing a / is ignore as well
                 return "/" + getAppName() + "/#/" + getSpace() + "/" + url;
             }
             return url;

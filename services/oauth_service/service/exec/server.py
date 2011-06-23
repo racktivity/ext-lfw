@@ -13,7 +13,6 @@ import time
 from datetime import datetime, timedelta
 import uuid
 from pylabs.InitBaseCore import q
-from osis.store.OsisDB import OsisDB
 import json
 import httplib
 import ast
@@ -219,7 +218,6 @@ def main():
         da = DistributedAuth()
         da.config = config
         da.arakoon_client = arakoon_client
-        da.osis_connection = OsisDB().getConnection('main')
         da.start()
 
     except KeyboardInterrupt:

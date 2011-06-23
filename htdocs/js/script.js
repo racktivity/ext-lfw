@@ -19,7 +19,8 @@
 
 var DEFAULT_PAGE_NAME = 'Home',
     LABELS_RE = /,\s*/,
-    LOCATION_PREFIX = '#/';
+    LOCATION_PREFIX = '#/',
+    ADMINSPACE="Admin";
 
 var LFW = {};
 LFW.macros = {};
@@ -250,8 +251,15 @@ data;
 
     var setSpace = function(space, force) {
         if (space == _space && !force)
-            return
+            return;
+        
         _space = space;
+        if (space == ADMINSPACE){
+            $("#toolbar > button").button("option", "disabled", true);
+        } else {
+            $("#toolbar > button").button("option", "disabled", false);
+        }
+        
         var spaces = $('#space option');
         for(var i = 0; i < spaces.length; i++) {
             if(spaces[i].value === space) {
@@ -629,12 +637,27 @@ data;
 
         setSpace(space);
         setPage(page);
-
+        
+        if (page == "Home"){
+            $("#toolbar > #deletepage").button("option", "disabled", true);
+        } else if (space != ADMINSPACE) {
+            $("#toolbar > #deletepage").button("option", "disabled", false);
+        }
+        
         var context = this;
 
         $.ajax({
             url: pageUri,
             success: function(data) {
+                if (data['code']) {
+                    if (data['code'] == 404)
+                    {
+                        context.notFound();
+                    } else {
+                        app.error('Unknown error: ' + data['error']);
+                    }
+                    return;
+                }
                 context.title(data['title']);
 
                 var content = data['content'];
@@ -642,11 +665,13 @@ data;
                 setContent(content);
                 setTitle(data['title']);
                 
+                /*
                 if(!content || !content.length || content.length === 0) {
                     context.notFound();
                     return;
                 }
-
+                */
+                
                 console.log('Page source: ' + content);
                 if(render === true) {
                     rendered = renderWiki(content);
@@ -827,8 +852,6 @@ $(function(){
                         title: "Page Editor"
                         });
     
-    var closedialog = 
-    
     $("#toolbar > #newpage").button({icons: {primary: 'ui-icon-document'}}).click(function(){
         var parent = app.getPage();
         var space = app.getSpace();
@@ -861,7 +884,8 @@ $(function(){
                                                                'parent': parent},
                                                         dataType: 'json',
                                                         success: function(data) {
-                                                            app.refresh();
+                                                            app.trigger('change-page', {title: title});
+                                                            app.setSpace(space, true);
                                                             dialog.dialog("close");
                                                         },
                                                         error: $.alerterror
@@ -923,6 +947,7 @@ $(function(){
                         dataType: 'json',
                         success: function(data) {
                             app.trigger('change-page', {title: DEFAULT_PAGE_NAME});
+                            app.setSpace(space, true);
                         },
                         error: $.alerterror
                     });

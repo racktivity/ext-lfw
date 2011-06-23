@@ -43,7 +43,7 @@ class LFWService(object):
 
     @q.manage.applicationserver.expose
     def createSpace(self, name, tags=""):
-        return self.alkira.createSpace(name, tags.split(' '))
+        self.alkira.createSpace(name, tags.split(' '))
 
     @q.manage.applicationserver.expose
     def deleteSpace(self, name):
@@ -101,7 +101,8 @@ class LFWService(object):
     @q.manage.applicationserver.expose
     def page(self, space, name):
         if not self.alkira.spaceExists(space) or not self.alkira.pageExists(space, name):
-            return {}
+            return {"code": 404,
+                    "error": "Page Not Found"}
 
         page = self.alkira.getPage(space, name)
         props = ['name', 'space', 'category', 'content', 'creationdate', 'title']
@@ -130,7 +131,7 @@ class LFWService(object):
     
     @q.manage.applicationserver.expose
     def deletePage(self, space, name):
-        self.alkira.deletePage(space, name)
+        self.alkira.deletePageAndChildren(space, name)
     
     def get_items(self, prop, space=None, term=None):
         if space:

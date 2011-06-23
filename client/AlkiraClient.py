@@ -311,13 +311,13 @@ class Client:
         for page_guid in delete_list:
             self.connection.page.delete(page_guid)
 
-    def createSpace(self, name, tagslist=[], repository="", repo_username="", repo_password=""):
+    def createSpace(self, name, tagsList=[], repository="", repo_username="", repo_password=""):
         if self.spaceExists(name):
             q.errorconditionhandler.raiseError("Space %s already exists." % name)
 
         space = self.connection.space.new()
         space.name = name
-        space.tags = ' '.join(tagslist)
+        space.tags = ' '.join(tagsList)
 
         repo = space.repository.new()
         repo.url = repository
@@ -334,6 +334,7 @@ class Client:
 
         #create a space page under the default admin space
         spacectnt = p.core.codemanagement.api.getSpacePage(name)
+        self.createPage(name, "Home", content="", order=10000, title="Home", tagsList=tagsList)
         self.createPage(ADMINSPACE, name, spacectnt, title=name, parent="Spaces")
 
     def createPage(self, space, name, content, order=None, title=None, tagsList=[], category='portal', parent=None, contentIsFilePath=False):

@@ -317,24 +317,24 @@
                 tokenKey = secondPart.split("=")[1];
                 tokenSecret = firstPart.split("=")[1];
             }
+            OAuth.completeRequest(message, accessor);
+            var oauth_header_params = {
+                oauth_consumer_key: '',
+                oauth_token: 'token_$('+tokenKey+')',
+                oauth_verifier: '',
+                oauth_nonce: message.parameters.oauth_nonce,
+                oauth_timestamp: message.parameters.oauth_timestamp,
+                oauth_signature: message.parameters.oauth_signature
+            };
+            authorization_header = OAuth.getAuthorizationHeader('racktivity',oauth_header_params);
+            jQuery.ajaxSetup({
+                'beforeSend': function(xhr) {
+                                                xhr.setRequestHeader("authorization", authorization_header);
+                                                xhr.setRequestHeader("oauth_token", 'token_$('+tokenKey+')');
+                                                xhr.setRequestHeader("oauth_consumer_key", '');
+                                            }
+            });
         }
-        OAuth.completeRequest(message, accessor);
-        var oauth_header_params = {
-            oauth_consumer_key: '',
-            oauth_token: 'token_$('+tokenKey+')',
-            oauth_verifier: '',
-            oauth_nonce: message.parameters.oauth_nonce,
-            oauth_timestamp: message.parameters.oauth_timestamp,
-            oauth_signature: message.parameters.oauth_signature
-       };
-        authorization_header = OAuth.getAuthorizationHeader('racktivity',oauth_header_params);
-        jQuery.ajaxSetup({
-            'beforeSend': function(xhr) {
-                                            xhr.setRequestHeader("authorization", authorization_header);
-                                            xhr.setRequestHeader("oauth_token", 'token_$('+tokenKey+')');
-                                            xhr.setRequestHeader("oauth_consumer_key", '');
-                                         }
-        });
     }
   </script>
 </body>

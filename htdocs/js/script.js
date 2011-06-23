@@ -858,6 +858,7 @@ $(function(){
         
         dialog.editor("content", "");
         dialog.editor("title", "");
+        dialog.editor("disabled", "title", false);
         dialog.dialog("option", "buttons", {Close: function() {
                                                 $dialog = $(this);
                                                 if ("" != $dialog.editor("content")) {
@@ -900,6 +901,11 @@ $(function(){
         var content = app.getContent()
         
         dialog.editor("title", app.getTitle());
+        if (page === "Home"){
+            dialog.editor("disabled", "title", true);
+        } else {
+            dialog.editor("disabled", "title", false);
+        }
         dialog.editor("content", content);
         dialog.dialog("option", "buttons", {Close: function() {
                                                 $dialog = $(this);

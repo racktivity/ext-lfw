@@ -6,33 +6,26 @@
         functions.content = function(text) {
             if (typeof text !== "undefined") {
                 return this.each(function(){
-                    $(this).find(".editor").val(text);
+                    $(this).find("#content").val(text);
                 });
             } else {
-                return this.find(".editor").val();
-            }
-        };
-        /*
-        functions.name = function(text) {
-            if (text) {
-                this.each(function(){
-                    $(this).find("#pagename").val(text);
-                });
-            } else {
-                return this.find("#pagename").val();
-            }
-        };
-        */
-        functions.title = function(text) {
-            if (typeof text !== "undefined") {
-                this.each(function(){
-                    $(this).find("#pagetitle").val(text);
-                });
-            } else {
-                return this.find("#pagetitle").val();
+                return this.find("#content").val();
             }
         };
         
+        functions.title = function(text) {
+            if (typeof text !== "undefined") {
+                this.each(function(){
+                    $(this).find("#title").val(text);
+                });
+            } else {
+                return this.find("#title").val();
+            }
+        };
+        
+        functions.disabled = function(component, value){
+            return this.find("#" + component).attr("disabled", value);
+        };
         
         functions.data = function(key, value) {
             return this.data(key, value);
@@ -55,11 +48,11 @@
         
         var layout = "<div style='width: 100%; height: 100%'>\
     <div id='bar'>\
-        <label for='pagetitle'>Page Title: </label>\
-        <input id='pagetitle' class='text'>\
+        <label for='title'>Page Title: </label>\
+        <input id='title' class='text'>\
     </div>\
-    <div id='conent' style=' bottom: 10px; margin-bottom: 0;  display:  block; position: absolute; top: 50px; left: 10px; right: 10px;'>\
-        <textarea class='editor' style='width: 100%; height: 100%; padding: 0px; margin: 0px; border: 1px solid gray;'></textarea>\
+    <div style=' bottom: 10px; margin-bottom: 0;  display:  block; position: absolute; top: 50px; left: 10px; right: 10px;'>\
+        <textarea id='content' class='editor' style='width: 100%; height: 100%; padding: 0px; margin: 0px; border: 1px solid gray;'></textarea>\
     </div>\
 </div>";
         

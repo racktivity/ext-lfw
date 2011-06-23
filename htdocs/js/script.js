@@ -45,7 +45,8 @@ var app = $.sammy(function(app) {
         _page = null;
     var csses = new Array();
     var cssLoaded = false;
-
+    var _content = null;
+    
     var swap = function(html, base, root) {
 
         base = base || ''; // location #/space/page
@@ -317,7 +318,7 @@ data;
                 swap("", treePage, '#tree');
             }
         });
-    }
+    };
     var getAppName = function () {
         if( ! _appName ) {
             _appName = LFW_CONFIG['appname'];
@@ -329,7 +330,7 @@ data;
             }
         }
         return _appName;
-    }
+    };
     var getSpace = function() {
         if(!_space) {
             throw new Error('Space requested whilst it\'s not set');
@@ -343,10 +344,17 @@ data;
     },
         getPage = function() {
         return _page;
-    }
+    };
 
+    var setContent = function(content){
+        _content = content;
+    };
+    
     this.getPage = getPage;
     this.getSpace = getSpace;
+    this.getContent = function () {
+        return _content;
+    };
     
     var htmlEncode = function(value){
         if (!value){
@@ -620,7 +628,9 @@ data;
                 context.title(data['title']);
 
                 var content = data['content'];
-
+                
+                setContent(content);
+                
                 if(!content || !content.length || content.length === 0) {
                     context.notFound();
                     return;
@@ -802,15 +812,8 @@ $(function(){
                 .dialog({autoOpen: false,
                         modal: true,
                         width: '80%',
-                        height: 600,
-                        title: "Page Editor",
-                        buttons: {Cancel: function(){
-                                $(this).dialog("close");
-                                 },
-                                 Save: function(){
-                                     alert($(this).editor("content"));
-                                     $(this).dialog("close");
-                                }}
+                        height: $(document).height() - 50,
+                        title: "Page Editor"
                         });
                                     
     $("#toolbar > #newpage").button({icons: {primary: 'ui-icon-document'}}).click(function(){
@@ -820,7 +823,38 @@ $(function(){
     });
     
     $("#toolbar > #editpage").button({icons: {primary: 'ui-icon-gear'}}).click(function(){
-        dialog.editor("content", "Edit Page");
+        var page = app.getPage();
+        var space = app.getSpace();
+        var content = app.getContent()
+        dialog.editor("name", page);
+        dialog.editor("content", content);
+        dialog.dialog("option", "buttons", {Save: function() {
+                var saveurl = LFW_CONFIG['uris']['savePage']
+                $.ajax({
+                        url: saveurl,
+                        type: 'POST',
+                        data: {'space': space,
+                               'name': page,
+                               'content': dialog.editor("content")},
+                        dataType: 'json',
+                        success: function(data) {
+                            app.refresh();
+                            dialog.dialog("close");
+                        },
+                        error: $.alerterror
+                    });
+        
+            },
+            Close: function() {
+                if (content != dialog.editor("content")) {
+                    $.confirm("There are some unsaved changes, are you sure you want to close the editor", {title: 'Unsaved Changes',
+                        ok: function(){
+                            dialog.dialog("close");
+                        }});
+                } else {
+                    $(this).dialog("close");
+                }
+            }});
         dialog.dialog("open");
     });
 });

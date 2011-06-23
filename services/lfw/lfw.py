@@ -2,6 +2,7 @@ import os.path
 from pylabs import q, p
 import urllib
 import inspect
+import functools
 
 # @TODO: use sqlalchemy to construct queries - escape values
 # @TODO: add space to filter criteria
@@ -110,6 +111,18 @@ class LFWService(object):
 
         return result
 
+    @q.manage.applicationserver.expose
+    def savePage(self, space, name, content, parent=None, order=None, title=None, tags="", category='portal'):
+        save = None
+        if self.alkira.pageExists(space, name):
+            #update page.
+            save = functools.partial(self.alkira.updatePage, old_space=space, old_name=name)
+        else:
+            #create page.
+            save = self.alkira.createPage
+        
+        save(space=space, name=name, content=content, parent=parent, order=order, title=title, tagsList=tags.split(" "), category=category)
+    
     def get_items(self, prop, space=None, term=None):
         if space:
             space = self.alkira.getSpace(space)

@@ -3,6 +3,7 @@ from pylabs import q, p
 import urllib
 import inspect
 import functools
+import json
 
 # @TODO: use sqlalchemy to construct queries - escape values
 # @TODO: add space to filter criteria
@@ -332,7 +333,7 @@ class LFWService(object):
         def buildTree(client, path, space, pagenams = None):
             if not pagenams:
                 pagenams = client.listChildPages(space)
-            
+
             for pagename in pagenams:
                 chidpages = client.listChildPages(space, pagename)
                 pagepath = join(path, pagename)
@@ -347,7 +348,7 @@ class LFWService(object):
                 fpage.write("@metadata tagstring = %s\n"%str(page.tags))
                 fpage.write(page.content)
                 fpage.close()
-        
+
         q.logger.log('exporting space %s to file %s' % (space, filename), 5)
         appname = p.api.appname
         client = q.clients.alkira.getClient("localhost", appname)
@@ -445,3 +446,11 @@ class LFWService(object):
         }
 
         return result
+
+    @q.manage.applicationserver.expose
+    def macroConfig(self, space, page, macro, configId=None):
+        return json.loads(self.alkira.getMacroConfig(space, page, macro, configId).data)
+
+    @q.manage.applicationserver.expose
+    def updateMacroConfig(self, space, page, macro, config, configId=None):
+        self.alkira.setMacroConfig(space, page, macro, config, configId)

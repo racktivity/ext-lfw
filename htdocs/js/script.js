@@ -583,7 +583,8 @@ data;
 
     var saveConfig = function(config, macroname, configid) {
         console.log('Saving config for macro ' + macroname + ' : ' + config);
-        var data = { space: getSpace(), page: getPage(), macro: macroname, config: JSON.stringify(config) };
+        // No clue why but we need a double JSON.stringify here for things to work
+        var data = { space: getSpace(), page: getPage(), macro: macroname, config: JSON.stringify(JSON.stringify(config)) };
         if (configid) {
             data.configId = configid;
         }

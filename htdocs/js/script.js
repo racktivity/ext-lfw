@@ -347,7 +347,7 @@ data;
 
     this.getPage = getPage;
     this.getSpace = getSpace;
-    
+
     var htmlEncode = function(value){
         if (!value){
             return '';
@@ -411,9 +411,10 @@ data;
             if (url.indexOf("#/") === 0) {
                 // Match for "#/space/page" links
                 return "/" + getAppName() + "/" + url;
-            } else if (url.indexOf(":") === -1 && url.indexOf("#") !== 0) {
+            } else if (url.indexOf(":") === -1 && url.indexOf("#") !== 0 && url.indexOf("/") === -1) {
                 // Match for "page" links, all external links in markdown need : to work afaik
                 // We ignore # as well if we're linking to an anchor
+                // Anything containing a / is ignore as well
                 return "/" + getAppName() + "/#/" + getSpace() + "/" + url;
             }
             return url;
@@ -791,8 +792,8 @@ $(function() {
             $(this).hide();
         })
         .hide();
-    
-    
+
+
 });
 
 $(function(){
@@ -812,13 +813,13 @@ $(function(){
                                      $(this).dialog("close");
                                 }}
                         });
-                                    
+
     $("#toolbar > #newpage").button({icons: {primary: 'ui-icon-document'}}).click(function(){
         dialog.editor("content", app.getSpace() + "/" + app.getPage());
-        
+
         dialog.dialog("open");
     });
-    
+
     $("#toolbar > #editpage").button({icons: {primary: 'ui-icon-gear'}}).click(function(){
         dialog.editor("content", "Edit Page");
         dialog.dialog("open");

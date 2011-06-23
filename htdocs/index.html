@@ -219,9 +219,7 @@
   <script>
     function doLogin()
     {
-        alert("Ajax call here");
-        alert(LFW_CONFIG['oauthservice']);
-        makeOAuthRequest("test", "test");
+        makeOAuthRequest($('#username').val(), $('#password').val());
      }
     
     COOKIE_NAME = "oauth_token";

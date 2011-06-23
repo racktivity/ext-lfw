@@ -47,6 +47,7 @@ class Client:
             q.errorconditionhandler.raiseError("'api' is not optional if hostname and appname are empty")
 
         self.connection = api.model.ui
+        self.api = api
 
     def _getPageInfo(self, space, name):
         page_filter = self.connection.page.getFilterObject()
@@ -81,6 +82,12 @@ class Client:
                 parent_list.append(page.parent)
 
         return parent_list
+
+    def _getDir(self, space, page=None):
+        fullName = space
+        if page:
+            fullName += "/" + page
+        return "%s/%s/portal/spaces/%s" % (q.dirs.pyAppsDir, self.api.appname, fullName)
 
     def listPages(self, space=None):
         """
@@ -245,6 +252,7 @@ class Client:
 
         self.connection.space.delete(space.guid)
         self.deletePage(ADMINSPACE, space.name)
+        q.system.fs.removeDirTree(self._getDir(space.name))
 
     def deletePage(self, space, name):
         """
@@ -321,6 +329,8 @@ class Client:
 
         if name == ADMINSPACE:
             return
+
+        q.system.fs.createDir(self._getDir(name))
 
         #create a space page under the default admin space
         spacectnt = p.core.codemanagement.api.getSpacePage(name)
@@ -403,6 +413,7 @@ class Client:
             if self.spaceExists(newname):
                 q.errorconditionhandler.raiseError("Space %s already exists." % newname)
             space.name = newname
+            q.system.fs.renameDir(self._getDir(oldname), self._getDir(newname))
 
         if tagslist:
             space.tags = ' '.join(tagslist)

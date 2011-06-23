@@ -248,8 +248,8 @@ data;
         }
     };
 
-    var setSpace = function(space) {
-        if (space == _space)
+    var setSpace = function(space, force) {
+        if (space == _space && !force)
             return
         _space = space;
         var spaces = $('#space option');
@@ -346,12 +346,21 @@ data;
         return _page;
     };
 
+    var setTitle = function(title) {
+        _title = title;
+    }
+    
+    var getTitle = function(){
+        return _title;
+    }
     var setContent = function(content){
         _content = content;
     };
     
     this.getPage = getPage;
+    this.getTitle = getTitle;
     this.getSpace = getSpace;
+    this.setSpace = setSpace;
     this.getContent = function () {
         return _content;
     };
@@ -630,6 +639,7 @@ data;
                 var content = data['content'];
                 
                 setContent(content);
+                setTitle(data['title']);
                 
                 if(!content || !content.length || content.length === 0) {
                     context.notFound();
@@ -815,10 +825,47 @@ $(function(){
                         height: $(document).height() - 50,
                         title: "Page Editor"
                         });
-                                    
+    
+    var closedialog = 
+    
     $("#toolbar > #newpage").button({icons: {primary: 'ui-icon-document'}}).click(function(){
-        dialog.editor("content", app.getSpace() + "/" + app.getPage());
+        var parent = app.getPage();
+        var space = app.getSpace();
         
+        dialog.editor("content", "");
+        dialog.editor("title", "");
+        dialog.dialog("option", "buttons", {Close: function() {
+                                                $dialog = $(this);
+                                                if ("" != $dialog.editor("content")) {
+                                                    $.confirm("There are some unsaved changes, are you sure you want to close the editor", {title: 'Unsaved Changes',
+                                                        ok: function(){
+                                                            $dialog.dialog("close");
+                                                        }});
+                                                } else {
+                                                    $dialog.dialog("close");
+                                                }
+                                            },
+                                            Save: function() {
+                                                var saveurl = LFW_CONFIG['uris']['savePage'];
+                                                var title = dialog.editor("title");
+                                                var content = dialog.editor("content");
+                                                $.ajax({
+                                                        url: saveurl,
+                                                        type: 'POST',
+                                                        data: {'mode': 'new',
+                                                               'space': space,
+                                                               'name': title,
+                                                               'content': content,
+                                                               'title': title,
+                                                               'parent': parent},
+                                                        dataType: 'json',
+                                                        success: function(data) {
+                                                            app.refresh();
+                                                            dialog.dialog("close");
+                                                        },
+                                                        error: $.alerterror
+                                                    });
+                                            }});
         dialog.dialog("open");
     });
     
@@ -826,36 +873,59 @@ $(function(){
         var page = app.getPage();
         var space = app.getSpace();
         var content = app.getContent()
-        dialog.editor("name", page);
+        
+        dialog.editor("title", app.getTitle());
         dialog.editor("content", content);
-        dialog.dialog("option", "buttons", {Save: function() {
-                var saveurl = LFW_CONFIG['uris']['savePage']
+        dialog.dialog("option", "buttons", {Close: function() {
+                                                $dialog = $(this);
+                                                if (content != $dialog.editor("content")) {
+                                                    $.confirm("There are some unsaved changes, are you sure you want to close the editor", {title: 'Unsaved Changes',
+                                                        ok: function(){
+                                                            $dialog.dialog("close");
+                                                        }});
+                                                } else {
+                                                    $dialog.dialog("close");
+                                                }
+                                            },
+                                            Save: function() {
+                                                    var saveurl = LFW_CONFIG['uris']['savePage'];
+                                                    $.ajax({
+                                                            url: saveurl,
+                                                            type: 'POST',
+                                                            data: {'mode': 'update',
+                                                                   'space': space,
+                                                                   'name': page,
+                                                                   'content': dialog.editor("content"),
+                                                                   'title': dialog.editor("title")},
+                                                            dataType: 'json',
+                                                            success: function(data) {
+                                                                app.refresh();
+                                                                dialog.dialog("close");
+                                                            },
+                                                            error: $.alerterror
+                                                        });
+                                            
+                                                }});
+        dialog.dialog("open");
+    });
+    
+    $("#deletepage").button({icons: {primary: 'ui-icon-close'}}).click(function(){
+        $.confirm("Are you sure you want to delete this page?", {title: "Delete Page",
+            ok: function() {
+                var deleteurl = LFW_CONFIG['uris']['deletePage'];
+                var page = app.getPage();
+                var space = app.getSpace();
                 $.ajax({
-                        url: saveurl,
-                        type: 'POST',
+                        url: deleteurl,
                         data: {'space': space,
-                               'name': page,
-                               'content': dialog.editor("content")},
+                               'name': page},
                         dataType: 'json',
                         success: function(data) {
-                            app.refresh();
-                            dialog.dialog("close");
+                            app.trigger('change-page', {title: DEFAULT_PAGE_NAME});
                         },
                         error: $.alerterror
                     });
-        
-            },
-            Close: function() {
-                if (content != dialog.editor("content")) {
-                    $.confirm("There are some unsaved changes, are you sure you want to close the editor", {title: 'Unsaved Changes',
-                        ok: function(){
-                            dialog.dialog("close");
-                        }});
-                } else {
-                    $(this).dialog("close");
-                }
             }});
-        dialog.dialog("open");
     });
 });
 

@@ -112,16 +112,25 @@ class LFWService(object):
         return result
 
     @q.manage.applicationserver.expose
-    def savePage(self, space, name, content, parent=None, order=None, title=None, tags="", category='portal'):
+    def savePage(self, mode, space, name, content, parent=None, order=None, title=None, tags="", category='portal'):
         save = None
-        if self.alkira.pageExists(space, name):
-            #update page.
+        exists = self.alkira.pageExists(space, name)
+        if mode == "new":
+            if exists:
+                raise ValueError("A page with the same name already exists")
+            save = self.alkira.createPage
+        elif mode == "update":
+            if not exists:
+                raise ValueError("Page '%s' doesn't exists" % name)
             save = functools.partial(self.alkira.updatePage, old_space=space, old_name=name)
         else:
-            #create page.
-            save = self.alkira.createPage
+            raise ValueError("Unknow page save mode '%s'" % mode)
         
         save(space=space, name=name, content=content, parent=parent, order=order, title=title, tagsList=tags.split(" "), category=category)
+    
+    @q.manage.applicationserver.expose
+    def deletePage(self, space, name):
+        self.alkira.deletePage(space, name)
     
     def get_items(self, prop, space=None, term=None):
         if space:

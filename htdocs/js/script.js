@@ -134,7 +134,7 @@ var app = $.sammy(function(app) {
                         return renderWiki(mdstring);
                     },
                     'saveConfig': function() {
-                        saveConfig(options.config, name, params.configid);
+                        saveConfig(options.config, name, params.config);
                     }
                 };
 
@@ -191,8 +191,8 @@ var app = $.sammy(function(app) {
                     // Get the config if any
                     console.log('Getting config for macro ' + name);
                     var configData = { space: getSpace(), page: getPage(), macro: macroname };
-                    if (options.params.configid) {
-                        configData.configId = options.params.configid;
+                    if (typeof(params.config) === "string" && params.config.toLowerCase() !== "true") {
+                        configData.configId = params.config;
                     }
                     $.ajax({
                         url: LFW_CONFIG.uris.macroConfig,
@@ -372,10 +372,10 @@ data;
         if( ! _appName ) {
             _appName = LFW_CONFIG['appname'];
             if( _appName == '' ) {
-                throw new Error( 'Appname is an emtpy string' )
+                throw new Error( 'Appname is an emtpy string' );
             }
             if( ! _appName  ) {
-                throw new Error( 'Appname is null' )
+                throw new Error( 'Appname is null' );
             }
         }
         return _appName;
@@ -397,11 +397,11 @@ data;
 
     var setTitle = function(title) {
         _title = title;
-    }
+    };
 
     var getTitle = function(){
         return _title;
-    }
+    };
     var setContent = function(content){
         _content = content;
     };
@@ -419,14 +419,14 @@ data;
             return '';
         }
         return $('<div/>').text(value).html();
-    }
+    };
 
     var htmlDecode = function(value){
         if (!value){
             return '';
         }
         return $('<div/>').html(value).text();
-    }
+    };
 
     var renderWiki = function(mdstring) {
         mdstring = mdstring || '';
@@ -436,7 +436,7 @@ data;
             if (fullmatch.substr(0, 2) == "  "){
                 return fullmatch;
             }
-            var result = '\n<div class="macro macro_' + macroname + '"'
+            var result = '\n<div class="macro macro_' + macroname + '"';
             if (paramstring){
                 paramstring = paramstring.substr(1);
                 paramstring = "," + paramstring;
@@ -451,7 +451,7 @@ data;
                 result += " params='" + htmlEncode($.toJSON(params)) + "'";
             }
             body = body || '';
-            result += ">" + htmlEncode(body.trim()) + "\n</div>"
+            result += ">" + htmlEncode(body.trim()) + "\n</div>";
             return result;
         };
 
@@ -496,7 +496,7 @@ data;
         var compiler = new Showdown.converter();
         var result = compiler.makeHtml(mdstring);
         return result;
-    }
+    };
 
     function inArray(element, array) {
         for (index in array) {
@@ -525,7 +525,7 @@ data;
                 element.append("<div class='macro_error'>Macro "+ name +" failed <br/>"+err+"</div>");
             }
         });
-    }
+    };
 
     function loadCss() {
         csslinks = $('link');
@@ -537,9 +537,9 @@ data;
         $.each(cssStyles, function(index, cssStyle) {
             id = cssStyle.id;
             if (id != undefined) addCssId(id);
-        })
+        });
         cssLoaded = true;
-    };
+    }
 
     var addCssId = function(id) {
         console.log('adding cdd with id: ' + id);
@@ -585,7 +585,7 @@ data;
         console.log('Saving config for macro ' + macroname + ' : ' + config);
         // No clue why but we need a double JSON.stringify here for things to work
         var data = { space: getSpace(), page: getPage(), macro: macroname, config: JSON.stringify(JSON.stringify(config)) };
-        if (configid) {
+        if (typeof(configid) === "string" && configid.toLowerCase() !== "true") {
             data.configId = configid;
         }
         $.ajax({
@@ -959,7 +959,7 @@ $(function(){
     $("#toolbar > #editpage").button({icons: {primary: 'ui-icon-gear'}}).click(function(){
         var page = app.getPage();
         var space = app.getSpace();
-        var content = app.getContent()
+        var content = app.getContent();
 
         dialog.editor("title", app.getTitle());
         if (page === "Home"){

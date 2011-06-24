@@ -116,7 +116,7 @@ class LFWService(object):
 
         t = term.split(', ')[-1] if term else ''
 
-        d = {'prop': prop, 'space': space, 'term': t}
+        d = {'prop': prop, 'space': space.guid, 'term': t}
 
         if prop in ('tags',):
             sql = SQL_PAGE_TAGS_FILTER % d if t else SQL_PAGE_TAGS % d

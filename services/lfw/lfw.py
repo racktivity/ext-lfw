@@ -2,6 +2,8 @@ import os.path
 from pylabs import q, p
 import urllib
 import inspect
+import functools
+import json
 
 # @TODO: use sqlalchemy to construct queries - escape values
 # @TODO: add space to filter criteria
@@ -42,7 +44,7 @@ class LFWService(object):
 
     @q.manage.applicationserver.expose
     def createSpace(self, name, tags=""):
-        return self.alkira.createSpace(name, tags.split(' '))
+        self.alkira.createSpace(name, tags.split(' '))
 
     @q.manage.applicationserver.expose
     def deleteSpace(self, name):
@@ -100,7 +102,8 @@ class LFWService(object):
     @q.manage.applicationserver.expose
     def page(self, space, name):
         if not self.alkira.spaceExists(space) or not self.alkira.pageExists(space, name):
-            return {}
+            return {"code": 404,
+                    "error": "Page Not Found"}
 
         page = self.alkira.getPage(space, name)
         props = ['name', 'space', 'category', 'content', 'creationdate', 'title']
@@ -110,6 +113,27 @@ class LFWService(object):
 
         return result
 
+    @q.manage.applicationserver.expose
+    def savePage(self, mode, space, name, content, parent=None, order=None, title=None, tags="", category='portal'):
+        save = None
+        exists = self.alkira.pageExists(space, name)
+        if mode == "new":
+            if exists:
+                raise ValueError("A page with the same name already exists")
+            save = self.alkira.createPage
+        elif mode == "update":
+            if not exists:
+                raise ValueError("Page '%s' doesn't exists" % name)
+            save = functools.partial(self.alkira.updatePage, old_space=space, old_name=name)
+        else:
+            raise ValueError("Unknow page save mode '%s'" % mode)
+        
+        save(space=space, name=name, content=content, parent=parent, order=order, title=title, tagsList=tags.split(" "), category=category)
+    
+    @q.manage.applicationserver.expose
+    def deletePage(self, space, name):
+        self.alkira.deletePageAndChildren(space, name)
+    
     def get_items(self, prop, space=None, term=None):
         if space:
             space = self.alkira.getSpace(space)
@@ -309,7 +333,7 @@ class LFWService(object):
         def buildTree(client, path, space, pagenams = None):
             if not pagenams:
                 pagenams = client.listChildPages(space)
-            
+
             for pagename in pagenams:
                 chidpages = client.listChildPages(space, pagename)
                 pagepath = join(path, pagename)
@@ -324,7 +348,7 @@ class LFWService(object):
                 fpage.write("@metadata tagstring = %s\n"%str(page.tags))
                 fpage.write(page.content)
                 fpage.close()
-        
+
         q.logger.log('exporting space %s to file %s' % (space, filename), 5)
         appname = p.api.appname
         client = q.clients.alkira.getClient("localhost", appname)
@@ -422,3 +446,11 @@ class LFWService(object):
         }
 
         return result
+
+    @q.manage.applicationserver.expose
+    def macroConfig(self, space, page, macro, configId=None):
+        return json.loads(self.alkira.getMacroConfig(space, page, macro, configId).data)
+
+    @q.manage.applicationserver.expose
+    def updateMacroConfig(self, space, page, macro, config, configId=None):
+        self.alkira.setMacroConfig(space, page, macro, config, configId)

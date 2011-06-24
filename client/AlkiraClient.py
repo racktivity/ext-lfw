@@ -311,13 +311,13 @@ class Client:
         for page_guid in delete_list:
             self.connection.page.delete(page_guid)
 
-    def createSpace(self, name, tagslist=[], repository="", repo_username="", repo_password=""):
+    def createSpace(self, name, tagsList=[], repository="", repo_username="", repo_password=""):
         if self.spaceExists(name):
             q.errorconditionhandler.raiseError("Space %s already exists." % name)
 
         space = self.connection.space.new()
         space.name = name
-        space.tags = ' '.join(tagslist)
+        space.tags = ' '.join(tagsList)
 
         repo = space.repository.new()
         repo.url = repository
@@ -334,6 +334,7 @@ class Client:
 
         #create a space page under the default admin space
         spacectnt = p.core.codemanagement.api.getSpacePage(name)
+        self.createPage(name, "Home", content="", order=10000, title="Home", tagsList=tagsList)
         self.createPage(ADMINSPACE, name, spacectnt, title=name, parent="Spaces")
 
     def createPage(self, space, name, content, order=None, title=None, tagsList=[], category='portal', parent=None, contentIsFilePath=False):
@@ -509,3 +510,35 @@ class Client:
 
         self.connection.page.save(page)
 
+    def findMacroConfig(self, space="", page="", macro="", configId=None, exact_properties=None):
+        configFilter = self.connection.config.getFilterObject()
+        exact_properties = exact_properties or ()
+        if space:
+            space = self._getSpaceGuid(space)
+            configFilter.add('ui_view_config_list', 'space', space, 'space' in exact_properties)
+            if page:
+                configFilter.add('ui_view_config_list', 'page', self._getPageInfo(space, page)[0]['guid'], 'page' in exact_properties)
+        configFilter.add('ui_view_config_list', 'macro', macro, 'macro' in exact_properties)
+        if configId:
+            configFilter.add('ui_view_config_list', 'configid', configId, 'configid' in exact_properties)
+        return self.connection.config.findAsView(configFilter, 'ui_view_config_list')
+
+    def getMacroConfig(self, space, page, macro, configId=None):
+        configInfo = self.findMacroConfig(space, page, macro, configId, exact_properties=("space", "page", "macro", "configid"))
+        if not configInfo:
+            q.errorconditionhandler.raiseError("Config does not exist for /%s/%s/%s/%s" % (space, page, macro, configId))
+        return self.connection.config.get(configInfo[0]['guid'])
+
+    def setMacroConfig(self, space, page, macro, data, configId=None):
+        configInfo = self.findMacroConfig(space, page, macro, configId)
+        if not configInfo:
+            config = self.connection.config.new()
+            config.space = self._getSpaceGuid(space)
+            config.page = self._getPageInfo(config.space, page)[0]['guid']
+            config.macro = macro
+            if configId:
+                config.configid = configId
+        else:
+            config = self.connection.config.get(configInfo[0]['guid'])
+        config.data = data
+        self.connection.config.save(config)

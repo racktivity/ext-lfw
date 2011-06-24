@@ -326,7 +326,7 @@
                 oauth_timestamp: message.parameters.oauth_timestamp,
                 oauth_signature: message.parameters.oauth_signature
             };
-            authorization_header = OAuth.getAuthorizationHeader('racktivity',oauth_header_params);
+            authorization_header = OAuth.getAuthorizationHeader('pylabs5',oauth_header_params);
             jQuery.ajaxSetup({
                 'beforeSend': function(xhr) {
                                                 xhr.setRequestHeader("authorization", authorization_header);

@@ -4,10 +4,11 @@ import optparse
 import os, re
 import functools
 
-def sync_to_alkira(appname, path=None, sync_space=None, clean_up=False):
+def sync_to_alkira(appname, path=None, sync_space=None, sync_page=None, clean_up=False):
     from pylabs import p, q
+    alkira = q.clients.alkira.getClient("localhost", appname)
     
-    def deletePages(alkira, sync_space):
+    def deletePages(sync_space):
             pages = alkira.pageFind(space=sync_space)
             for page in pages:
                 alkira.deletePageByGUID(page)
@@ -36,7 +37,7 @@ def sync_to_alkira(appname, path=None, sync_space=None, clean_up=False):
 
         return content_dict
 
-    def createPage(alkira, page_file, parent=None):
+    def createPage(page_file, parent=None):
         pageDuplicate(page_file)
         name = q.system.fs.getBaseName(page_file).split('.')[0]
         content = q.system.fs.fileGetContents(page_file)
@@ -71,7 +72,7 @@ def sync_to_alkira(appname, path=None, sync_space=None, clean_up=False):
         
         save_page(space=space, name=name, content=content, order=order, title=title, tagsList=tags, category='portal', parent=parent)
         
-    def alkiraTree(alkira, folder_paths, root_parent=None):
+    def alkiraTree(folder_paths, root_parent=None):
         for folder_path in folder_paths:
             folder_name = q.system.fs.getBaseName(folder_path).split('.')[0]
             parent_name = folder_name + '.md' 
@@ -81,20 +82,19 @@ def sync_to_alkira(appname, path=None, sync_space=None, clean_up=False):
                 q.errorconditionhandler.raiseError('The directory "%s" does not have a page "%s" specified for it.'%(folder_path, parent_name))
 
             if root_parent:
-                createPage(alkira, parent_path, parent=root_parent)
+                createPage(parent_path, parent=root_parent)
             else:
-                createPage(alkira, parent_path)
+                createPage(parent_path)
 
             children_files = q.system.fs.listFilesInDir(folder_path, filter='*.md')
             for child_file in children_files:
                 if child_file != parent_path:
-                    createPage(alkira, child_file, parent=folder_name)
+                    createPage(child_file, parent=folder_name)
 
             sub_folders = q.system.fs.listDirsInDir(folder_path)
             if sub_folders:
-                alkiraTree(alkira, sub_folders, root_parent=folder_name)
+                alkiraTree(sub_folders, root_parent=folder_name)
 
-    alkira = q.clients.alkira.getClient("localhost", appname)
     md_path = ''
     if not path:
         md_path = q.system.fs.joinPaths(q.dirs.baseDir, 'pyapps', appname, 'portal', 'spaces')
@@ -102,7 +102,7 @@ def sync_to_alkira(appname, path=None, sync_space=None, clean_up=False):
         md_path = path
         
     if clean_up:
-        deletePages(alkira, sync_space)
+        deletePages(sync_space)
         
     if sync_space:
         space_dir = q.system.fs.joinPaths(md_path, sync_space)
@@ -128,14 +128,20 @@ def sync_to_alkira(appname, path=None, sync_space=None, clean_up=False):
         
         page_occured = []
         
-        
+        if sync_page:
+            page_file = q.system.fs.walk(folder, 1, '%s.md' % sync_page)
+            if not page_file:
+                q.errorconditionhandler.raiseError("Could not find %s in space %s" % (sync_age, space))
+            createPage(page_file[0])
+            return
+
         folder_paths = q.system.fs.listDirsInDir(folder)
         main_files = q.system.fs.listFilesInDir(folder, filter='*.md')
 
         for each_file in main_files:
-            createPage(alkira, each_file)
+            createPage(each_file)
             
-        alkiraTree(alkira, folder_paths)
+        alkiraTree(folder_paths)
 
 if __name__ == "__main__":
 

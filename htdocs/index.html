@@ -88,15 +88,25 @@
 </head>
 
 <body>
-  <div id='login' align='right'>
+ <div id='loginInfo' name='loginInfo' style="display:none;" align="right">
+        <div>
+            <input type= 'text' name='loggeduser' id='loggeduser' readonly='readonly' /> | <a href='#' id='logout' name='logout'>Logout</a>
+        </div>
+ </div>
+
+  <div id='loginDialog' style="display:none;">
      <form name='login-form' id='login-form' method='get'>
-        <label for='user name'>User name:</label>
-        <input type='username' name='username' id='username' placeholder='user name' class='input.text' />
-        <input type='hidden' name='type' value='username' />
-        <label for='password'>Password:</label>
-        <input type='password' name='password' id='password' placeholder='password' class='input.text' />
-        <input type='hidden' name='type' value='password' />
-        <input type='button' name='login' value='login' onclick='javascript:doLogin()' />
+        <div>
+            <label for='username'>User name:</label>
+            <input name='username' id='username' placeholder='username' class='input.text' />
+        </div>
+        <div>
+            <label for='password'>Password:</label>
+            <input type='password' name='password' id='password' placeholder='password' class='input.text' />
+        </div>
+        <div>
+            <input type='button' name='login' value='Login' onclick='javascript:doLogin()' />
+        </div>
      </form>
   </div>
   <div id="container">
@@ -135,7 +145,7 @@
       </div>
       
       <div id='content' class='span-19 last'>
-        <div id='toolbar' class='spacn-20 last' style='margin-top: 5px; text-align: right;'>
+        <div id='toolbar' class='span-20 last' style='margin-top: 5px; text-align: right;'>
             <button id='newpage'>New</button>
             <button id='editpage'>Edit</button>
             <button id='deletepage'>Delete</button>
@@ -223,13 +233,20 @@
   manageDebug();
   </script>
   <script>
+    COOKIE_NAME = "oauth_token";
+    $("#logout").click(function(event) {
+        event.preventDefault();
+        localStorage.removeItem(COOKIE_NAME);
+        eraseCookie("username");
+        $("#loginInfo").attr("style", "display:none;");
+    });
     function doLogin()
     {
         makeOAuthRequest($('#username').val(), $('#password').val());
-     }
-    
-    COOKIE_NAME = "oauth_token";
+        $(loginDialog).dialog('close');
+    }
     addAuthenticationHeader();
+    displayUser();
     //GUID generator
     function guidGenerator() {
         var S4 = function() {
@@ -286,7 +303,12 @@
             dataType: 'jsonp',
             jsonp: '_jsonp',
             url: url,
-            success: function(data){createCookie(COOKIE_NAME, data, 1/24); },
+            success: function(data){
+                                       localStorage.setItem(COOKIE_NAME, data);
+                                       $("#loginInfo").attr("style", ""); 
+                                       $("#loggeduser").attr("value",username);
+                                       createCookie("username", username);
+                                   },
         });
 
     }
@@ -306,7 +328,7 @@
           method: "GET",
           parameters: {'user': '', 'password': ''}
         };
-        var token = readCookie(COOKIE_NAME);
+        var token = localStorage.getItem(COOKIE_NAME);
         var tokenKey, tokenSecret;
         if(token != null)
         {
@@ -325,21 +347,32 @@
             }
             OAuth.completeRequest(message, accessor);
             var oauth_header_params = {
-                oauth_consumer_key: '',
+                oauth_consumer_key: readCookie("username"),
                 oauth_token: 'token_$('+tokenKey+')',
                 oauth_verifier: '',
                 oauth_nonce: message.parameters.oauth_nonce,
                 oauth_timestamp: message.parameters.oauth_timestamp,
                 oauth_signature: message.parameters.oauth_signature
             };
-            authorization_header = OAuth.getAuthorizationHeader('pylabs5',oauth_header_params);
+            authorization_header = OAuth.getAuthorizationHeader('alkira',oauth_header_params);
             jQuery.ajaxSetup({
                 'beforeSend': function(xhr) {
                                                 xhr.setRequestHeader("authorization", authorization_header);
-                                                xhr.setRequestHeader("oauth_token", 'token_$('+tokenKey+')');
-                                                xhr.setRequestHeader("oauth_consumer_key", '');
                                             }
             });
+        }
+        else
+        {
+            $(loginDialog).dialog({title: 'Login required', closeOnEscape: false, width: 220, height:160});
+        }
+    }
+    function displayUser()
+    {
+        var username = readCookie('username');
+        if(username != null)
+        {
+            $("#loginInfo").attr("style", "");
+            $("#loggeduser").attr("value",username);
         }
     }
   </script>

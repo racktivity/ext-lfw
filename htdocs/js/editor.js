@@ -1,15 +1,24 @@
-(function($){
+/*
+dominoes("$css(/css/codemirror/codemirror.css) \
+          /js/libs/codemirror/codemirror.js > \
+          /js/libs/codemirror/python.js", function(){
     
+});
+*/
+
+(function($){
     $.fn.editor = function(options){
         var functions = {};
         
         functions.content = function(text) {
             if (typeof text !== "undefined") {
                 return this.each(function(){
-                    $(this).find("#content").val(text);
+                    var editor = $(this).data("editor");
+                    editor.setValue(text);
                 });
             } else {
-                return this.find("#content").val();
+                var editor = $(this).data("editor");
+                return editor.getValue(text);
             }
         };
         
@@ -27,6 +36,24 @@
             return this.find("#" + component).attr("disabled", value);
         };
         
+        functions.filetype = function(type){
+            if (typeof type !== "undefined") {
+                type = type === "markup" ? null : type;
+                if (! $.inArray(type, CodeMirror.listModes())) {
+                    console.log("Not supported file type")
+                    type = null;
+                }
+                
+                return this.each(function() {
+                    var editor = $(this).data("editor");
+                    editor.setOption("mode", type);
+                });
+            } else {
+                var editor = $(this).data("editor");
+                return editor.getOption("mode");
+            }
+        };
+        
         functions.data = function(key, value) {
             return this.data(key, value);
         };
@@ -41,9 +68,7 @@
             return functions[options].apply(this, args);
         }
         
-        var options = $.extend(true, {width: '100%',
-                                      height: '100%',
-                                      type: 'markup',
+        var options = $.extend(true, {filetype: 'markup',
                                       content: ''}, options);
         
         var layout = "<div style='width: 100%; height: 100%'>\
@@ -59,7 +84,18 @@
         return this.each(function(){
             var $this = $(this);
             $this.html(layout);
-            $this.find(".editor").val(options.content);
+            
+            //initialize codemirror editor
+            var editor = CodeMirror.fromTextArea($this.find("textarea")[0],
+                {value: options.content,
+                indentUnit: 4,
+                lineNumbers: true,
+                gutter: true,
+                theme: 'neat'});
+            $this.data("editor", editor);
+            
+            //set file type.
+            functions.filetype.call($this, options.filetype);
         });
     };
 })(jQuery);

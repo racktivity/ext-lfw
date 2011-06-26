@@ -106,7 +106,7 @@ class LFWService(object):
                     "error": "Page Not Found"}
 
         page = self.alkira.getPage(space, name)
-        props = ['name', 'space', 'category', 'content', 'creationdate', 'title']
+        props = ['name', 'space', 'category', 'content', 'creationdate', 'title', 'pagetype']
 
         result = dict([(prop, getattr(page, prop)) for prop in props])
         result['tags'] = page.tags.split(' ') if page.tags else []

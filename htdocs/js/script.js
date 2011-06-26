@@ -46,8 +46,8 @@ var app = $.sammy(function(app) {
         _page = null;
     var csses = new Array();
     var cssLoaded = false;
-    var _content = null;
-
+    var _pageobj = null;
+    
     var swap = function(html, base, root) {
 
         base = base || ''; // location #/space/page
@@ -395,6 +395,10 @@ data;
         return _page;
     };
 
+    var setPageObj = function(page){
+        _pageobj = page;
+    };
+    
     var setTitle = function(title) {
         _title = title;
     };
@@ -402,16 +406,14 @@ data;
     var getTitle = function(){
         return _title;
     };
-    var setContent = function(content){
-        _content = content;
-    };
 
     this.getPage = getPage;
     this.getTitle = getTitle;
     this.getSpace = getSpace;
     this.setSpace = setSpace;
-    this.getContent = function () {
-        return _content;
+    
+    this.getPageObj = function(){
+        return _pageobj;
     };
 
     var htmlEncode = function(value){
@@ -710,6 +712,7 @@ data;
         $.ajax({
             url: pageUri,
             success: function(data) {
+                setPageObj(data);
                 if (data['code']) {
                     if (data['code'] == 404)
                     {
@@ -723,9 +726,11 @@ data;
 
                 var content = data['content'];
 
-                setContent(content);
                 setTitle(data['title']);
-
+                
+                if ($.inArray(data.pagetype, ['python']) >= 0) {
+                    content = '[[code]]\n' + content + '[[/code]]';
+                }
                 /*
                 if(!content || !content.length || content.length === 0) {
                     context.notFound();
@@ -919,8 +924,8 @@ $(function(){
 
         dialog.editor("content", "");
         dialog.editor("title", "");
+        dialog.editor("filetype", null);
         dialog.editor("disabled", "title", false);
-        dialog.editor("filetype", "python");
         dialog.dialog("option", "buttons", {Close: function() {
                                                 $dialog = $(this);
                                                 if ("" != $dialog.editor("content")) {
@@ -960,7 +965,8 @@ $(function(){
     $("#toolbar > #editpage").button({icons: {primary: 'ui-icon-gear'}}).click(function(){
         var page = app.getPage();
         var space = app.getSpace();
-        var content = app.getContent();
+        var pageobj = app.getPageObj();
+        var content = pageobj.content;
 
         dialog.editor("title", app.getTitle());
         if (page === "Home"){
@@ -968,7 +974,8 @@ $(function(){
         } else {
             dialog.editor("disabled", "title", false);
         }
-        dialog.editor("content", content);
+        dialog.editor("content", content === null ? "" : content);
+        dialog.editor("filetype", pageobj.pagetype);
         dialog.dialog("option", "buttons", {Close: function() {
                                                 $dialog = $(this);
                                                 if (content != $dialog.editor("content")) {

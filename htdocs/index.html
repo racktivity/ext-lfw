@@ -242,6 +242,11 @@
     });
     function doLogin()
     {
+        if(jQuery.trim( $('#username').val() ) == "" || jQuery.trim( $('#password').val() ) == "")
+        {
+            alert("Invalid username/password combination!");
+            return;
+        }
         makeOAuthRequest($('#username').val(), $('#password').val());
         $(loginDialog).dialog('close');
     }

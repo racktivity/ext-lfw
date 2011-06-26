@@ -920,6 +920,7 @@ $(function(){
         dialog.editor("content", "");
         dialog.editor("title", "");
         dialog.editor("disabled", "title", false);
+        dialog.editor("filetype", "python");
         dialog.dialog("option", "buttons", {Close: function() {
                                                 $dialog = $(this);
                                                 if ("" != $dialog.editor("content")) {

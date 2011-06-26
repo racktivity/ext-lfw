@@ -71,8 +71,8 @@ class LFWService(object):
         if not any([text, space, category, tags]):
             return []
 
-        sql_select = 'ui_view_page_list.category, ui_view_page_list."name", ui_view_page_list.space'
-        sql_from = ['ui_page.ui_view_page_list']
+        sql_select = 'page.category, page."name", space.name as space'
+        sql_from = 'ui_page.ui_view_page_list as page join ui_space.ui_view_space_list as space on page.space = space.guid'
         sql_where = ['1=1']
 
         if tags:
@@ -80,19 +80,19 @@ class LFWService(object):
             # MNOUR - IMO this should be solved in the REST layer.
             tags = urllib.unquote_plus(tags)
             tags = tags.strip(', ')
-            sql_where.append('ui_view_page_list.tags LIKE \'%%%s%%\'' %  tags)
+            sql_where.append('page.tags LIKE \'%%%s%%\'' %  tags)
 
         if space:
             space = self.alkira.getSpace(space)
-            sql_where.append('ui_view_page_list.space = \'%s\'' % space.guid)
+            sql_where.append('page.space = \'%s\'' % space.guid)
 
         if category:
-            sql_where.append('ui_view_page_list.category = \'%s\'' % category)
+            sql_where.append('page.category = \'%s\'' % category)
 
         if text:
-            sql_where.append('ui_view_page_list.content LIKE \'%%%s%%\'' % text)
+            sql_where.append('page.content LIKE \'%%%s%%\'' % text)
 
-        query = 'SELECT %s FROM %s WHERE %s' % (sql_select, ' '.join(sql_from), ' AND '.join(sql_where))
+        query = 'SELECT %s FROM %s WHERE %s' % (sql_select, sql_from, ' AND '.join(sql_where))
 
         result = self.connection.page.query(query)
 
@@ -133,13 +133,17 @@ class LFWService(object):
     def deletePage(self, space, name):
         self.alkira.deletePageAndChildren(space, name)
     
+    @q.manage.applicationserver.expose
+    def breadcrumbs(self, space, name):
+        pass
+    
     def get_items(self, prop, space=None, term=None):
         if space:
             space = self.alkira.getSpace(space)
 
         t = term.split(', ')[-1] if term else ''
 
-        d = {'prop': prop, 'space': space, 'term': t}
+        d = {'prop': prop, 'space': space.guid, 'term': t}
 
         if prop in ('tags',):
             sql = SQL_PAGE_TAGS_FILTER % d if t else SQL_PAGE_TAGS % d

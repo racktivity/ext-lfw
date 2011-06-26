@@ -1,11 +1,3 @@
-/*
-dominoes("$css(/css/codemirror/codemirror.css) \
-          /js/libs/codemirror/codemirror.js > \
-          /js/libs/codemirror/python.js", function(){
-    
-});
-*/
-
 (function($){
     $.fn.editor = function(options){
         var functions = {};
@@ -39,7 +31,7 @@ dominoes("$css(/css/codemirror/codemirror.css) \
         functions.filetype = function(type){
             if (typeof type !== "undefined") {
                 type = type === "markup" ? null : type;
-                if (! $.inArray(type, CodeMirror.listModes())) {
+                if ($.inArray(type, CodeMirror.listModes()) == -1) {
                     console.log("Not supported file type")
                     type = null;
                 }

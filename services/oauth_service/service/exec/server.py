@@ -22,7 +22,7 @@ import optparse
 class RequestHandler(BaseHTTPRequestHandler):
     def authenticateUser(self, username, password):
         """
-        Authenticate the user through a call to the ECS service
+        Authenticate the user through a call to an external service
         @param username: user name
         @type user name: string
 
@@ -34,33 +34,9 @@ class RequestHandler(BaseHTTPRequestHandler):
         """
         return True, ()
 
-    def call(self, method="useraccess", **args):
-        """
-        Make an HTTP post request to the ECS service
-        @param method: name of the method exposed by the ECS service, default is 'useraccess'
-        @type user name: string
-
-        @param args: example: login='test', password='123'
-        @type args: list of key/value pairs
-        
-        @return: list of user access permissions
-        @rtype: list
-        """
-        con = httplib.HTTPConnection(self.server.config['ecs']['ip'], self.server.config['ecs']['port'])
-        data = json.dumps(args)
-        headers = {'Content-Type': "application/vap.racktivity.com.%s+json" % (method),
-                   'Content-Length': len(data)}
-        con.request("POST", "/%s" % method, body=data, headers=headers)
-        res = con.getresponse()
-        if res.status == 200:
-            return json.loads(res.read())
-        else:
-            q.logger.log("Exception while calling the ECS service: %s %s"%(str(res.status), str(res.reason)) )
-            return [0,]
-
     def saveToArakoon(self, token, longlast=False, groupguids=None):
         """
-        Save  the generated OAuth token to the racktivity Arakoon cluster in the form: key='token_$(token_key)', value='token_secret'
+        Save  the generated OAuth token to the pyapps Arakoon cluster in the form: key='token_$(token_key)', value='token_secret'
         @param token: tokenkey, and tokensecret
         @type user name: string
 

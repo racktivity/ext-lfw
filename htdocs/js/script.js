@@ -47,7 +47,7 @@ var app = $.sammy(function(app) {
     var csses = new Array();
     var cssLoaded = false;
     var _content = null;
-    
+
     var swap = function(html, base, root) {
 
         base = base || ''; // location #/space/page
@@ -119,6 +119,7 @@ var app = $.sammy(function(app) {
                     'body': htmlDecode(data),
                     'params': params,
                     'pagecontent': elem,
+                    'config': {},
 
                     'addDependency': function(callback, dependencies, ordered){
                         addDependency(callback, dependencies, ordered, $this, name);
@@ -131,10 +132,27 @@ var app = $.sammy(function(app) {
                     },
                     'renderWiki': function(mdstring) {
                         return renderWiki(mdstring);
+                    },
+                    'saveConfig': function() {
+                        saveConfig(options.config, name, params.config);
                     }
                 };
 
+                // Keep track of how many ajax calls we need to do before we can render our macro
+                var ajaxTodo = 0;
+                if (params.config) {
+                    ++ajaxTodo;
+                }
+                if (typeof(params.call) === 'string') {
+                    ++ajaxTodo;
+                }
+
                 var renderMacro = function() {
+                    --ajaxTodo;
+                    if (ajaxTodo > 0) {
+                        console.log('Waiting for ' + ajaxTodo + ' more ajax calls before rendering macro ' + name);
+                        return;
+                    }
                     console.log('Start rendering macro ' + name + ' - ' + data);
                     try{
                         options.params.macroname = name;
@@ -145,30 +163,53 @@ var app = $.sammy(function(app) {
                     console.log('Stop rendering macro ' + name + ' - ' + data);
                 };
 
-                if (typeof(options.params.call) === 'string') {
+                if (typeof(params.call) === 'string') {
                     // Call the url
-                    console.log('Calling data from ' + options.params.call + ' for macro ' + name);
+                    console.log('Calling data from ' + params.call + ' for macro ' + name);
                     $.ajax({
-                        url: options.params.call,
+                        url: params.call,
                         dataType: 'text',
                         success: function(data) {
-                                console.log('Got the data for macro ' + name + ' from ' + options.params.call);
-                                options.body = data;
-                                renderMacro();
-                            },
+                            console.log('Got the data for macro ' + name + ' from ' + params.call);
+                            options.body = data;
+                            renderMacro();
+                        },
                         error: function() {
-                            console.log('Error loading macro data for ' + name + ' from ' + options.params.call);
+                            console.log('Error loading macro data for ' + name + ' from ' + params.call);
                             if (options.body.trim().length) {
                                 // We have a default body, so pass that
                                 console.log('Loading macro ' + name + ' with default data ' + options.body);
                                 renderMacro();
                             } else {
                                 // Show error
-                                options.swap('Error loading ' + options.params.call + ' for macro ' + name);
+                                options.swap('Error loading ' + params.call + ' for macro ' + name);
                             }
                         }
                     });
-                } else {
+                }
+                if (params.config) {
+                    // Get the config if any
+                    console.log('Getting config for macro ' + name);
+                    var configData = { space: getSpace(), page: getPage(), macro: macroname };
+                    if (typeof(params.config) === "string" && params.config.toLowerCase() !== "true") {
+                        configData.configId = params.config;
+                    }
+                    $.ajax({
+                        url: LFW_CONFIG.uris.macroConfig,
+                        dataType: 'json',
+                        data: configData,
+                        success: function(data) {
+                            console.log('Got config for macro ' + name + ' : ' + data);
+                            options.config = data;
+                            renderMacro();
+                        },
+                        error: function() {
+                            console.log('Error getting config for macro ' + name);
+                            renderMacro();
+                        }
+                    });
+                }
+                if (!ajaxTodo) {
                     renderMacro();
                 }
             };
@@ -252,14 +293,14 @@ data;
     var setSpace = function(space, force) {
         if (space == _space && !force)
             return;
-        
+
         _space = space;
         if (space == ADMINSPACE){
             $("#toolbar > button").button("option", "disabled", true);
         } else {
             $("#toolbar > button").button("option", "disabled", false);
         }
-        
+
         var spaces = $('#space option');
         for(var i = 0; i < spaces.length; i++) {
             if(spaces[i].value === space) {
@@ -331,10 +372,10 @@ data;
         if( ! _appName ) {
             _appName = LFW_CONFIG['appname'];
             if( _appName == '' ) {
-                throw new Error( 'Appname is an emtpy string' )
+                throw new Error( 'Appname is an emtpy string' );
             }
             if( ! _appName  ) {
-                throw new Error( 'Appname is null' )
+                throw new Error( 'Appname is null' );
             }
         }
         return _appName;
@@ -356,15 +397,15 @@ data;
 
     var setTitle = function(title) {
         _title = title;
-    }
-    
+    };
+
     var getTitle = function(){
         return _title;
-    }
+    };
     var setContent = function(content){
         _content = content;
     };
-    
+
     this.getPage = getPage;
     this.getTitle = getTitle;
     this.getSpace = getSpace;
@@ -372,20 +413,20 @@ data;
     this.getContent = function () {
         return _content;
     };
-    
+
     var htmlEncode = function(value){
         if (!value){
             return '';
         }
         return $('<div/>').text(value).html();
-    }
+    };
 
     var htmlDecode = function(value){
         if (!value){
             return '';
         }
         return $('<div/>').html(value).text();
-    }
+    };
 
     var renderWiki = function(mdstring) {
         mdstring = mdstring || '';
@@ -395,7 +436,7 @@ data;
             if (fullmatch.substr(0, 2) == "  "){
                 return fullmatch;
             }
-            var result = '\n<div class="macro macro_' + macroname + '"'
+            var result = '\n<div class="macro macro_' + macroname + '"';
             if (paramstring){
                 paramstring = paramstring.substr(1);
                 paramstring = "," + paramstring;
@@ -410,7 +451,7 @@ data;
                 result += " params='" + htmlEncode($.toJSON(params)) + "'";
             }
             body = body || '';
-            result += ">" + htmlEncode(body.trim()) + "\n</div>"
+            result += ">" + htmlEncode(body.trim()) + "\n</div>";
             return result;
         };
 
@@ -455,7 +496,7 @@ data;
         var compiler = new Showdown.converter();
         var result = compiler.makeHtml(mdstring);
         return result;
-    }
+    };
 
     function inArray(element, array) {
         for (index in array) {
@@ -484,7 +525,7 @@ data;
                 element.append("<div class='macro_error'>Macro "+ name +" failed <br/>"+err+"</div>");
             }
         });
-    }
+    };
 
     function loadCss() {
         csslinks = $('link');
@@ -496,9 +537,9 @@ data;
         $.each(cssStyles, function(index, cssStyle) {
             id = cssStyle.id;
             if (id != undefined) addCssId(id);
-        })
+        });
         cssLoaded = true;
-    };
+    }
 
     var addCssId = function(id) {
         console.log('adding cdd with id: ' + id);
@@ -538,7 +579,27 @@ data;
             }
             head.insertBefore( cssNode, head.firstChild );
         }
-    }
+    };
+
+    var saveConfig = function(config, macroname, configid) {
+        console.log('Saving config for macro ' + macroname + ' : ' + config);
+        // No clue why but we need a double JSON.stringify here for things to work
+        var data = { space: getSpace(), page: getPage(), macro: macroname, config: JSON.stringify(JSON.stringify(config)) };
+        if (typeof(configid) === "string" && configid.toLowerCase() !== "true") {
+            data.configId = configid;
+        }
+        $.ajax({
+            url: LFW_CONFIG.uris.updateMacroConfig,
+            dataType: "text",
+            data: data,
+            success: function(data) {
+                console.log('Saving of config successful for macro ' + macroname);
+            },
+            error: function() {
+                console.log('Error saving config for macro ' + macroname);
+            }
+        });
+    };
 
     this.setTitle(function(title) {
         return [title, getSpace()].join(' - ');
@@ -637,13 +698,13 @@ data;
 
         setSpace(space);
         setPage(page);
-        
+
         if (page == "Home"){
             $("#toolbar > #deletepage").button("option", "disabled", true);
         } else if (space != ADMINSPACE) {
             $("#toolbar > #deletepage").button("option", "disabled", false);
         }
-        
+
         var context = this;
 
         $.ajax({
@@ -661,17 +722,17 @@ data;
                 context.title(data['title']);
 
                 var content = data['content'];
-                
+
                 setContent(content);
                 setTitle(data['title']);
-                
+
                 /*
                 if(!content || !content.length || content.length === 0) {
                     context.notFound();
                     return;
                 }
                 */
-                
+
                 console.log('Page source: ' + content);
                 if(render === true) {
                     rendered = renderWiki(content);
@@ -837,8 +898,8 @@ $(function() {
             $(this).hide();
         })
         .hide();
-    
-    
+
+
 });
 
 $(function(){
@@ -851,11 +912,11 @@ $(function(){
                         height: $(document).height() - 50,
                         title: "Page Editor"
                         });
-    
+
     $("#toolbar > #newpage").button({icons: {primary: 'ui-icon-document'}}).click(function(){
         var parent = app.getPage();
         var space = app.getSpace();
-        
+
         dialog.editor("content", "");
         dialog.editor("title", "");
         dialog.editor("disabled", "title", false);
@@ -894,12 +955,12 @@ $(function(){
                                             }});
         dialog.dialog("open");
     });
-    
+
     $("#toolbar > #editpage").button({icons: {primary: 'ui-icon-gear'}}).click(function(){
         var page = app.getPage();
         var space = app.getSpace();
-        var content = app.getContent()
-        
+        var content = app.getContent();
+
         dialog.editor("title", app.getTitle());
         if (page === "Home"){
             dialog.editor("disabled", "title", true);
@@ -935,11 +996,11 @@ $(function(){
                                                             },
                                                             error: $.alerterror
                                                         });
-                                            
+
                                                 }});
         dialog.dialog("open");
     });
-    
+
     $("#deletepage").button({icons: {primary: 'ui-icon-close'}}).click(function(){
         $.confirm("Are you sure you want to delete this page?", {title: "Delete Page",
             ok: function() {

@@ -90,7 +90,7 @@
 <body>
  <div id='loginInfo' name='loginInfo' style="display:none;" align="right">
         <div>
-            <input type='text' readonly='readonly' name='loggeduser' id='loggeduser' style="background-color:transparent;text-align:right; border:0px"/>| <a href='#' id='logout' name='logout'>Logout</a>
+            <input type='text' readonly='readonly' name='loggeduser' id='loggeduser' style="background-color:transparent;text-align:right; border:0px"/>&nbsp;|&nbsp;<a href='#' id='logout' name='logout'>Logout</a>&nbsp;
         </div>
  </div>
 
@@ -363,7 +363,7 @@
         }
         else
         {
-            $(loginDialog).dialog({title: 'Login required', closeOnEscape: false, width: 220, height:160, resizable: false});
+            $(loginDialog).dialog({title: 'Login required', closeOnEscape: false, width: 260, height:200, resizable: false});
         }
     }
     function displayUser()

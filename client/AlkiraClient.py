@@ -430,7 +430,7 @@ class Client:
 
         self.connection.space.save(space)
 
-        if oldname != newname:
+        if newname != None and oldname != newname:
             #rename space page.
             self.updatePage(ADMINSPACE, oldname, name=newname, content=p.core.codemanagement.api.getSpacePage(newname))
 

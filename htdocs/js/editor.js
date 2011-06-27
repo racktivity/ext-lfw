@@ -123,25 +123,34 @@
                 .blur(hide)
                 .dblclick(pick)
                 .keydown(function(e){
+                    var code = e.keyCode;
+                    if (code == 27){
+                        e.preventDefault();
+                        editor.focus();
+                    }else if (code == 8){
+                        //backspace.
+                        e.preventDefault();
+                        e.stopImmediatePropagation();
+                        
+                        line = line.substring(0, cur.ch - 1) + line.substring(cur.ch);
+                        editor.setLine(cur.line, line);
+                        editor.focus();
+                        startComplete.call(editor, body, event);
+                    }
+                })
+                .keypress(function(e){
                     var code = e.keyCode
                     if (code == 13 || code == 32) {
                         //enter and space
-                        event.stop();
+                        e.preventDefault();
                         pick.call(this);
-                    }
-                    else if (code == 27){
-                        //escape
-                        event.stop();
-                        editor.focus();
-                    }
-                    /*else if (code != 38 && code != 40) {
-                        //not UP or DOWN, then the developer still typing
-                        //we need to pass this char to the 
-                        line = line.substring(0, cur.ch) + String.fromCharCode(e.which) + line.substring(cur.ch);
+                    } else {
+                        //continues typing
+                        line = line.substring(0, cur.ch) + String.fromCharCode(e.keyCode) + line.substring(cur.ch);
                         editor.setLine(cur.line, line);
                         editor.focus();
-                        startComplete.call(editor);
-                    }*/
+                        startComplete.call(editor, body, event);
+                    }
                 });
             
             var options = [];

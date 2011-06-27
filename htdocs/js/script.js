@@ -915,7 +915,8 @@ $(function(){
                         modal: true,
                         width: '80%',
                         height: $(document).height() - 50,
-                        title: "Page Editor"
+                        title: "Page Editor",
+                        closeOnEscape: false
                         });
 
     $("#toolbar > #newpage").button({icons: {primary: 'ui-icon-document'}}).click(function(){

@@ -100,6 +100,19 @@ class LFWService(object):
         return result
 
     @q.manage.applicationserver.expose
+    def breadcrumbs(self, space, name):
+        breadcrumbs = []
+        parent = self.alkira.getPage(space, name)
+        while parent:
+            breadcrumbs.append("<a href='#/%(space)s/%(name)s'>%(title)s</a>" % {'space': space,
+                                                                               'name': parent.name,
+                                                                               'title': parent.title})
+            parent = self.alkira.getPageByGUID(parent.parent) if parent.parent else None
+        
+        breadcrumbs.reverse()
+        return breadcrumbs
+    
+    @q.manage.applicationserver.expose
     def page(self, space, name):
         if not self.alkira.spaceExists(space) or not self.alkira.pageExists(space, name):
             return {"code": 404,

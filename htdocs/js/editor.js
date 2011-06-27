@@ -73,7 +73,23 @@
         <textarea></textarea>\
     </div>\
 </div>";
-
+        
+        var getCandidates = function(token) {
+            var options = [];
+            $.each(autocompletelist, function(i, opt){
+                if (opt.indexOf(token) == 0) {
+                    var doti = opt.indexOf('.', token.length);
+                    if (doti != -1){
+                        opt = opt.substring(0, doti);
+                    }
+                    if ($.inArray(opt, options) == -1)
+                        options.push(opt);
+                }
+            });
+            
+            return options;
+        };
+        
         var startComplete = function(body, event){
             var editor = this;
             if (editor.somethingSelected())
@@ -95,7 +111,7 @@
             
             var spaceIndex = leftline.lastIndexOf(leftstop[0]);
             var token = leftline.substring(spaceIndex);
-            if (token.length < 3){
+            if (token.length < 2) {
                 return;
             }
             //get available options.
@@ -125,6 +141,7 @@
                 .keydown(function(e){
                     var code = e.keyCode;
                     if (code == 27){
+                        //escape.
                         e.preventDefault();
                         editor.focus();
                     }else if (code == 8){
@@ -153,13 +170,7 @@
                     }
                 });
             
-            var options = [];
-            $.each(autocompletelist, function(i, v){
-                if (v.indexOf(token) == 0){
-                    options.push(v);
-                }
-            });
-            
+            var options = getCandidates(token);
             if (!options.length) {
                 return;
             }

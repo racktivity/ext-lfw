@@ -90,7 +90,7 @@
 <body>
  <div id='loginInfo' name='loginInfo' style="display:none;" align="right">
         <div>
-            <input type= 'text' name='loggeduser' id='loggeduser' readonly='readonly' /> | <a href='#' id='logout' name='logout'>Logout</a>
+            <input type='text' readonly='readonly' name='loggeduser' id='loggeduser' style="background-color:transparent;text-align:right; border:0px"/>&nbsp;|&nbsp;<a href='#' id='logout' name='logout'>Logout</a>&nbsp;
         </div>
  </div>
 
@@ -238,10 +238,15 @@
         event.preventDefault();
         localStorage.removeItem(COOKIE_NAME);
         eraseCookie("username");
-        $("#loginInfo").attr("style", "display:none;");
+        location.reload();
     });
     function doLogin()
     {
+        if(jQuery.trim( $('#username').val() ) == "" || jQuery.trim( $('#password').val() ) == "")
+        {
+            alert("Invalid username/password combination!");
+            return;
+        }
         makeOAuthRequest($('#username').val(), $('#password').val());
         $(loginDialog).dialog('close');
     }
@@ -363,7 +368,7 @@
         }
         else
         {
-            $(loginDialog).dialog({title: 'Login required', closeOnEscape: false, width: 220, height:160});
+            $(loginDialog).dialog({title: 'Login required', closeOnEscape: false, width: 260, height:200, resizable: false});
         }
     }
     function displayUser()

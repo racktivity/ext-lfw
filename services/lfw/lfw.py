@@ -130,31 +130,6 @@ class LFWService(object):
 
         return result
 
-#    def _syncPageToDisk(self, space, page, oldpage=None):
-#        crumbs = self._breadcrumbs(page)
-#        _join = q.system.fs.joinPaths
-#        _isfile = q.system.fs.isFile
-#        _isdir = q.system.fs.isDir
-#        _write = q.system.fs.writeFile
-#        
-#        base = _join(q.dirs.baseDir, "pyapps", p.api.appname, "portal", "spaces", space)
-#        filepath = _join(base, *[x['name'] for x in crumbs])
-#        
-#        if oldpage:
-#            #update
-#            oldpath = _join(base, *[x['name'] for x in self._breadcrumbs(oldpage)])
-#            if _isdir(oldpath):
-#                q.system.fs.renameDir(oldpath, filepath)
-#                oldpath = _join(filepath, oldpage.name)
-#                q.system.fs.renameFile(oldpath, _join(filepath, page.name))
-#            _write(oldpath, page.content)
-#        else:
-#            #create new
-#            
-#            q.system.fs.createDir(filepath)
-#            filepath = _join(filepath, page.name)
-#            _write(filepath, page.content)
-    
     def _syncPageToDisk(self, space, page, oldpagename=None):
         crumbs = self._breadcrumbs(page)
         _join = q.system.fs.joinPaths

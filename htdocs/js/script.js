@@ -728,7 +728,7 @@ data;
 
                 setTitle(data['title']);
                 
-                if ($.inArray(data.pagetype, ['python']) >= 0) {
+                if ($.inArray(data.pagetype, ['py']) >= 0) {
                     content = '[[code]]\n' + content + '[[/code]]';
                 }
                 /*
@@ -925,7 +925,7 @@ $(function(){
 
         dialog.editor("content", "");
         dialog.editor("title", "");
-        dialog.editor("filetype", null);
+        dialog.editor("filetype", "md");
         dialog.editor("disabled", "title", false);
         dialog.dialog("option", "buttons", {Close: function() {
                                                 $dialog = $(this);

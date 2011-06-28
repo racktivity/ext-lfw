@@ -75,19 +75,20 @@
 </div>";
         
         var getCandidates = function(token) {
-            var options = [];
+            var candidates = {};
             $.each(autocompletelist, function(i, opt){
                 if (opt.indexOf(token) == 0) {
                     var doti = opt.indexOf('.', token.length);
                     if (doti != -1){
                         opt = opt.substring(0, doti);
                     }
-                    if ($.inArray(opt, options) == -1)
-                        options.push(opt);
+                    var optstring = opt.substring(opt.lastIndexOf('.'));
+                    if (!(opt in candidates))
+                        candidates[opt] = optstring;
                 }
             });
             
-            return options;
+            return candidates;
         };
         
         var startComplete = function(body, event){
@@ -170,14 +171,16 @@
                     }
                 });
             
-            var options = getCandidates(token);
-            if (!options.length) {
+            var candidates = getCandidates(token);
+            if ($.isEmptyObject(candidates)) {
                 return;
             }
             
-            $.each(options, function(i, v){
-                list.append($("<option>").val(v).text(v).attr("selected", i == 0));
+            $.each(candidates, function(k, v){
+                list.append($("<option>").val(k).text(v));
             });
+            //select the first option.
+            list.children().first().attr("selected", true);
             
             var coords = editor.cursorCoords();
             var offset = body.offset();

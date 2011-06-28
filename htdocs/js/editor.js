@@ -2,6 +2,12 @@
     $.fn.editor = function(options){
         var functions = {};
         
+        var filetypes = {null: "null",
+                         'md': "null",
+                         'html': "null",
+                         'txt': "null",
+                         'py': 'python'};
+                         
         functions.content = function(text) {
             if (typeof text !== "undefined") {
                 return this.each(function(){
@@ -29,21 +35,13 @@
         };
         
         functions.filetype = function(type){
-            if (typeof type !== "undefined") {
-                type = type === "markup" ? null : type;
-                if ($.inArray(type, CodeMirror.listModes()) == -1) {
-                    console.log("Not supported file type")
-                    type = null;
-                }
-                
-                return this.each(function() {
-                    var editor = $(this).data("editor");
-                    editor.setOption("mode", type);
-                });
+            if (typeof type !== "undefined"){
+                $(this).find("#filetype").val(type);
+                $(this).find("#filetype").change();
             } else {
-                var editor = $(this).data("editor");
-                return editor.getOption("mode");
+                return $(this).find("#filetype").val();
             }
+            
         };
         
         functions.data = function(key, value) {
@@ -60,7 +58,7 @@
             return functions[options].apply(this, args);
         }
         
-        var options = $.extend(true, {filetype: 'markup',
+        var options = $.extend(true, {filetype: 'md',
                                       content: '',
                                       autocomplete: []}, options);
         
@@ -68,6 +66,10 @@
     <div id='editorbar'>\
         <label for='title'>Page Title: </label>\
         <input id='title' class='text'>\
+        <select id='filetype'>\
+            <option value='md'>Markup</option>\
+            <option value='py'>Python</option>\
+        </select>\
     </div>\
     <div class='body'>\
         <textarea></textarea>\
@@ -214,8 +216,17 @@
                 }});
                 
             $this.data("editor", editor);
-            //set file type.
-            functions.filetype.call($this, options.filetype);
+            
+            //set the correct file type.
+            $this.find("#filetype").change(function() {
+                var type = $(this).val();
+                var mode = filetypes[type];
+                if ($.inArray(mode, CodeMirror.listModes()) == -1) {
+                    console.log("Not supported file type")
+                    mode = "null";
+                }
+                editor.setOption("mode", mode);
+            }).val(options.filetype);
         });
     };
 })(jQuery);

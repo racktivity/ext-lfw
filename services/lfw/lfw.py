@@ -247,7 +247,7 @@ class LFWService(object):
         result = self.connection.page.query(sql)
         data = list()
         for node in result :
-            if node['name'] == 'pagetree':
+            if node['name'] == 'pagetree.md':
                 continue
             nodedata = dict()
             children = list()

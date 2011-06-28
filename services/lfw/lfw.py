@@ -127,7 +127,7 @@ class LFWService(object):
         return result
 
     @q.manage.applicationserver.expose
-    def savePage(self, mode, space, name, content, parent=None, order=None, title=None, tags="", category='portal'):
+    def savePage(self, mode, space, name, content, parent=None, order=None, title=None, filename=None, tags="", category='portal'):
         save = None
         exists = self.alkira.pageExists(space, name)
         if mode == "new":
@@ -141,7 +141,7 @@ class LFWService(object):
         else:
             raise ValueError("Unknow page save mode '%s'" % mode)
         
-        save(space=space, name=name, content=content, parent=parent, order=order, title=title, tagsList=tags.split(" "), category=category)
+        save(space=space, name=name, content=content, parent=parent, order=order, title=title, filename=filename, tagsList=tags.split(" "), category=category)
     
     @q.manage.applicationserver.expose
     def deletePage(self, space, name):
@@ -358,7 +358,7 @@ class LFWService(object):
                 if chidpages:
                     buildTree(client, pagepath, space, chidpages)
                 page = client.getPage(space, pagename)
-                filename = join(pagepath, pagename + ".md")
+                filename = join(pagepath, pagename)
                 fpage = open(filename, "w")
                 fpage.write("@metadata title = %s\n"%page.title)
                 fpage.write("@metadata order = %s\n"%page.order)

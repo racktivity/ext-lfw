@@ -36,10 +36,18 @@ def sync_to_alkira(appname, path=None, sync_space=None, clean_up=False):
         content_dict['content'] = filtered_content
 
         return content_dict
-
+    
+    def supportedType(alkira, pagename):
+        idx = pagename.rfind(".")
+        if idx < 1:
+            return False
+        ext = pagename[idx + 1:]
+        return ext in alkira.KNOWN_TYPES
+        
+        
     def createPage(alkira, page_file, parent=None):
         pageDuplicate(page_file)
-        name = q.system.fs.getBaseName(page_file).split('.')[0]
+        name = q.system.fs.getBaseName(page_file)
         content = q.system.fs.fileGetContents(page_file)
         page_info = alkira.pageFind(name=name, space=spaceguid, exact_properties=("name", "space"))
 
@@ -55,8 +63,9 @@ def sync_to_alkira(appname, path=None, sync_space=None, clean_up=False):
         # Setting content and metadata
         page_content_dict = filterContent(content)
         content = page_content_dict.get('content', 'Page is empty.')
-        title = page_content_dict.get('title', name)
+        title = page_content_dict.get('title', name.split(".")[0])
         order = int(page_content_dict.get('order', '10000'))
+        filename = page_content_dict.get('filename', None)
 
         # Creating and setting tags
         tags = page_content_dict.get('tagstring', "").split(" ")
@@ -70,7 +79,7 @@ def sync_to_alkira(appname, path=None, sync_space=None, clean_up=False):
         for tag in re.sub('((?=[A-Z][a-z])|(?<=[a-z])(?=[A-Z]))', ' ', name).strip().split(' '):
             tags.add(tag)
 
-        save_page(space=space, name=name, content=content, order=order, title=title, tagsList=tags, category='portal', parent=parent)
+        save_page(space=space, name=name, content=content, order=order, title=title, tagsList=tags, category='portal', parent=parent, filename=filename)
 
     def alkiraTree(alkira, folder_paths, root_parent=None):
         for folder_path in folder_paths:
@@ -92,14 +101,18 @@ def sync_to_alkira(appname, path=None, sync_space=None, clean_up=False):
             else:
                 createPage(alkira, parent_path)
 
-            children_files = q.system.fs.listFilesInDir(folder_path, filter='*.md')
+            children_files = q.system.fs.listFilesInDir(folder_path)
             for child_file in children_files:
-                if child_file != parent_path:
+                if child_file != parent_path and supportedType(alkira, child_file):
                     createPage(alkira, child_file, parent=folder_name)
 
             sub_folders = q.system.fs.listDirsInDir(folder_path)
             if sub_folders:
-                alkiraTree(alkira, sub_folders, root_parent=folder_name)
+                #Only *.md files can be parent so I need to check first
+                if q.system.fs.exists(folder_path + ".md") or q.system.fs.exists(q.system.fs.joinPaths(folder_path, folder_name, parent_name)):
+                    alkiraTree(alkira, sub_folders, root_parent=folder_name)
+                else:
+                    alkiraTree(alkira, sub_folders, root_parent=root_parent)
 
     alkira = q.clients.alkira.getClient("localhost", appname)
     md_path = ''
@@ -135,12 +148,12 @@ def sync_to_alkira(appname, path=None, sync_space=None, clean_up=False):
 
         page_occured = []
 
-
         folder_paths = q.system.fs.listDirsInDir(folder)
-        main_files = q.system.fs.listFilesInDir(folder, filter='*.md')
+        main_files = q.system.fs.listFilesInDir(folder)
 
         for each_file in main_files:
-            createPage(alkira, each_file)
+            if  supportedType(alkira, each_file):
+                createPage(alkira, each_file)
 
         alkiraTree(alkira, folder_paths)
 

@@ -73,7 +73,7 @@ def sync_to_alkira(appname, path=None, sync_space=None, clean_up=False):
         tags.add('space:%s' % space)
         tags.add('page:%s' % name)
 
-        if name == "Home":
+        if name == "Home.md":
             tags.add('spaceorder:%s' % page_content_dict.get('spaceorder',1000))
 
         for tag in re.sub('((?=[A-Z][a-z])|(?<=[a-z])(?=[A-Z]))', ' ', name).strip().split(' '):
@@ -88,13 +88,15 @@ def sync_to_alkira(appname, path=None, sync_space=None, clean_up=False):
             # Ignore hg dir
             if base_name == '.hg':
                 continue
-
-            folder_name = base_name.split('.')[0]
-            parent_name = folder_name + '.md'
-            parent_path = q.system.fs.joinPaths(folder_path, parent_name)
+            
+            #for backword compatability, forlder_path might not have .ext in it, so base_name should be with .md
+            if len(base_name.split(".")) < 2:
+                base_name = base_name + ".md"
+            
+            parent_path = q.system.fs.joinPaths(folder_path, base_name)
 
             if not q.system.fs.exists(parent_path):
-                q.errorconditionhandler.raiseError('The directory "%s" does not have a page "%s" specified for it.'%(folder_path, parent_name))
+                q.errorconditionhandler.raiseError('The directory "%s" does not have a page "%s" specified for it.'%(folder_path, base_name))
 
             if root_parent:
                 createPage(alkira, parent_path, parent=root_parent)
@@ -104,13 +106,13 @@ def sync_to_alkira(appname, path=None, sync_space=None, clean_up=False):
             children_files = q.system.fs.listFilesInDir(folder_path)
             for child_file in children_files:
                 if child_file != parent_path and supportedType(alkira, child_file):
-                    createPage(alkira, child_file, parent=folder_name)
+                    createPage(alkira, child_file, parent=base_name)
 
             sub_folders = q.system.fs.listDirsInDir(folder_path)
             if sub_folders:
                 #Only *.md files can be parent so I need to check first
-                if q.system.fs.exists(folder_path + ".md") or q.system.fs.exists(q.system.fs.joinPaths(folder_path, folder_name, parent_name)):
-                    alkiraTree(alkira, sub_folders, root_parent=folder_name)
+                if q.system.fs.exists(folder_path) or q.system.fs.exists(q.system.fs.joinPaths(folder_path, base_name, base_name)):
+                    alkiraTree(alkira, sub_folders, root_parent=base_name)
                 else:
                     alkiraTree(alkira, sub_folders, root_parent=root_parent)
 

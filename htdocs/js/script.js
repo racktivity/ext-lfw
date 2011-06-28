@@ -17,7 +17,7 @@
 
 (function($) {
 
-var DEFAULT_PAGE_NAME = 'Home',
+var DEFAULT_PAGE_NAME = 'Home.md',
     LABELS_RE = /,\s*/,
     LOCATION_PREFIX = '#/',
     ADMINSPACE="Admin";
@@ -689,8 +689,8 @@ data;
 
         var render = true;
 
-        if (page.substr(-3) === '.md') {
-            page = page.substr(0, page.length - 3);
+        if (page.substr(-4) === '.src') {
+            page = page.substr(0, page.length - 4);
             render = false;
         }
 

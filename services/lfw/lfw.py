@@ -363,7 +363,7 @@ class LFWService(object):
                 if chidpages:
                     buildTree(client, pagepath, space, chidpages)
                 page = client.getPage(space, pagename)
-                filename = join(pagepath, pagename + ".md")
+                filename = join(pagepath, pagename)
                 fpage = open(filename, "w")
                 fpage.write("@metadata title = %s\n"%page.title)
                 fpage.write("@metadata order = %s\n"%page.order)

@@ -262,7 +262,7 @@ class Client:
             self.connection.page.delete(page['guid'])
 
         self.connection.space.delete(space.guid)
-        self.deletePage(ADMINSPACE, space.name)
+        self.deletePage(ADMINSPACE, "%s.md" % space.name)
         q.system.fs.removeDirTree(self._getDir(space.name))
 
     def deletePage(self, space, name):

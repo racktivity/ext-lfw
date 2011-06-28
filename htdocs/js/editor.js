@@ -30,6 +30,16 @@
             }
         };
         
+        functions.name = function(text) {
+            if (typeof text !== "undefined") {
+                this.each(function(){
+                    $(this).find("#name").val(text);
+                });
+            } else {
+                return this.find("#name").val();
+            }
+        };
+        
         functions.disabled = function(component, value){
             return this.find("#" + component).attr("disabled", value);
         };
@@ -64,12 +74,14 @@
         
         var layout = "<div class='editor'>\
     <div id='editorbar'>\
-        <label for='title'>Page Title: </label>\
-        <input id='title' class='text'>\
+        <label for='name'>File Name</label>\
+        <input id='name' class='text'>\
         <select id='filetype'>\
             <option value='md'>Markup</option>\
             <option value='py'>Python</option>\
         </select>\
+        <label for='title'>Page Title: </label>\
+        <input id='title' class='text'>\
     </div>\
     <div class='body'>\
         <textarea></textarea>\

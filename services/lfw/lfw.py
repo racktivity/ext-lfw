@@ -99,18 +99,22 @@ class LFWService(object):
 
         return result
 
-    @q.manage.applicationserver.expose
-    def breadcrumbs(self, space, name):
+    def _breadcrumbs(self, page):
         breadcrumbs = []
-        parent = self.alkira.getPage(space, name)
+        parent = page
         while parent:
-            breadcrumbs.append("<a href='#/%(space)s/%(name)s'>%(title)s</a>" % {'space': space,
-                                                                               'name': parent.name,
-                                                                               'title': parent.title})
+            breadcrumbs.append({'space': space,
+                                'guid': parent.guid,
+                                'name': parent.name,
+                                'title': parent.title})
             parent = self.alkira.getPageByGUID(parent.parent) if parent.parent else None
         
         breadcrumbs.reverse()
         return breadcrumbs
+    
+    @q.manage.applicationserver.expose
+    def breadcrumbs(self, space, name):
+        return self._breadcrumbs(self.alkira.getPage(space, name))
     
     @q.manage.applicationserver.expose
     def page(self, space, name):
@@ -126,30 +130,31 @@ class LFWService(object):
 
         return result
 
+    def _syncPageToDisk(self, page):
+        crumbs = self._breadcrumbs(page)
+    
     @q.manage.applicationserver.expose
-    def savePage(self, mode, space, name, content, parent=None, order=None, title=None, tags="", category='portal'):
-        save = None
-        exists = self.alkira.pageExists(space, name)
-        if mode == "new":
-            if exists:
-                raise ValueError("A page with the same name already exists")
-            save = self.alkira.createPage
-        elif mode == "update":
-            if not exists:
-                raise ValueError("Page '%s' doesn't exists" % name)
-            save = functools.partial(self.alkira.updatePage, old_space=space, old_name=name)
-        else:
-            raise ValueError("Unknow page save mode '%s'" % mode)
+    def createPage(self, space, name, content, parent=None, order=None, title=None, pagetype="md", tags="", category='portal'):
+        if self.alkira.pageExists(space, name):
+            raise ValueError("A page with the same name already exists")
         
-        save(space=space, name=name, content=content, parent=parent, order=order, title=title, tagsList=tags.split(" "), category=category)
+        page = self.alkira.createPage(space=space, name=name, content=content, parent=parent, order=order, title=title, tagsList=tags.split(" "), category=category, pagetype=pagetype)
+        
+    @q.manage.applicationserver.expose
+    def updatePage(self, space, name, content, newname=None, parent=None, order=None, title=None, pagetype="md", tags="", category='portal'):
+        if not self.alkira.pageExists(space, name):
+            raise ValueError("Page '%s' doesn't exists" % name)
+        
+        if newname and newname != name:
+            if self.alkira.pageExists(space, newname):
+                raise ValueError("Page '%s' already exists" % newname)
+            
+        page = self.alkira.updatePage(old_space=space, old_name=name, name=newname,
+                               content=content, parent=parent, order=order, title=title, tagsList=tags.split(" "), category=category, pagetype=pagetype)
     
     @q.manage.applicationserver.expose
     def deletePage(self, space, name):
         self.alkira.deletePageAndChildren(space, name)
-    
-    @q.manage.applicationserver.expose
-    def breadcrumbs(self, space, name):
-        pass
     
     def get_items(self, prop, space=None, term=None):
         if space:

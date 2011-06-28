@@ -336,8 +336,10 @@ class Client:
         spacectnt = p.core.codemanagement.api.getSpacePage(name)
         self.createPage(name, "Home", content="", order=10000, title="Home", tagsList=tagsList)
         self.createPage(ADMINSPACE, name, spacectnt, title=name, parent="Spaces")
+        return space
 
-    def createPage(self, space, name, content, order=None, title=None, tagsList=[], category='portal', parent=None, contentIsFilePath=False):
+    def createPage(self, space, name, content, order=None, title=None, tagsList=[], category='portal',
+                   parent=None, pagetype=None, contentIsFilePath=False):
         """
         Creates a new page.
 
@@ -376,7 +378,7 @@ class Client:
             page.space = space
             page.name = name
             page.category = category
-
+            page.pagetype = pagetype
             if title:
                 page.title = title
             else:
@@ -400,8 +402,9 @@ class Client:
             if parent:
                 parent_page = self.getPage(space, parent)
                 page.parent = parent_page.guid
-
+                
             self.connection.page.save(page)
+            return page
 
     def updateSpace(self, space, newname=None, tagslist=None, repository=None, repo_username=None, repo_password=None):
         space = self.getSpace(space)
@@ -433,8 +436,10 @@ class Client:
         if oldname != newname:
             #rename space page.
             self.updatePage(ADMINSPACE, oldname, name=newname, content=p.core.codemanagement.api.getSpacePage(newname))
+        return space
 
-    def updatePage(self, old_space, old_name, space=None, name=None, tagsList=None, content=None, order=None, title=None, parent=None, category=None, contentIsFilePath=False):
+    def updatePage(self, old_space, old_name, space=None, name=None, tagsList=None, content=None,
+                   order=None, title=None, parent=None, category=None, pagetype=None, contentIsFilePath=False):
         """
         Updates an existing page.
 
@@ -474,7 +479,8 @@ class Client:
         old_space = self._getSpaceGuid(old_space)
 
         page = self.getPage(old_space, old_name)
-
+        page.pagetype = pagetype
+        
         if space:
             space = self._getSpaceGuid(space)
             page.space = space
@@ -509,6 +515,7 @@ class Client:
             page.category = category
 
         self.connection.page.save(page)
+        return page
 
     def findMacroConfig(self, space="", page="", macro="", configId=None, exact_properties=None):
         configFilter = self.connection.config.getFilterObject()

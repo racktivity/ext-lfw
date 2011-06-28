@@ -94,10 +94,10 @@ class Client:
     def _getType(self, pagename):
         idx = pagename.find(".")
         if idx < 1:
-            return None
+            return "md"
         ext = pagename[idx + 1:]
         if ext not in self.KNOWN_TYPES:
-            raise ValueError("This extention '%s' is not supported"%ext)
+            raise ValueError("This extention '%s' is not supported" % ext)
         return ext
     
     def listPages(self, space=None):
@@ -345,12 +345,12 @@ class Client:
 
         #create a space page under the default admin space
         spacectnt = p.core.codemanagement.api.getSpacePage(name)
-        self.createPage(name, "Home", content="", order=10000, title="Home", tagsList=tagsList)
-        self.createPage(ADMINSPACE, name, spacectnt, title=name, parent="Spaces")
+        self.createPage(name, "Home.md", content="", order=10000, title="Home", tagsList=tagsList)
+        self.createPage(ADMINSPACE, "%s.md" % name, spacectnt, title=name, parent="Spaces")
         return space
 
     def createPage(self, space, name, content, order=None, title=None, tagsList=[], category='portal',
-                   parent=None, pagetype=None, , filename=None, contentIsFilePath=False):
+                   parent=None, filename=None, contentIsFilePath=False):
         """
         Creates a new page.
 
@@ -401,7 +401,7 @@ class Client:
             tags.add('space:%s' % space)
             tags.add('page:%s' % name)
             page.tags = ' '.join(tags)
-            page.pagetype = self._getType(name) if pagetype == None else pagetype
+            page.pagetype = self._getType(name)
 
             if parent:
                 parent_page = self.getPage(space, parent)
@@ -439,7 +439,7 @@ class Client:
 
         if oldname != newname:
             #rename space page.
-            self.updatePage(ADMINSPACE, oldname, name=newname, content=p.core.codemanagement.api.getSpacePage(newname))
+            self.updatePage(ADMINSPACE, "%s.md" % oldname, name= "%s.md" % newname, content=p.core.codemanagement.api.getSpacePage(newname))
         return space
 
     def updatePage(self, old_space, old_name, space=None, name=None, tagsList=None, content=None,
@@ -486,22 +486,21 @@ class Client:
         old_space = self._getSpaceGuid(old_space)
 
         page = self.getPage(old_space, old_name)
-        page.pagetype = pagetype
         
         if space:
             space = self._getSpaceGuid(space)
             page.space = space
 
-        params = {"name":name, "space":space, "category":category,
+        params = {"name": name, "space":space, "category":category,
                   "title": title, "order": order, "filename":filename, 
-                  "content":q.system.fs.fileGetContents(content) if contentIsFilePath else content
+                  "content":q.system.fs.fileGetContents(content) if contentIsFilePath else content,
+                  "pagetype": self._getType(name) if name else page.pagetype
                   }
         
         for key in params:
             if params[key]:
                 setattr(page, key, params[key])
-
-
+                
         if tagsList:
             tags = page.tags.split(' ')
             for tag in tagsList:
@@ -513,9 +512,6 @@ class Client:
         if parent:
             parent_page = self.getPage(old_space, parent)
             page.parent = parent_page.guid
-
-        if category:
-            page.category = category
 
         self.connection.page.save(page)
         return page

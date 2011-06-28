@@ -134,14 +134,14 @@ class LFWService(object):
         crumbs = self._breadcrumbs(page)
     
     @q.manage.applicationserver.expose
-    def createPage(self, space, name, content, parent=None, order=None, title=None, pagetype="md", tags="", category='portal'):
+    def createPage(self, space, name, content, parent=None, order=None, title=None, tags="", category='portal'):
         if self.alkira.pageExists(space, name):
             raise ValueError("A page with the same name already exists")
         
-        page = self.alkira.createPage(space=space, name=name, content=content, parent=parent, order=order, title=title, tagsList=tags.split(" "), category=category, pagetype=pagetype)
+        page = self.alkira.createPage(space=space, name=name, content=content, parent=parent, order=order, title=title, tagsList=tags.split(" "), category=category)
         
     @q.manage.applicationserver.expose
-    def updatePage(self, space, name, content, newname=None, parent=None, order=None, title=None, pagetype="md", tags="", category='portal'):
+    def updatePage(self, space, name, content, newname=None, parent=None, order=None, title=None, tags="", category='portal'):
         if not self.alkira.pageExists(space, name):
             raise ValueError("Page '%s' doesn't exists" % name)
         
@@ -150,7 +150,7 @@ class LFWService(object):
                 raise ValueError("Page '%s' already exists" % newname)
             
         page = self.alkira.updatePage(old_space=space, old_name=name, name=newname,
-                               content=content, parent=parent, order=order, title=title, tagsList=tags.split(" "), category=category, pagetype=pagetype)
+                               content=content, parent=parent, order=order, title=title, tagsList=tags.split(" "), category=category)
     
     @q.manage.applicationserver.expose
     def deletePage(self, space, name):

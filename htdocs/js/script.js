@@ -943,12 +943,17 @@ $(function(){
                                             },
                                             Save: function() {
                                                 var saveurl = LFW_CONFIG['uris']['createPage'];
-                                                var title = dialog.editor("title");
                                                 var name = $.trim(dialog.editor("name"));
+                                                var title = $.trim(dialog.editor("title"));
+                                                
                                                 var filetype = dialog.editor('filetype');
+                                                
                                                 if (!name) {
                                                     $.alert("Name can't be empty", "Invalid Name");
                                                     return;
+                                                }
+                                                if(!title){
+                                                    title = name;
                                                 }
                                                 
                                                 //append ext if needed.
@@ -966,8 +971,7 @@ $(function(){
                                                                'name': name,
                                                                'content': content,
                                                                'title': title,
-                                                               'parent': parent,
-                                                               'pagetype': filetype},
+                                                               'parent': parent},
                                                         dataType: 'json',
                                                         success: function(data) {
                                                             app.trigger('change-page', {title: name});
@@ -1013,7 +1017,14 @@ $(function(){
                                                     
                                                     //append ext if needed.
                                                     var filetype = dialog.editor('filetype');
-                                                    var name = dialog.editor("name");
+                                                    var name = $.trim(dialog.editor("name"));
+                                                    var title = $.trim(dialog.editor("title"));
+                                                    if (!name){
+                                                        $.alert("Page name can't be empty", "Invalid Name");
+                                                    }
+                                                    if (!title){
+                                                        title = name;
+                                                    }
                                                     var patt = new RegExp("\\." + filetype + "$");
                                                     if (!patt.test(name)) {
                                                         name += "." + filetype;
@@ -1025,8 +1036,7 @@ $(function(){
                                                                    'name': page,
                                                                    'newname': name,
                                                                    'content': dialog.editor("content"),
-                                                                   'title': dialog.editor("title"),
-                                                                   'pagetype': filetype},
+                                                                   'title': title},
                                                             dataType: 'json',
                                                             success: function(data) {
                                                                 app.trigger('change-page', {title: name});

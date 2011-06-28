@@ -346,7 +346,7 @@ class Client:
         #create a space page under the default admin space
         spacectnt = p.core.codemanagement.api.getSpacePage(name)
         self.createPage(name, "Home.md", content="", order=10000, title="Home", tagsList=tagsList)
-        self.createPage(ADMINSPACE, "%s.md" % name, spacectnt, title=name, parent="Spaces")
+        self.createPage(ADMINSPACE, "%s.md" % name, spacectnt, title=name, parent="Spaces.md")
         return space
 
     def createPage(self, space, name, content, order=None, title=None, tagsList=[], category='portal',

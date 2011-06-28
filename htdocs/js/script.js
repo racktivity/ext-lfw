@@ -342,10 +342,10 @@ data;
         );
 
         var pageTreeUri = LFW_CONFIG['uris']['pages'] + '?space=' + space +
-                '&name=' + 'pagetree';
+                '&name=' + 'pagetree.md';
 
         var context = this;
-        var treePage = '#/' + space + '/pagetree';
+        var treePage = '#/' + space + '/pagetree.md';
 
         $.ajax({
             url: pageTreeUri,

@@ -1,3 +1,4 @@
+import os
 import os.path
 from pylabs import q, p
 import urllib
@@ -103,8 +104,7 @@ class LFWService(object):
         breadcrumbs = []
         parent = page
         while parent:
-            breadcrumbs.append({'space': space,
-                                'guid': parent.guid,
+            breadcrumbs.append({'guid': parent.guid,
                                 'name': parent.name,
                                 'title': parent.title})
             parent = self.alkira.getPageByGUID(parent.parent) if parent.parent else None
@@ -130,15 +130,72 @@ class LFWService(object):
 
         return result
 
-    def _syncPageToDisk(self, page):
-        crumbs = self._breadcrumbs(page)
+#    def _syncPageToDisk(self, space, page, oldpage=None):
+#        crumbs = self._breadcrumbs(page)
+#        _join = q.system.fs.joinPaths
+#        _isfile = q.system.fs.isFile
+#        _isdir = q.system.fs.isDir
+#        _write = q.system.fs.writeFile
+#        
+#        base = _join(q.dirs.baseDir, "pyapps", p.api.appname, "portal", "spaces", space)
+#        filepath = _join(base, *[x['name'] for x in crumbs])
+#        
+#        if oldpage:
+#            #update
+#            oldpath = _join(base, *[x['name'] for x in self._breadcrumbs(oldpage)])
+#            if _isdir(oldpath):
+#                q.system.fs.renameDir(oldpath, filepath)
+#                oldpath = _join(filepath, oldpage.name)
+#                q.system.fs.renameFile(oldpath, _join(filepath, page.name))
+#            _write(oldpath, page.content)
+#        else:
+#            #create new
+#            
+#            q.system.fs.createDir(filepath)
+#            filepath = _join(filepath, page.name)
+#            _write(filepath, page.content)
     
+    def _syncPageToDisk(self, space, page, oldpagename=None):
+        crumbs = self._breadcrumbs(page)
+        _join = q.system.fs.joinPaths
+        _isfile = q.system.fs.isFile
+        _isdir = q.system.fs.isDir
+        _write = q.system.fs.writeFile
+        
+        path = _join(q.dirs.baseDir, "pyapps", p.api.appname, "portal", "spaces", space)
+        
+        for i, level in enumerate(crumbs):
+            oldpath = _join(path, oldpagename) if oldpagename else None
+            path = _join(path, level['name'])
+            if i == len(crumbs) - 1:
+                #last one, dump your file.
+                if oldpath and _isdir(oldpath):
+                    q.system.fs.renameDir(oldpath, path)
+                    q.system.fs.renameFile(_join(oldpath, oldpagename),
+                                           _join(path, level['name']))
+                    
+                elif oldpath and _isfile(oldpath):
+                    q.system.fs.renameFile(oldpath, path)
+                
+                fname = path
+                if _isdir(path):
+                    fname = _join(path, level['name'])
+                _write(fname, page.content)
+            else:
+                #in the chain
+                if _isfile(path):
+                    tmp = os.tmpnam()
+                    q.system.fs.renameFile(path, tmp)
+                    q.system.fs.createDir(path)
+                    q.system.fs.renameFile(tmp, _join(path, level['name']))
+                    
     @q.manage.applicationserver.expose
     def createPage(self, space, name, content, parent=None, order=None, title=None, tags="", category='portal'):
         if self.alkira.pageExists(space, name):
             raise ValueError("A page with the same name already exists")
         
         page = self.alkira.createPage(space=space, name=name, content=content, parent=parent, order=order, title=title, tagsList=tags.split(" "), category=category)
+        self._syncPageToDisk(space, page)
         
     @q.manage.applicationserver.expose
     def updatePage(self, space, name, content, newname=None, parent=None, order=None, title=None, tags="", category='portal'):
@@ -151,6 +208,8 @@ class LFWService(object):
             
         page = self.alkira.updatePage(old_space=space, old_name=name, name=newname,
                                content=content, parent=parent, order=order, title=title, tagsList=tags.split(" "), category=category)
+        
+        self._syncPageToDisk(space, page, name)
     
     @q.manage.applicationserver.expose
     def deletePage(self, space, name):

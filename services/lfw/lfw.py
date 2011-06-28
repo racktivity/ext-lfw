@@ -52,11 +52,11 @@ class LFWService(object):
         if name == "Admin":
             raise ValueError("Admin space is not deletable")
 
-        return self.alkira.deleteSpace(name)
+        self.alkira.deleteSpace(name)
 
     @q.manage.applicationserver.expose
     def updateSpace(self, name, newname=None, tags=""):
-        return self.alkira.updateSpace(name, newname, tags.split(' '))
+        self.alkira.updateSpace(name, newname, tags.split(' '))
 
     @q.manage.applicationserver.expose
     def pages(self, space=None, term=None):

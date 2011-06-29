@@ -4,6 +4,8 @@ import optparse
 import os, re
 import functools
 
+SUPPORTED_EXT = ("md", "py")
+
 def sync_to_alkira(appname, path=None, sync_space=None, clean_up=False):
     from pylabs import p, q
 
@@ -89,12 +91,20 @@ def sync_to_alkira(appname, path=None, sync_space=None, clean_up=False):
             if base_name == '.hg':
                 continue
             
-            #for backword compatability, forlder_path might not have .ext in it, so base_name should be with .md
-            if len(base_name.split(".")) < 2:
-                base_name = base_name + ".md"
+            #check for index file.
+            pagepath = None
+            for ext in SUPPORTED_EXT:
+                bname = "%s.%s" % (base_name, ext)
+                if q.system.fs.exists(q.system.fs.joinPaths(folder_path, bname)):
+                    pagepath = q.system.fs.joinPaths(folder_path, bname)
+                    base_name = bname
+                    break
             
-            parent_path = q.system.fs.joinPaths(folder_path, base_name)
-
+            if not pagepath:
+                q.errorconditionhandler.raiseError('The directory "%s" does not have a index page' % folder_path)
+            
+            parent_path = pagepath
+            
             if not q.system.fs.exists(parent_path):
                 q.errorconditionhandler.raiseError('The directory "%s" does not have a page "%s" specified for it.'%(folder_path, base_name))
 

@@ -76,6 +76,12 @@ class Client:
         space = self.connection.space.findAsView(filter, 'ui_view_space_list')
         return space
 
+    def _getUserInfo(self, username):
+        filter = self.connection.user.getFilterObject()
+        filter.add('ui_view_user_list', 'name', username, True)
+        user = self.connection.user.findAsView(filter, 'ui_view_user_list')
+        return user
+
     def _getParentGUIDS(self, guid_list):
         parent_list = []
         for guid in guid_list:
@@ -138,6 +144,19 @@ class Client:
 
         return self.connection.page.findAsView(filter, 'ui_view_page_list')
 
+
+    def listUsers(self, username=None):
+        """
+        Lists all the users
+
+        @param space: The name of the user.
+        """
+        filter = self.connection.user.getFilterObject()
+        if username:
+            filter.add('ui_view_user_list', 'name', username, True)
+
+        return self.connection.user.findAsView(filter, 'ui_view_user_list')
+
     def listChildPages(self, space, name = None):
         """
         Lists child pages of page "name"
@@ -189,6 +208,20 @@ class Client:
         else:
             return False
 
+    def userExists(self, name):
+        """
+        Checks whether a user exists or not.
+
+        @type name: String
+        @param name: The name of the user
+
+        @return: True if the user exists, False otherwise.
+        """
+        if self._getUserInfo(name):
+            return True
+        else:
+            return False
+
     def pageFind(self, name='', space='', category='', parent='', tags='', order=None, title='', exact_properties=None):
         filterObject = self.connection.page.getFilterObject()
         exact_properties = exact_properties or ()
@@ -205,6 +238,21 @@ class Client:
                 filterObject.add('ui_view_page_list', property_name, value, exactMatch=exact)
 
         return self.connection.page.find(filterObject)
+
+    def userFind(self, name='', tags='', exact_properties=None):
+        filterObject = self.connection.user.getFilterObject()
+        exact_properties = exact_properties or ()
+
+        frame = inspect.currentframe()
+        args, _, _, values = inspect.getargvalues(frame)
+
+        properties = ('name', 'tags')
+        for property_name, value in values.iteritems():
+            if property_name in properties and not value in (None, ''):
+                exact = property_name in exact_properties
+                filterObject.add('ui_view_page_list', property_name, value, exactMatch=exact)
+
+        return self.connection.user.find(filterObject)
 
     def getSpace(self, space):
         """
@@ -233,6 +281,20 @@ class Client:
         if not page_info:
             q.errorconditionhandler.raiseError("Page %s does not exist." % name)
         return self.connection.page.get(page_info[0]['guid'])
+
+    def getUser(self, name):
+        """
+        Gets a user object.
+
+        @type name: String
+        @param name: The name of the user.
+
+        @return: User object.
+        """
+        user_info = self._getUserInfo(name)
+        if not user_info:
+            q.errorconditionhandler.raiseError("User %s does not exist." % name)
+        return self.connection.user.get(user_info[0]['guid'])
 
     def getPageByGUID(self, guid):
         """
@@ -278,6 +340,16 @@ class Client:
         space = self._getSpaceGuid(space)
         page = self.getPage(space, name)
         self.connection.page.delete(page.guid)
+
+    def deleteUser(self, name):
+        """
+        Deletes a user.
+
+        @type name: String
+        @param name: The name of the user.
+        """
+        user = self.getUser(name)
+        self.connection.user.delete(user.guid)
 
     def deletePageByGUID(self, guid):
         """
@@ -410,6 +482,37 @@ class Client:
             self.connection.page.save(page)
             return page
 
+    def createUser(self, name, spaces=[], pages=[], tagsList=[]):
+        """
+        Create a new user object.
+
+        @param name:             name of the user
+        @type name:              string
+
+        @param spaces:            list of user spaces
+        @type spaces:             List
+
+        @param pages:            list of user pages
+        @type pages:             List
+
+        @param tagsList:         tags of the page
+        @type tags:              List
+        """
+        if self.userExists(name):
+            q.errorconditionhandler.raiseError("User %s already exists."%name)
+        else:
+            user = self.connection.user.new()
+            params = {"name":name, "spaces":spaces, "pages":pages}
+            for key in params:
+                if params[key]:
+                    setattr(page, key, params[key])
+
+            tags = set(tagsList)
+            tags.add('name:%s' % name)
+            user.tags = ' '.join(tags)
+            self.connection.user.save(user)
+            return user
+
     def updateSpace(self, space, newname=None, tagslist=None, repository=None, repo_username=None, repo_password=None):
         space = self.getSpace(space)
 
@@ -516,6 +619,35 @@ class Client:
 
         self.connection.page.save(page)
         return page
+
+    def updateUser(self, old_user, name, tagsList=None):
+        """
+        Updates an existing page.
+
+        @type old_user: String
+        @param old_user: The name of the user.
+
+        @type name: String
+        @param name: Gives the user a new name.
+
+        @type tagsList: List
+        @param tagsList: Appends tags in this list to the current tags of the page.
+        """
+
+        user = self.getUser(old_user)
+        user.name = name
+
+        if tagsList:
+            tags = user.tags.split(' ')
+            for tag in tagsList:
+                tags.append(tag)
+
+            user_tags = ' '.join(tags)
+            user.tags = user_tags
+
+        self.connection.user.save(user)
+        return user
+
 
     def findMacroConfig(self, space="", page="", macro="", configId=None, exact_properties=None):
         configFilter = self.connection.config.getFilterObject()

@@ -17,7 +17,7 @@
 
 (function($) {
 
-var DEFAULT_PAGE_NAME = 'Home',
+var DEFAULT_PAGE_NAME = 'Home.md',
     LABELS_RE = /,\s*/,
     LOCATION_PREFIX = '#/',
     ADMINSPACE="Admin";
@@ -342,10 +342,10 @@ data;
         );
 
         var pageTreeUri = LFW_CONFIG['uris']['pages'] + '?space=' + space +
-                '&name=' + 'pagetree';
+                '&name=' + 'pagetree.md';
 
         var context = this;
-        var treePage = '#/' + space + '/pagetree';
+        var treePage = '#/' + space + '/pagetree.md';
 
         $.ajax({
             url: pageTreeUri,
@@ -689,8 +689,8 @@ data;
 
         var render = true;
 
-        if (page.substr(-3) === '.md') {
-            page = page.substr(0, page.length - 3);
+        if (page.substr(-4) === '.src') {
+            page = page.substr(0, page.length - 4);
             render = false;
         }
 
@@ -728,7 +728,7 @@ data;
 
                 setTitle(data['title']);
                 
-                if ($.inArray(data.pagetype, ['python']) >= 0) {
+                if ($.inArray(data.pagetype, ['py']) >= 0) {
                     content = '[[code]]\n' + content + '[[/code]]';
                 }
                 /*
@@ -915,16 +915,20 @@ $(function(){
                         modal: true,
                         width: '80%',
                         height: $(document).height() - 50,
-                        title: "Page Editor"
+                        title: "Page Editor",
+                        closeOnEscape: false
                         });
 
     $("#toolbar > #newpage").button({icons: {primary: 'ui-icon-document'}}).click(function(){
         var parent = app.getPage();
         var space = app.getSpace();
 
-        dialog.editor("content", "");
+        dialog.editor("name", "");
         dialog.editor("title", "");
-        dialog.editor("filetype", null);
+        dialog.editor("content", "");
+        dialog.editor("filetype", "md");
+        
+        dialog.editor("disabled", "name", false);
         dialog.editor("disabled", "title", false);
         dialog.dialog("option", "buttons", {Close: function() {
                                                 $dialog = $(this);
@@ -938,21 +942,39 @@ $(function(){
                                                 }
                                             },
                                             Save: function() {
-                                                var saveurl = LFW_CONFIG['uris']['savePage'];
-                                                var title = dialog.editor("title");
+                                                var saveurl = LFW_CONFIG['uris']['createPage'];
+                                                var name = $.trim(dialog.editor("name"));
+                                                var title = $.trim(dialog.editor("title"));
+                                                
+                                                var filetype = dialog.editor('filetype');
+                                                
+                                                if (!name) {
+                                                    $.alert("Name can't be empty", "Invalid Name");
+                                                    return;
+                                                }
+                                                if(!title){
+                                                    title = name;
+                                                }
+                                                
+                                                //append ext if needed.
+                                                var patt = new RegExp("\\." + filetype + "$");
+                                                if (!patt.test(name)){
+                                                    name += "." + filetype;
+                                                }
+                                                
                                                 var content = dialog.editor("content");
+                                                
                                                 $.ajax({
                                                         url: saveurl,
                                                         type: 'POST',
-                                                        data: {'mode': 'new',
-                                                               'space': space,
-                                                               'name': title,
+                                                        data: {'space': space,
+                                                               'name': name,
                                                                'content': content,
                                                                'title': title,
                                                                'parent': parent},
                                                         dataType: 'json',
                                                         success: function(data) {
-                                                            app.trigger('change-page', {title: title});
+                                                            app.trigger('change-page', {title: name});
                                                             app.setSpace(space, true);
                                                             dialog.dialog("close");
                                                         },
@@ -969,9 +991,12 @@ $(function(){
         var content = pageobj.content;
 
         dialog.editor("title", app.getTitle());
+        dialog.editor("name", pageobj.name);
         if (page === "Home"){
+            dialog.editor("disabled", "name", true);
             dialog.editor("disabled", "title", true);
         } else {
+            dialog.editor("disabled", "name", false);
             dialog.editor("disabled", "title", false);
         }
         dialog.editor("content", content === null ? "" : content);
@@ -988,18 +1013,33 @@ $(function(){
                                                 }
                                             },
                                             Save: function() {
-                                                    var saveurl = LFW_CONFIG['uris']['savePage'];
-                                                    $.ajax({
-                                                            url: saveurl,
+                                                    var saveurl = LFW_CONFIG['uris']['updatePage'];
+                                                    
+                                                    //append ext if needed.
+                                                    var filetype = dialog.editor('filetype');
+                                                    var name = $.trim(dialog.editor("name"));
+                                                    var title = $.trim(dialog.editor("title"));
+                                                    if (!name){
+                                                        $.alert("Page name can't be empty", "Invalid Name");
+                                                    }
+                                                    if (!title){
+                                                        title = name;
+                                                    }
+                                                    var patt = new RegExp("\\." + filetype + "$");
+                                                    if (!patt.test(name)) {
+                                                        name += "." + filetype;
+                                                    }
+                                                    
+                                                    $.ajax({url: saveurl,
                                                             type: 'POST',
-                                                            data: {'mode': 'update',
-                                                                   'space': space,
+                                                            data: {'space': space,
                                                                    'name': page,
+                                                                   'newname': name,
                                                                    'content': dialog.editor("content"),
-                                                                   'title': dialog.editor("title")},
+                                                                   'title': title},
                                                             dataType: 'json',
                                                             success: function(data) {
-                                                                app.refresh();
+                                                                app.trigger('change-page', {title: name});
                                                                 dialog.dialog("close");
                                                             },
                                                             error: $.alerterror

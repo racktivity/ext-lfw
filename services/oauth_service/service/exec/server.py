@@ -32,7 +32,9 @@ class RequestHandler(BaseHTTPRequestHandler):
         @return: True for a valid user/password combination, and False otherwise and a list of group IDs for the user
         @rtype: list
         """
-        return True, ()
+        from LDAP import LDAPClient
+        ldap = LDAPClient(self.server.config["LDAP"], username, password)
+        return ldap.isAuthenticated(username, password), ()
 
     def saveToArakoon(self, token, longlast=False, groupguids=None):
         """

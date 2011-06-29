@@ -1,3 +1,4 @@
+import os
 import os.path
 from pylabs import q, p
 import urllib
@@ -51,11 +52,11 @@ class LFWService(object):
         if name == "Admin":
             raise ValueError("Admin space is not deletable")
 
-        return self.alkira.deleteSpace(name)
+        self.alkira.deleteSpace(name)
 
     @q.manage.applicationserver.expose
     def updateSpace(self, name, newname=None, tags=""):
-        return self.alkira.updateSpace(name, newname, tags.split(' '))
+        self.alkira.updateSpace(name, newname, tags.split(' '))
 
     @q.manage.applicationserver.expose
     def pages(self, space=None, term=None):
@@ -99,18 +100,21 @@ class LFWService(object):
 
         return result
 
-    @q.manage.applicationserver.expose
-    def breadcrumbs(self, space, name):
+    def _breadcrumbs(self, page):
         breadcrumbs = []
-        parent = self.alkira.getPage(space, name)
+        parent = page
         while parent:
-            breadcrumbs.append("<a href='#/%(space)s/%(name)s'>%(title)s</a>" % {'space': space,
-                                                                               'name': parent.name,
-                                                                               'title': parent.title})
+            breadcrumbs.append({'guid': parent.guid,
+                                'name': parent.name,
+                                'title': parent.title})
             parent = self.alkira.getPageByGUID(parent.parent) if parent.parent else None
         
         breadcrumbs.reverse()
         return breadcrumbs
+    
+    @q.manage.applicationserver.expose
+    def breadcrumbs(self, space, name):
+        return self._breadcrumbs(self.alkira.getPage(space, name))
     
     @q.manage.applicationserver.expose
     def page(self, space, name):
@@ -126,30 +130,65 @@ class LFWService(object):
 
         return result
 
-    @q.manage.applicationserver.expose
-    def savePage(self, mode, space, name, content, parent=None, order=None, title=None, tags="", category='portal'):
-        save = None
-        exists = self.alkira.pageExists(space, name)
-        if mode == "new":
-            if exists:
-                raise ValueError("A page with the same name already exists")
-            save = self.alkira.createPage
-        elif mode == "update":
-            if not exists:
-                raise ValueError("Page '%s' doesn't exists" % name)
-            save = functools.partial(self.alkira.updatePage, old_space=space, old_name=name)
-        else:
-            raise ValueError("Unknow page save mode '%s'" % mode)
+    def _syncPageToDisk(self, space, page, oldpagename=None):
+        crumbs = self._breadcrumbs(page)
+        _join = q.system.fs.joinPaths
+        _isfile = q.system.fs.isFile
+        _isdir = q.system.fs.isDir
+        _write = q.system.fs.writeFile
         
-        save(space=space, name=name, content=content, parent=parent, order=order, title=title, tagsList=tags.split(" "), category=category)
+        path = _join(q.dirs.baseDir, "pyapps", p.api.appname, "portal", "spaces", space)
+        
+        for i, level in enumerate(crumbs):
+            oldpath = _join(path, oldpagename) if oldpagename else None
+            path = _join(path, level['name'])
+            if i == len(crumbs) - 1:
+                #last one, dump your file.
+                if oldpath and _isdir(oldpath):
+                    q.system.fs.renameDir(oldpath, path)
+                    q.system.fs.renameFile(_join(oldpath, oldpagename),
+                                           _join(path, level['name']))
+                    
+                elif oldpath and _isfile(oldpath):
+                    q.system.fs.renameFile(oldpath, path)
+                
+                fname = path
+                if _isdir(path):
+                    fname = _join(path, level['name'])
+                _write(fname, page.content)
+            else:
+                #in the chain
+                if _isfile(path):
+                    tmp = os.tmpnam()
+                    q.system.fs.renameFile(path, tmp)
+                    q.system.fs.createDir(path)
+                    q.system.fs.renameFile(tmp, _join(path, level['name']))
+                    
+    @q.manage.applicationserver.expose
+    def createPage(self, space, name, content, parent=None, order=None, title=None, tags="", category='portal'):
+        if self.alkira.pageExists(space, name):
+            raise ValueError("A page with the same name already exists")
+        
+        page = self.alkira.createPage(space=space, name=name, content=content, parent=parent, order=order, title=title, tagsList=tags.split(" "), category=category)
+        self._syncPageToDisk(space, page)
+        
+    @q.manage.applicationserver.expose
+    def updatePage(self, space, name, content, newname=None, parent=None, order=None, title=None, tags="", category='portal'):
+        if not self.alkira.pageExists(space, name):
+            raise ValueError("Page '%s' doesn't exists" % name)
+        
+        if newname and newname != name:
+            if self.alkira.pageExists(space, newname):
+                raise ValueError("Page '%s' already exists" % newname)
+            
+        page = self.alkira.updatePage(old_space=space, old_name=name, name=newname,
+                               content=content, parent=parent, order=order, title=title, tagsList=tags.split(" "), category=category)
+        
+        self._syncPageToDisk(space, page, name)
     
     @q.manage.applicationserver.expose
     def deletePage(self, space, name):
         self.alkira.deletePageAndChildren(space, name)
-    
-    @q.manage.applicationserver.expose
-    def breadcrumbs(self, space, name):
-        pass
     
     def get_items(self, prop, space=None, term=None):
         if space:
@@ -208,7 +247,7 @@ class LFWService(object):
         result = self.connection.page.query(sql)
         data = list()
         for node in result :
-            if node['name'] == 'pagetree':
+            if node['name'] == 'pagetree.md':
                 continue
             nodedata = dict()
             children = list()
@@ -358,7 +397,7 @@ class LFWService(object):
                 if chidpages:
                     buildTree(client, pagepath, space, chidpages)
                 page = client.getPage(space, pagename)
-                filename = join(pagepath, pagename + ".md")
+                filename = join(pagepath, pagename)
                 fpage = open(filename, "w")
                 fpage.write("@metadata title = %s\n"%page.title)
                 fpage.write("@metadata order = %s\n"%page.order)

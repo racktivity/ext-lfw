@@ -41,6 +41,8 @@ class Client:
 
         @param api: The application api if hostname and appname are not passed
         """
+        self.KNOWN_TYPES = ["py", "md", "html", "txt"]
+        
         if hostname and appname:
             api = p.application.getAPI(appname, host=hostname, context=q.enumerators.AppContext.APPSERVER)
         elif not api:
@@ -88,7 +90,16 @@ class Client:
         if page:
             fullName += "/" + page
         return "%s/%s/portal/spaces/%s" % (q.dirs.pyAppsDir, self.api.appname, fullName)
-
+        
+    def _getType(self, pagename):
+        idx = pagename.find(".")
+        if idx < 1:
+            return "md"
+        ext = pagename[idx + 1:]
+        if ext not in self.KNOWN_TYPES:
+            raise ValueError("This extention '%s' is not supported" % ext)
+        return ext
+    
     def listPages(self, space=None):
         """
         Lists all the pages in a certain space.
@@ -251,7 +262,7 @@ class Client:
             self.connection.page.delete(page['guid'])
 
         self.connection.space.delete(space.guid)
-        self.deletePage(ADMINSPACE, space.name)
+        self.deletePage(ADMINSPACE, "%s.md" % space.name)
         q.system.fs.removeDirTree(self._getDir(space.name))
 
     def deletePage(self, space, name):
@@ -334,10 +345,12 @@ class Client:
 
         #create a space page under the default admin space
         spacectnt = p.core.codemanagement.api.getSpacePage(name)
-        self.createPage(name, "Home", content="", order=10000, title="Home", tagsList=tagsList)
-        self.createPage(ADMINSPACE, name, spacectnt, title=name, parent="Spaces")
+        self.createPage(name, "Home.md", content="", order=10000, title="Home", tagsList=tagsList)
+        self.createPage(ADMINSPACE, "%s.md" % name, spacectnt, title=name, parent="Spaces.md")
+        return space
 
-    def createPage(self, space, name, content, order=None, title=None, tagsList=[], category='portal', parent=None, contentIsFilePath=False):
+    def createPage(self, space, name, content, order=None, title=None, tagsList=[], category='portal',
+                   parent=None, filename=None, contentIsFilePath=False):
         """
         Creates a new page.
 
@@ -367,41 +380,35 @@ class Client:
 
         @type contentIsFilePath: Boolean
         @param contentIsFilePath: If the content you gave is a file path, set this value to True. Default is False.
+
+        @type filename: string
+        @param filename: used by import directory script to store original file path
         """
         space = self._getSpaceGuid(space)
         if self.pageExists(space, name):
             q.errorconditionhandler.raiseError("Page %s already exists."%name)
         else:
             page = self.connection.page.new()
-            page.space = space
-            page.name = name
-            page.category = category
-
-            if title:
-                page.title = title
-            else:
-                page.title = name
-
-            if order:
-                page.order = order
-            else:
-                page.order = 10000
-
-            if contentIsFilePath:
-                content = q.system.fs.fileGetContents(content)
-
-            page.content = content
+            params = {"name":name, "space":space, "category":category,
+                      "title": title, "order": order, "filename":filename, 
+                      "content":q.system.fs.fileGetContents(content) if contentIsFilePath else content
+					 }
+            for key in params:
+                if params[key]:
+                    setattr(page, key, params[key])
 
             tags = set(tagsList)
             tags.add('space:%s' % space)
             tags.add('page:%s' % name)
             page.tags = ' '.join(tags)
+            page.pagetype = self._getType(name)
 
             if parent:
                 parent_page = self.getPage(space, parent)
                 page.parent = parent_page.guid
-
+                
             self.connection.page.save(page)
+            return page
 
     def updateSpace(self, space, newname=None, tagslist=None, repository=None, repo_username=None, repo_password=None):
         space = self.getSpace(space)
@@ -432,9 +439,11 @@ class Client:
 
         if newname != None and oldname != newname:
             #rename space page.
-            self.updatePage(ADMINSPACE, oldname, name=newname, content=p.core.codemanagement.api.getSpacePage(newname))
+            self.updatePage(ADMINSPACE, "%s.md" % oldname, name= "%s.md" % newname, content=p.core.codemanagement.api.getSpacePage(newname))
+        return space
 
-    def updatePage(self, old_space, old_name, space=None, name=None, tagsList=None, content=None, order=None, title=None, parent=None, category=None, contentIsFilePath=False):
+    def updatePage(self, old_space, old_name, space=None, name=None, tagsList=None, content=None,
+                   order=None, title=None, parent=None, category=None, pagetype=None, filename=None, contentIsFilePath=False):
         """
         Updates an existing page.
 
@@ -470,18 +479,28 @@ class Client:
 
         @type contentIsFilePath: Boolean
         @param contentIsFilePath: If the content you gave is a file path, set this value to True. Default is False.
+        
+        @type filename: string
+        @param filename: used by import directory script to store original file path
         """
         old_space = self._getSpaceGuid(old_space)
 
         page = self.getPage(old_space, old_name)
-
+        
         if space:
             space = self._getSpaceGuid(space)
             page.space = space
 
-        if name:
-            page.name = name
-
+        params = {"name": name, "space":space, "category":category,
+                  "title": title, "order": order, "filename":filename, 
+                  "content":q.system.fs.fileGetContents(content) if contentIsFilePath else content,
+                  "pagetype": self._getType(name) if name else page.pagetype
+                  }
+        
+        for key in params:
+            if params[key]:
+                setattr(page, key, params[key])
+                
         if tagsList:
             tags = page.tags.split(' ')
             for tag in tagsList:
@@ -490,25 +509,12 @@ class Client:
             page_tags = ' '.join(tags)
             page.tags = page_tags
 
-        if content:
-            if contentIsFilePath:
-                content = q.system.fs.fileGetContents(content)
-            page.content = content
-
-        if order:
-            page.order = order
-
-        if title:
-            page.title = title
-
         if parent:
             parent_page = self.getPage(old_space, parent)
             page.parent = parent_page.guid
 
-        if category:
-            page.category = category
-
         self.connection.page.save(page)
+        return page
 
     def findMacroConfig(self, space="", page="", macro="", configId=None, exact_properties=None):
         configFilter = self.connection.config.getFilterObject()

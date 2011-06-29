@@ -351,6 +351,15 @@ class Client:
         user = self.getUser(name)
         self.connection.user.delete(user.guid)
 
+    def deleteUserByGUID(self, userguid):
+        """
+        Deletes a user using its GUID
+
+        @type userguid: GUID
+        @param userguid: The GUID of the user.
+        """
+        self.connection.user.delete(userguid)
+
     def deletePageByGUID(self, guid):
         """
         Delete a page by guid
@@ -482,7 +491,7 @@ class Client:
             self.connection.page.save(page)
             return page
 
-    def createUser(self, name, spaces=[], pages=[], tagsList=[]):
+    def createUser(self, name, password, spaces=[], pages=[], tagsList=[]):
         """
         Create a new user object.
 
@@ -502,7 +511,7 @@ class Client:
             q.errorconditionhandler.raiseError("User %s already exists."%name)
         else:
             user = self.connection.user.new()
-            params = {"name":name, "spaces":spaces, "pages":pages}
+            params = {"name":name, "password": password, "spaces":spaces, "pages":pages}
             for key in params:
                 if params[key]:
                     setattr(page, key, params[key])
@@ -620,7 +629,7 @@ class Client:
         self.connection.page.save(page)
         return page
 
-    def updateUser(self, old_user, name, tagsList=None):
+    def updateUser(self, old_user, name="", password="", tagsList=None):
         """
         Updates an existing page.
 
@@ -635,7 +644,10 @@ class Client:
         """
 
         user = self.getUser(old_user)
-        user.name = name
+        if name:
+            user.name = name
+        if password:
+            user.password = password
 
         if tagsList:
             tags = user.tags.split(' ')

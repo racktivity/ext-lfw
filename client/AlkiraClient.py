@@ -471,9 +471,9 @@ class Client:
             page.name = name
 
         if tagsList:
-            tags = page.tags.split(' ')
+            tags = set(page.tags.split(' '))
             for tag in tagsList:
-                tags.append(tag)
+                tags.add(tag)
 
             page_tags = ' '.join(tags)
             page.tags = page_tags

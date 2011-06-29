@@ -137,33 +137,40 @@ class LFWService(object):
         _isdir = q.system.fs.isDir
         _write = q.system.fs.writeFile
         
-        path = _join(q.dirs.baseDir, "pyapps", p.api.appname, "portal", "spaces", space)
-        
+        dir = _join(q.dirs.baseDir, "pyapps", p.api.appname, "portal", "spaces", space)
+        upper = dir
         for i, level in enumerate(crumbs):
-            oldpath = _join(path, oldpagename) if oldpagename else None
-            path = _join(path, level['name'])
+            name, _, ext = level['name'].rpartition('.')
+            file = _join(dir, level['name'])
+            dir = _join(dir, name)
+            
             if i == len(crumbs) - 1:
-                #last one, dump your file.
-                if oldpath and _isdir(oldpath):
-                    q.system.fs.renameDir(oldpath, path)
-                    q.system.fs.renameFile(_join(oldpath, oldpagename),
-                                           _join(path, level['name']))
-                    
-                elif oldpath and _isfile(oldpath):
-                    q.system.fs.renameFile(oldpath, path)
+                if oldpagename:
+                    oldname, _, ext = oldpagename.rpartition('.')
+                    oldfile = _join(upper, oldpagename)
+                    olddir = _join(upper, oldname)
+                    tofile = file
+                    if _isdir(olddir):
+                        oldfile = _join(olddir, oldpagename)
+                        tofile = _join(olddir, level['name'])
+                        
+                    q.system.fs.renameFile(oldfile, tofile)
+                    if _isdir(olddir):
+                        q.system.fs.renameDir(olddir, dir)
                 
-                fname = path
-                if _isdir(path):
-                    fname = _join(path, level['name'])
-                _write(fname, page.content)
+                if _isdir(dir):
+                    file = _join(dir, level['name'])
+                _write(file, page.content)
             else:
                 #in the chain
-                if _isfile(path):
+                if _isfile(file):
                     tmp = os.tmpnam()
-                    q.system.fs.renameFile(path, tmp)
-                    q.system.fs.createDir(path)
-                    q.system.fs.renameFile(tmp, _join(path, level['name']))
-                    
+                    q.system.fs.renameFile(file, tmp)
+                    q.system.fs.createDir(dir)
+                    q.system.fs.renameFile(tmp, _join(dir, level['name']))
+            
+            upper = dir
+            
     @q.manage.applicationserver.expose
     def createPage(self, space, name, content, parent=None, order=None, title=None, tags="", category='portal'):
         if self.alkira.pageExists(space, name):

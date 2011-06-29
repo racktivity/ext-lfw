@@ -394,7 +394,7 @@ class Client:
                       "content":q.system.fs.fileGetContents(content) if contentIsFilePath else content
 					 }
             for key in params:
-                if params[key]:
+                if params[key] != None:
                     setattr(page, key, params[key])
 
             tags = set(tagsList)
@@ -498,7 +498,7 @@ class Client:
                   }
         
         for key in params:
-            if params[key]:
+            if params[key] != None:
                 setattr(page, key, params[key])
                 
         if tagsList:

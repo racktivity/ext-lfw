@@ -153,8 +153,9 @@ class LFWService(object):
                     if _isdir(olddir):
                         oldfile = _join(olddir, oldpagename)
                         tofile = _join(olddir, level['name'])
-                        
-                    q.system.fs.renameFile(oldfile, tofile)
+                    
+                    if _isfile(oldfile):
+                        q.system.fs.renameFile(oldfile, tofile)
                     if _isdir(olddir):
                         q.system.fs.renameDir(olddir, dir)
                 
@@ -170,7 +171,24 @@ class LFWService(object):
                     q.system.fs.renameFile(tmp, _join(dir, level['name']))
             
             upper = dir
-            
+    
+    def _syncPageDelete(self, space, crumbs):
+        _join = q.system.fs.joinPaths
+        _isfile = q.system.fs.isFile
+        _isdir = q.system.fs.isDir
+        
+        dir = _join(q.dirs.baseDir, "pyapps", p.api.appname, "portal", "spaces", space)
+        for i, level in enumerate(crumbs):
+            name, _, ext = level['name'].rpartition('.')
+            file = _join(dir, level['name'])
+            dir = _join(dir, name)
+            if i == len(crumbs) - 1:
+                if _isdir(dir):
+                    q.system.fs.removeDirTree(dir)
+                elif _isfile(file):
+                    q.system.fs.removeFile(file)
+        
+    
     @q.manage.applicationserver.expose
     def createPage(self, space, name, content, parent=None, order=None, title=None, tags="", category='portal'):
         if self.alkira.pageExists(space, name):
@@ -195,7 +213,9 @@ class LFWService(object):
     
     @q.manage.applicationserver.expose
     def deletePage(self, space, name):
+        crumbs = self.breadcrumbs(space, name)
         self.alkira.deletePageAndChildren(space, name)
+        self._syncPageDelete(space, crumbs)
     
     def get_items(self, prop, space=None, term=None):
         if space:

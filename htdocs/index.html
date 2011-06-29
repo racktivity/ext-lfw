@@ -63,7 +63,9 @@
   <link rel='stylesheet' href='/static/lfw/style/print.css'
     type='text/css' media='print' />
      <link rel='stylesheet' href='/static/lfw/css/theme.css' type='text/css' media='screen, projection' />
-
+     <link rel='stylesheet' href='/static/lfw/css/codemirror/codemirror.css' type='text/css' media='screen, projection' />
+     <link rel='stylesheet' href='/static/lfw/css/codemirror/theme/neat.css' type='text/css' media='screen, projection' />
+     <link rel='stylesheet' href='/static/lfw/css/editor/editor.css' type='text/css' media='screen, projection' />
   <script>
 
 
@@ -87,7 +89,27 @@
 </head>
 
 <body>
+ <div id='loginInfo' name='loginInfo' style="display:none;" align="right">
+        <div>
+            <input type='text' readonly='readonly' name='loggeduser' id='loggeduser' style="background-color:transparent;text-align:right; border:0px"/>&nbsp;|&nbsp;<a href='#' id='logout' name='logout'>Logout</a>&nbsp;
+        </div>
+ </div>
 
+  <div id='loginDialog' style="display:none;">
+     <form name='login-form' id='login-form' method='get'>
+        <div>
+            <label for='username'>User name:</label>
+            <input name='username' id='username' placeholder='username' class='input.text' />
+        </div>
+        <div>
+            <label for='password'>Password:</label>
+            <input type='password' name='password' id='password' placeholder='password' class='input.text' />
+        </div>
+        <div>
+            <input type='button' name='login' value='Login' onclick='javascript:doLogin()' />
+        </div>
+     </form>
+  </div>
   <div id="container">
   <a class="logo"></a>
     <div id='header' class='span-24 last'>
@@ -98,8 +120,6 @@
         <img src='/static/lfw/img/pixel.gif'/>
       </div>
       <div class='span-19 last' id='search'>
-      
-        
         
         <label for='title'>Title:</label>
         <input id='title' name='q' placeholder='PageTitle' class='text' />
@@ -110,7 +130,6 @@
             placeholder='label, label' class='text' />
           <input type='hidden' name='type' value='labels' />
         </form>
-
         <form name='fulltext-search' id='fulltext-search' method='get'>
           <label for='text'>Search:</label>
           <input type='search' name='q' id='text' required
@@ -127,7 +146,12 @@
       </div>
       
       <div id='content' class='span-19 last'>
-        <div id='main'>&nbsp;</div>      
+        <div id='toolbar' class='span-20 last' style='margin-top: 5px; text-align: right;'>
+            <button id='newpage'>New</button>
+            <button id='editpage'>Edit</button>
+            <button id='deletepage'>Delete</button>
+        </div>
+        <div id='main'>&nbsp;</div>
       </div>    
     </div>
     
@@ -171,11 +195,19 @@
   
   
   <script src='/static/lfw/js/libs/jquery-ui.js'></script>
+  <script src='/static/lfw/js/libs/oauth.js'></script>
+  <script src='/static/lfw/js/libs/sha1.js'></script>
   <script>!window.jQuery.ui && document.write(unescape('%3Cscript src="/static/lfw/js/libs/jquery-ui-1.8.7.js"%3E%3C/script%3E'))</script>
   <script src='/static/lfw/js/libs/jquery.tmpl.js'></script>
   <script src='/static/lfw/js/libs/jquery.json-2.2.js'></script>
   <script src='/static/lfw/js/libs/dominoes-1.0-rc2.min.js'></script>
-  
+  <script src="/static/lfw/js/dialogs.js"></script>
+  <script src="/static/lfw/js/libs/codemirror/codemirror.js"></script>
+  <script src="/static/lfw/js/libs/codemirror/python.js"></script>
+  <script src="/static/lfw/js/editor.js"></script>
+  <script src="/static/lfw/js/autocomp.js"></script>
+          
+          
   <!-- scripts concatenated and minified via ant build script-->
   <script src='/static/lfw/js/mylibs/sammy-0.6.2.min.js'></script>
   <script src='/static/lfw/js/mylibs/sammy.mustache-0.6.2.min.js'></script>
@@ -183,6 +215,7 @@
   <script src='/static/lfw/js/mylibs/showdown-0.9.min.js'></script>
   <script src="/static/lfw/js/plugins.js"></script>
   <script src='js/config.js'></script>
+  
   <script src="/static/lfw/js/script.js"></script>
   <!-- end concatenated and minified scripts-->  
   
@@ -200,6 +233,155 @@
   
   <script>
   manageDebug();
+  </script>
+  <script>
+    COOKIE_NAME = "oauth_token";
+    $("#logout").click(function(event) {
+        event.preventDefault();
+        localStorage.removeItem(COOKIE_NAME);
+        eraseCookie("username");
+        location.reload();
+    });
+    function doLogin()
+    {
+        if(jQuery.trim( $('#username').val() ) == "" || jQuery.trim( $('#password').val() ) == "")
+        {
+            alert("Invalid username/password combination!");
+            return;
+        }
+        makeOAuthRequest($('#username').val(), $('#password').val());
+        $(loginDialog).dialog('close');
+    }
+    addAuthenticationHeader();
+    displayUser();
+    //GUID generator
+    function guidGenerator() {
+        var S4 = function() {
+        return (((1+Math.random())*0x10000)|0).toString(16).substring(1);
+        };
+        return (S4()+S4()+"-"+S4()+"-"+S4()+"-"+S4()+"-"+S4()+S4()+S4());
+    }
+
+    //Cookies managment functions
+    function createCookie(name,value,days) {
+      if (days) {
+          var date = new Date();
+          date.setTime(date.getTime()+(days*24*60*60*1000));
+          var expires = "; expires="+date.toGMTString();
+      }
+      else var expires = "";
+      document.cookie = name+"="+value+expires+"; path=/";
+    }
+    function readCookie(name) {
+        var nameEQ = name + "=";
+        var ca = document.cookie.split(';');
+        for(var i=0;i < ca.length;i++) {
+            var c = ca[i];
+            while (c.charAt(0)==' ') c = c.substring(1,c.length);
+            if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
+        }
+        return null;
+      }
+    function eraseCookie(name) {
+        createCookie(name,"",-1);
+    }
+    //Token generation function
+    function makeOAuthRequest(username, password)
+    {
+        var url = LFW_CONFIG['oauthservice'];
+        var accessor = {
+            token: "",
+            tokenSecret: "",
+            consumerKey : guidGenerator(),
+            consumerSecret: guidGenerator()
+        };
+
+        var message = {
+            action: url,
+            method: "GET",
+            parameters: {'user': username, 'password': password}
+        };
+
+        OAuth.completeRequest(message, accessor);
+        OAuth.SignatureMethod.sign(message, accessor);
+        url = url + '?' + OAuth.formEncode(message.parameters);
+        jQuery.ajax({
+            type: "GET",
+            dataType: 'jsonp',
+            jsonp: '_jsonp',
+            url: url,
+            success: function(data){
+                                       localStorage.setItem(COOKIE_NAME, data);
+                                       $("#loginInfo").attr("style", ""); 
+                                       $("#loggeduser").attr("value",username);
+                                       createCookie("username", username);
+                                   },
+        });
+
+    }
+    //Add the authentication info to the header of all Ajax request
+    function addAuthenticationHeader()
+    {
+        var url = "http://incubaid/pylabs5";
+        var accessor = {
+            token: "",
+            tokenSecret: "",
+            consumerKey : "",
+            consumerSecret: ""
+        };
+
+        var message = {
+          action: url,
+          method: "GET",
+          parameters: {'user': '', 'password': ''}
+        };
+        var token = localStorage.getItem(COOKIE_NAME);
+        var tokenKey, tokenSecret;
+        if(token != null)
+        {
+            var parts = token.split("&");
+            var firstPart = parts[0];
+            var secondPart = parts[1];
+            if(firstPart.split("=")[0] == "oauth_token")
+            {
+                tokenKey = firstPart.split("=")[1];
+                tokenSecret = secondPart.split("=")[1];
+            }
+            else
+            {
+                tokenKey = secondPart.split("=")[1];
+                tokenSecret = firstPart.split("=")[1];
+            }
+            OAuth.completeRequest(message, accessor);
+            var oauth_header_params = {
+                oauth_consumer_key: readCookie("username"),
+                oauth_token: 'token_$('+tokenKey+')',
+                oauth_verifier: '',
+                oauth_nonce: message.parameters.oauth_nonce,
+                oauth_timestamp: message.parameters.oauth_timestamp,
+                oauth_signature: message.parameters.oauth_signature
+            };
+            authorization_header = OAuth.getAuthorizationHeader('alkira',oauth_header_params);
+            jQuery.ajaxSetup({
+                'beforeSend': function(xhr) {
+                                                xhr.setRequestHeader("authorization", authorization_header);
+                                            }
+            });
+        }
+        else
+        {
+            $(loginDialog).dialog({title: 'Login required', closeOnEscape: false, width: 260, height:200, resizable: false});
+        }
+    }
+    function displayUser()
+    {
+        var username = readCookie('username');
+        if(username != null)
+        {
+            $("#loginInfo").attr("style", "");
+            $("#loggeduser").attr("value",username);
+        }
+    }
   </script>
 </body>
 </html>

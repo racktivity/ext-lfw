@@ -195,7 +195,7 @@ class LFWService(object):
             raise ValueError("A page with the same name already exists")
         
         page = self.alkira.createPage(space=space, name=name, content=content, parent=parent, order=order, title=title, tagsList=tags.split(" "), category=category)
-        self._syncPageToDisk(space, page)
+        #self._syncPageToDisk(space, page)
         
     @q.manage.applicationserver.expose
     def updatePage(self, space, name, content, newname=None, parent=None, order=None, title=None, tags="", category='portal'):
@@ -209,7 +209,7 @@ class LFWService(object):
         page = self.alkira.updatePage(old_space=space, old_name=name, name=newname,
                                content=content, parent=parent, order=order, title=title, tagsList=tags.split(" "), category=category)
         
-        self._syncPageToDisk(space, page, name)
+        #self._syncPageToDisk(space, page, name)
     
     @q.manage.applicationserver.expose
     def deletePage(self, space, name):
@@ -274,7 +274,7 @@ class LFWService(object):
         result = self.connection.page.query(sql)
         data = list()
         for node in result :
-            if node['name'] == 'pagetree.md':
+            if node['name'] == 'pagetree':
                 continue
             nodedata = dict()
             children = list()
@@ -424,7 +424,7 @@ class LFWService(object):
                 if chidpages:
                     buildTree(client, pagepath, space, chidpages)
                 page = client.getPage(space, pagename)
-                filename = join(pagepath, pagename)
+                filename = join(pagepath, pagename + ".md")
                 fpage = open(filename, "w")
                 fpage.write("@metadata title = %s\n"%page.title)
                 fpage.write("@metadata order = %s\n"%page.order)

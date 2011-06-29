@@ -17,7 +17,7 @@
 
 (function($) {
 
-var DEFAULT_PAGE_NAME = 'Home.md',
+var DEFAULT_PAGE_NAME = 'Home',
     LABELS_RE = /,\s*/,
     LOCATION_PREFIX = '#/',
     ADMINSPACE="Admin";
@@ -342,10 +342,10 @@ data;
         );
 
         var pageTreeUri = LFW_CONFIG['uris']['pages'] + '?space=' + space +
-                '&name=' + 'pagetree.md';
+                '&name=' + 'pagetree';
 
         var context = this;
-        var treePage = '#/' + space + '/pagetree.md';
+        var treePage = '#/' + space + '/pagetree';
 
         $.ajax({
             url: pageTreeUri,
@@ -689,8 +689,8 @@ data;
 
         var render = true;
 
-        if (page.substr(-4) === '.src') {
-            page = page.substr(0, page.length - 4);
+        if (page.substr(-3) === '.md') {
+            page = page.substr(0, page.length - 3);
             render = false;
         }
 

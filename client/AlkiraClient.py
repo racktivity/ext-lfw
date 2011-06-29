@@ -262,7 +262,7 @@ class Client:
             self.connection.page.delete(page['guid'])
 
         self.connection.space.delete(space.guid)
-        self.deletePage(ADMINSPACE, "%s.md" % space.name)
+        self.deletePage(ADMINSPACE, space.name)
         q.system.fs.removeDirTree(self._getDir(space.name))
 
     def deletePage(self, space, name):
@@ -345,8 +345,8 @@ class Client:
 
         #create a space page under the default admin space
         spacectnt = p.core.codemanagement.api.getSpacePage(name)
-        self.createPage(name, "Home.md", content="", order=10000, title="Home", tagsList=tagsList)
-        self.createPage(ADMINSPACE, "%s.md" % name, spacectnt, title=name, parent="Spaces.md")
+        self.createPage(name, "Home", content="", order=10000, title="Home", tagsList=tagsList)
+        self.createPage(ADMINSPACE, name, spacectnt, title=name, parent="Spaces")
         return space
 
     def createPage(self, space, name, content, order=None, title=None, tagsList=[], category='portal',
@@ -439,7 +439,7 @@ class Client:
 
         if oldname != newname:
             #rename space page.
-            self.updatePage(ADMINSPACE, "%s.md" % oldname, name= "%s.md" % newname, content=p.core.codemanagement.api.getSpacePage(newname))
+            self.updatePage(ADMINSPACE, oldname, name=newname, content=p.core.codemanagement.api.getSpacePage(newname))
         return space
 
     def updatePage(self, old_space, old_name, space=None, name=None, tagsList=None, content=None,
@@ -504,7 +504,8 @@ class Client:
         if tagsList:
             tags = page.tags.split(' ')
             for tag in tagsList:
-                tags.append(tag)
+                if tag not in tags:
+                    tags.append(tag)
 
             page_tags = ' '.join(tags)
             page.tags = page_tags

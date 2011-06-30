@@ -12,7 +12,7 @@ def main(q, i, p, params, tags):
     alkira_client = q.clients.alkira.getClient('127.0.0.1', appname)
 
     all_pages_info = alkira_client.listPageInfo(space)
-    all_pages_info = filter(lambda x: x['name'] != 'pagetree.md', all_pages_info)
+    all_pages_info = filter(lambda x: x['name'] != 'pagetree', all_pages_info)
 
     page_guid_dict = dict( [ (x['name'], x['guid']) for x in all_pages_info ] )
     page_parent_dict = dict( [ (x['name'], x['parent']) for x in all_pages_info ] )

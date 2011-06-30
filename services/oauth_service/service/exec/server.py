@@ -32,7 +32,9 @@ class RequestHandler(BaseHTTPRequestHandler):
         @return: True for a valid user/password combination, and False otherwise and a list of group IDs for the user
         @rtype: list
         """
-        return True, ()
+        from LDAP import LDAPClient
+        ldap = LDAPClient(self.server.config["LDAP"], username, password)
+        return ldap.isAuthenticated(username, password), ()
 
     def saveToArakoon(self, token, longlast=False, groupguids=None):
         """
@@ -101,7 +103,7 @@ class RequestHandler(BaseHTTPRequestHandler):
             try:
                 #Generate a new access token
                 oauth_request = oauth.Request.from_request(self.command, '%s%s' % (self.server.config['main']['host'], self.path), headers=self.headers)
-                token = oauth.Token(str(uuid.uuid1()), str(uuid.uuid1()))
+                token = oauth.Token(str(uuid.uuid4()), str(uuid.uuid4()))
                 token.set_verifier('')
                 self.send_response(200)
                 if jsonp:

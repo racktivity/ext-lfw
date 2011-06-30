@@ -76,6 +76,12 @@ class Client:
         space = self.connection.space.findAsView(filter, 'ui_view_space_list')
         return space
 
+    def _getUserInfo(self, username):
+        filter = self.connection.user.getFilterObject()
+        filter.add('ui_view_user_list', 'name', username, True)
+        user = self.connection.user.findAsView(filter, 'ui_view_user_list')
+        return user
+
     def _getParentGUIDS(self, guid_list):
         parent_list = []
         for guid in guid_list:
@@ -92,13 +98,12 @@ class Client:
         return "%s/%s/portal/spaces/%s" % (q.dirs.pyAppsDir, self.api.appname, fullName)
         
     def _getType(self, pagename):
-        idx = pagename.find(".")
-        if idx < 1:
-            return "md"
-        ext = pagename[idx + 1:]
+        name, _, ext = pagename.rpartition('.')
+        if not ext:
+            ext = "md"
         if ext not in self.KNOWN_TYPES:
             raise ValueError("This extention '%s' is not supported" % ext)
-        return ext
+        return name, ext
     
     def listPages(self, space=None):
         """
@@ -137,6 +142,19 @@ class Client:
             filter.add('ui_view_page_list', 'space', space, True)
 
         return self.connection.page.findAsView(filter, 'ui_view_page_list')
+
+
+    def listUsers(self, username=None):
+        """
+        Lists all the users
+
+        @param space: The name of the user.
+        """
+        filter = self.connection.user.getFilterObject()
+        if username:
+            filter.add('ui_view_user_list', 'name', username, True)
+
+        return self.connection.user.findAsView(filter, 'ui_view_user_list')
 
     def listChildPages(self, space, name = None):
         """
@@ -189,6 +207,20 @@ class Client:
         else:
             return False
 
+    def userExists(self, name):
+        """
+        Checks whether a user exists or not.
+
+        @type name: String
+        @param name: The name of the user
+
+        @return: True if the user exists, False otherwise.
+        """
+        if self._getUserInfo(name):
+            return True
+        else:
+            return False
+
     def pageFind(self, name='', space='', category='', parent='', tags='', order=None, title='', exact_properties=None):
         filterObject = self.connection.page.getFilterObject()
         exact_properties = exact_properties or ()
@@ -205,6 +237,21 @@ class Client:
                 filterObject.add('ui_view_page_list', property_name, value, exactMatch=exact)
 
         return self.connection.page.find(filterObject)
+
+    def userFind(self, name='', tags='', exact_properties=None):
+        filterObject = self.connection.user.getFilterObject()
+        exact_properties = exact_properties or ()
+
+        frame = inspect.currentframe()
+        args, _, _, values = inspect.getargvalues(frame)
+
+        properties = ('name', 'tags')
+        for property_name, value in values.iteritems():
+            if property_name in properties and not value in (None, ''):
+                exact = property_name in exact_properties
+                filterObject.add('ui_view_page_list', property_name, value, exactMatch=exact)
+
+        return self.connection.user.find(filterObject)
 
     def getSpace(self, space):
         """
@@ -234,6 +281,20 @@ class Client:
             q.errorconditionhandler.raiseError("Page %s does not exist." % name)
         return self.connection.page.get(page_info[0]['guid'])
 
+    def getUser(self, name):
+        """
+        Gets a user object.
+
+        @type name: String
+        @param name: The name of the user.
+
+        @return: User object.
+        """
+        user_info = self._getUserInfo(name)
+        if not user_info:
+            q.errorconditionhandler.raiseError("User %s does not exist." % name)
+        return self.connection.user.get(user_info[0]['guid'])
+
     def getPageByGUID(self, guid):
         """
         Get a page object by guid
@@ -262,7 +323,7 @@ class Client:
             self.connection.page.delete(page['guid'])
 
         self.connection.space.delete(space.guid)
-        self.deletePage(ADMINSPACE, "%s.md" % space.name)
+        self.deletePage(ADMINSPACE, space.name)
         q.system.fs.removeDirTree(self._getDir(space.name))
 
     def deletePage(self, space, name):
@@ -278,6 +339,25 @@ class Client:
         space = self._getSpaceGuid(space)
         page = self.getPage(space, name)
         self.connection.page.delete(page.guid)
+
+    def deleteUser(self, name):
+        """
+        Deletes a user.
+
+        @type name: String
+        @param name: The name of the user.
+        """
+        user = self.getUser(name)
+        self.connection.user.delete(user.guid)
+
+    def deleteUserByGUID(self, userguid):
+        """
+        Deletes a user using its GUID
+
+        @type userguid: GUID
+        @param userguid: The GUID of the user.
+        """
+        self.connection.user.delete(userguid)
 
     def deletePageByGUID(self, guid):
         """
@@ -345,12 +425,12 @@ class Client:
 
         #create a space page under the default admin space
         spacectnt = p.core.codemanagement.api.getSpacePage(name)
-        self.createPage(name, "Home.md", content="", order=10000, title="Home", tagsList=tagsList)
-        self.createPage(ADMINSPACE, "%s.md" % name, spacectnt, title=name, parent="Spaces.md")
+        self.createPage(name, "Home", content="", order=10000, title="Home", tagsList=tagsList)
+        self.createPage(ADMINSPACE, name, spacectnt, title=name, parent="Spaces")
         return space
 
     def createPage(self, space, name, content, order=None, title=None, tagsList=[], category='portal',
-                   parent=None, filename=None, contentIsFilePath=False):
+                   parent=None, filename=None, contentIsFilePath=False, pagetype="md"):
         """
         Creates a new page.
 
@@ -389,19 +469,18 @@ class Client:
             q.errorconditionhandler.raiseError("Page %s already exists."%name)
         else:
             page = self.connection.page.new()
-            params = {"name":name, "space":space, "category":category,
+            params = {"name":name, "pagetype": pagetype, "space":space, "category":category,
                       "title": title, "order": order, "filename":filename, 
                       "content":q.system.fs.fileGetContents(content) if contentIsFilePath else content
 					 }
             for key in params:
-                if params[key]:
+                if params[key] != None:
                     setattr(page, key, params[key])
 
             tags = set(tagsList)
             tags.add('space:%s' % space)
             tags.add('page:%s' % name)
             page.tags = ' '.join(tags)
-            page.pagetype = self._getType(name)
 
             if parent:
                 parent_page = self.getPage(space, parent)
@@ -409,6 +488,37 @@ class Client:
                 
             self.connection.page.save(page)
             return page
+
+    def createUser(self, name, password, spaces=[], pages=[], tagsList=[]):
+        """
+        Create a new user object.
+
+        @param name:             name of the user
+        @type name:              string
+
+        @param spaces:            list of user spaces
+        @type spaces:             List
+
+        @param pages:            list of user pages
+        @type pages:             List
+
+        @param tagsList:         tags of the page
+        @type tags:              List
+        """
+        if self.userExists(name):
+            q.errorconditionhandler.raiseError("User %s already exists."%name)
+        else:
+            user = self.connection.user.new()
+            params = {"name":name, "password": password, "spaces":spaces, "pages":pages}
+            for key in params:
+                if params[key]:
+                    setattr(user, key, params[key])
+
+            tags = set(tagsList)
+            tags.add('name:%s' % name)
+            user.tags = ' '.join(tags)
+            self.connection.user.save(user)
+            return user
 
     def updateSpace(self, space, newname=None, tagslist=None, repository=None, repo_username=None, repo_password=None):
         space = self.getSpace(space)
@@ -439,7 +549,7 @@ class Client:
 
         if newname != None and oldname != newname:
             #rename space page.
-            self.updatePage(ADMINSPACE, "%s.md" % oldname, name= "%s.md" % newname, content=p.core.codemanagement.api.getSpacePage(newname))
+            self.updatePage(ADMINSPACE, oldname, name=newname, content=p.core.codemanagement.api.getSpacePage(newname))
         return space
 
     def updatePage(self, old_space, old_name, space=None, name=None, tagsList=None, content=None,
@@ -490,21 +600,23 @@ class Client:
         if space:
             space = self._getSpaceGuid(space)
             page.space = space
-
-        params = {"name": name, "space":space, "category":category,
+        
+        type = None
+            
+        params = {"name": name, "pagetype": pagetype, "space":space, "category":category,
                   "title": title, "order": order, "filename":filename, 
-                  "content":q.system.fs.fileGetContents(content) if contentIsFilePath else content,
-                  "pagetype": self._getType(name) if name else page.pagetype
+                  "content":q.system.fs.fileGetContents(content) if contentIsFilePath else content
                   }
         
         for key in params:
-            if params[key]:
+            if params[key] != None:
                 setattr(page, key, params[key])
                 
         if tagsList:
             tags = page.tags.split(' ')
             for tag in tagsList:
-                tags.append(tag)
+                if tag not in tags:
+                    tags.append(tag)
 
             page_tags = ' '.join(tags)
             page.tags = page_tags
@@ -515,6 +627,38 @@ class Client:
 
         self.connection.page.save(page)
         return page
+
+    def updateUser(self, old_user, name="", password="", tagsList=None):
+        """
+        Updates an existing page.
+
+        @type old_user: String
+        @param old_user: The name of the user.
+
+        @type name: String
+        @param name: Gives the user a new name.
+
+        @type tagsList: List
+        @param tagsList: Appends tags in this list to the current tags of the page.
+        """
+
+        user = self.getUser(old_user)
+        if name:
+            user.name = name
+        if password:
+            user.password = password
+
+        if tagsList:
+            tags = user.tags.split(' ')
+            for tag in tagsList:
+                tags.append(tag)
+
+            user_tags = ' '.join(tags)
+            user.tags = user_tags
+
+        self.connection.user.save(user)
+        return user
+
 
     def findMacroConfig(self, space="", page="", macro="", configId=None, exact_properties=None):
         configFilter = self.connection.config.getFilterObject()

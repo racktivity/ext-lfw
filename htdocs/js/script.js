@@ -17,7 +17,7 @@
 
 (function($) {
 
-var DEFAULT_PAGE_NAME = 'Home.md',
+var DEFAULT_PAGE_NAME = 'Home',
     LABELS_RE = /,\s*/,
     LOCATION_PREFIX = '#/',
     ADMINSPACE="Admin";
@@ -351,10 +351,10 @@ data;
         );
 
         var pageTreeUri = LFW_CONFIG['uris']['pages'] + '?space=' + space +
-                '&name=' + 'pagetree.md';
+                '&name=' + 'pagetree';
 
         var context = this;
-        var treePage = '#/' + space + '/pagetree.md';
+        var treePage = '#/' + space + '/pagetree';
 
         $.ajax({
             url: pageTreeUri,
@@ -699,8 +699,8 @@ data;
 
         var render = true;
 
-        if (page.substr(-4) === '.src') {
-            page = page.substr(0, page.length - 4);
+        if (page.substr(-3) === '.md') {
+            page = page.substr(0, page.length - 3);
             render = false;
         }
 
@@ -955,7 +955,6 @@ $(function(){
                                                 var saveurl = LFW_CONFIG['uris']['createPage'];
                                                 var name = $.trim(dialog.editor("name"));
                                                 var title = $.trim(dialog.editor("title"));
-
                                                 var filetype = dialog.editor('filetype');
 
                                                 if (!name) {
@@ -966,12 +965,6 @@ $(function(){
                                                     title = name;
                                                 }
 
-                                                //append ext if needed.
-                                                var patt = new RegExp("\\." + filetype + "$");
-                                                if (!patt.test(name)){
-                                                    name += "." + filetype;
-                                                }
-
                                                 var content = dialog.editor("content");
 
                                                 $.ajax({
@@ -979,6 +972,7 @@ $(function(){
                                                         type: 'POST',
                                                         data: {'space': space,
                                                                'name': name,
+                                                               'pagetype': filetype,
                                                                'content': content,
                                                                'title': title,
                                                                'parent': parent},
@@ -1035,16 +1029,13 @@ $(function(){
                                                     if (!title){
                                                         title = name;
                                                     }
-                                                    var patt = new RegExp("\\." + filetype + "$");
-                                                    if (!patt.test(name)) {
-                                                        name += "." + filetype;
-                                                    }
 
                                                     $.ajax({url: saveurl,
                                                             type: 'POST',
                                                             data: {'space': space,
                                                                    'name': page,
                                                                    'newname': name,
+                                                                   'pagetype': filetype,
                                                                    'content': dialog.editor("content"),
                                                                    'title': title},
                                                             dataType: 'json',

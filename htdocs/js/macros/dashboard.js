@@ -536,7 +536,7 @@ $(function() {
                     type = that.widgetTypes[i];
 
                     // Search name
-                    if (contains(type, types)) {
+                    if (contains(type.name, types)) {
                         widgets.push(type);
                     }
                 }
@@ -545,11 +545,11 @@ $(function() {
                 display.empty();
                 for (i = 0; i < widgets.length; ++i) {
                     type = widgets[i];
-                    display.append("<div id='widget-" + type + "' class='widgettype'>" +
-                        "<img src='img/widget-" + type + ".png' />" +
+                    display.append("<div id='widget-" + type.name + "' class='widgettype'>" +
+                        (type.image ? "<img src='" + type.image + "' />" : "<img src='img/pixel.gif' />") +
                         "<button class='add'><span class='ui-button-text'>Pick me</span></button>" +
-                        "<h3>" + type + "</h3><p>" +
-                        "No description</p></div>");
+                        "<h3>" + type.name + "</h3><p>" + (type.description ? type.description : "No description") +
+                        "</p></div>");
                 }
 
                 // Make em clickable
@@ -570,6 +570,8 @@ $(function() {
 
                     widgetStore.dialog("close");
                 });
+
+                display.find(".widgettype").hover(function() { $(this).toggleClass("ui-state-hover"); });
             });
         }
 
@@ -581,7 +583,7 @@ $(function() {
         typeContainer.append("<li title=''>All (" + this.widgetTypes.length + ")</li>");
         for (i = 0; i < this.widgetTypes.length; ++i) {
             type = this.widgetTypes[i];
-            typeContainer.append("<li title='" + type +"'>" + type + "</li>");
+            typeContainer.append("<li title='" + type.name +"'>" + type.name + "</li>");
         }
         // Make em clickable
         typeContainer.find("li").click(function(event) {
@@ -699,8 +701,6 @@ $(function() {
             return;
         }
 
-        debugger;
-
         if (toColumn !== fromColumn) { // Move the widget in the structure
             toColumn.moveWidgetTo(fromColumn.moveWidgetFrom(widgetIndex));
         } else {
@@ -751,12 +751,11 @@ var render = function(options) {
         '#widgetStore .column-left li { margin-top: 5px; cursor: pointer; }' +
         '#widgetStore .column-right { width: 78%; float: left; overflow: auto; height: 414px; }' +
         '#widgetStore .column-right .widgettype { padding: 0 20px 0 140px; width: 150px; height: 140px; float: left;' +
-            ' overflow: hidden; }' +
-        '#widgetStore .column-right .widgettype:hover { background-color: #0071B5; color: #FFFFFF; }' +
+            ' overflow: hidden; border: 0px; }' +
         '#widgetStore .column-right .widgettype button { margin: 81px 0 0 -131px; float: left; }' +
         '#widgetStore .column-right .widgettype img { margin: 10px 0 0 -130px; border: 1px solid #999; float: left; ' +
             'width: 120px; height: 60px; }' +
-        '#widgetStore .column-right .widgettype h3 { margin: 11px 0 0; }' +
+        '#widgetStore .column-right .widgettype h3 { margin: 11px 0px 5px 0px; font-size: 1em; }' +
         '#widgetStore .column-right .widgettype p { height: 100px; overflow: hidden; }' +
         '.menu-container { border: 1px solid #888888; background: #FFFFFF; }' +
         '.menu-item { padding: 5px 15px 5px 15px; cursor: pointer; background: #FFFFFF; position: relative; }' +

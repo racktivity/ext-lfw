@@ -945,7 +945,6 @@ $(function(){
                                                 var saveurl = LFW_CONFIG['uris']['createPage'];
                                                 var name = $.trim(dialog.editor("name"));
                                                 var title = $.trim(dialog.editor("title"));
-                                                
                                                 var filetype = dialog.editor('filetype');
                                                 
                                                 if (!name) {
@@ -956,12 +955,6 @@ $(function(){
                                                     title = name;
                                                 }
                                                 
-                                                //append ext if needed.
-                                                var patt = new RegExp("\\." + filetype + "$");
-                                                if (!patt.test(name)){
-                                                    name += "." + filetype;
-                                                }
-                                                
                                                 var content = dialog.editor("content");
                                                 
                                                 $.ajax({
@@ -969,6 +962,7 @@ $(function(){
                                                         type: 'POST',
                                                         data: {'space': space,
                                                                'name': name,
+                                                               'pagetype': filetype,
                                                                'content': content,
                                                                'title': title,
                                                                'parent': parent},
@@ -1025,16 +1019,13 @@ $(function(){
                                                     if (!title){
                                                         title = name;
                                                     }
-                                                    var patt = new RegExp("\\." + filetype + "$");
-                                                    if (!patt.test(name)) {
-                                                        name += "." + filetype;
-                                                    }
                                                     
                                                     $.ajax({url: saveurl,
                                                             type: 'POST',
                                                             data: {'space': space,
                                                                    'name': page,
                                                                    'newname': name,
+                                                                   'pagetype': filetype,
                                                                    'content': dialog.editor("content"),
                                                                    'title': title},
                                                             dataType: 'json',

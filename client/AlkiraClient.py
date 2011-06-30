@@ -98,13 +98,12 @@ class Client:
         return "%s/%s/portal/spaces/%s" % (q.dirs.pyAppsDir, self.api.appname, fullName)
         
     def _getType(self, pagename):
-        idx = pagename.find(".")
-        if idx < 1:
-            return "md"
-        ext = pagename[idx + 1:]
+        name, _, ext = pagename.rpartition('.')
+        if not ext:
+            ext = "md"
         if ext not in self.KNOWN_TYPES:
             raise ValueError("This extention '%s' is not supported" % ext)
-        return ext
+        return name, ext
     
     def listPages(self, space=None):
         """
@@ -431,7 +430,7 @@ class Client:
         return space
 
     def createPage(self, space, name, content, order=None, title=None, tagsList=[], category='portal',
-                   parent=None, filename=None, contentIsFilePath=False):
+                   parent=None, filename=None, contentIsFilePath=False, pagetype="md"):
         """
         Creates a new page.
 
@@ -470,7 +469,7 @@ class Client:
             q.errorconditionhandler.raiseError("Page %s already exists."%name)
         else:
             page = self.connection.page.new()
-            params = {"name":name, "space":space, "category":category,
+            params = {"name":name, "pagetype": pagetype, "space":space, "category":category,
                       "title": title, "order": order, "filename":filename, 
                       "content":q.system.fs.fileGetContents(content) if contentIsFilePath else content
 					 }
@@ -482,7 +481,6 @@ class Client:
             tags.add('space:%s' % space)
             tags.add('page:%s' % name)
             page.tags = ' '.join(tags)
-            page.pagetype = self._getType(name)
 
             if parent:
                 parent_page = self.getPage(space, parent)
@@ -602,11 +600,12 @@ class Client:
         if space:
             space = self._getSpaceGuid(space)
             page.space = space
-
-        params = {"name": name, "space":space, "category":category,
+        
+        type = None
+            
+        params = {"name": name, "pagetype": pagetype, "space":space, "category":category,
                   "title": title, "order": order, "filename":filename, 
-                  "content":q.system.fs.fileGetContents(content) if contentIsFilePath else content,
-                  "pagetype": self._getType(name) if name else page.pagetype
+                  "content":q.system.fs.fileGetContents(content) if contentIsFilePath else content
                   }
         
         for key in params:

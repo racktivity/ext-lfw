@@ -135,7 +135,7 @@ var app = $.sammy(function(app) {
                         addCss(cssobject);
                     },
                     'swap': function(html, customRoot, addItem, customMacroElem) {
-                        // Make sure our customRoot is something from without our macro
+                        // Make sure our customRoot is something from within our macro
                         swap(html, base, (customRoot && $this.has(customRoot) ? customRoot : $this), addItem,
                             customMacroElem);
                     },

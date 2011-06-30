@@ -27,7 +27,7 @@ class LFWService(object):
         self._tasklet_engine.addFromPath(os.path.join(q.dirs.baseDir,'lib','python','site-packages','alkira', 'tasklets'))
         self.db_config_path = q.system.fs.joinPaths(q.dirs.cfgDir, 'qconfig', 'dbconnections.cfg')
 
-    @q.manage.applicationserver.expose
+    @q.manage.applicationserver.expose_authenticated
     def tags(self, space=None, term=None):
         results = self.get_items('tags', space=space, term=term)
         final_result = set()
@@ -39,46 +39,46 @@ class LFWService(object):
         result = list(final_result)
         return result
 
-    @q.manage.applicationserver.expose
+    @q.manage.applicationserver.expose_authenticated
     def spaces(self, term=None):
         return self.alkira.listSpaces()
 
-    @q.manage.applicationserver.expose
+    @q.manage.applicationserver.expose_authenticated
     def createSpace(self, name, tags=""):
         self.alkira.createSpace(name, tags.split(' '))
 
-    @q.manage.applicationserver.expose
+    @q.manage.applicationserver.expose_authenticated
     def deleteSpace(self, name):
         if name == "Admin":
             raise ValueError("Admin space is not deletable")
 
         self.alkira.deleteSpace(name)
 
-    @q.manage.applicationserver.expose
+    @q.manage.applicationserver.expose_authenticated
     def users(self, username=None):
         return self.alkira.listUsers(username)
 
-    @q.manage.applicationserver.expose
+    @q.manage.applicationserver.expose_authenticated
     def createUser(self, name, tags=""):
         self.alkira.createUser(name, tags.split(' '))
 
-    @q.manage.applicationserver.expose
+    @q.manage.applicationserver.expose_authenticated
     def deleteUser(self, name):
         self.alkira.deleteUser(name)
 
-    @q.manage.applicationserver.expose
+    @q.manage.applicationserver.expose_authenticated
     def updateUser(self, name, newname=None, tags=""):
         self.alkira.updateUser(name, newname, tags.split(' '))
 
-    @q.manage.applicationserver.expose
+    @q.manage.applicationserver.expose_authenticated
     def pages(self, space=None, term=None):
         return self.alkira.listPages(space)
 
-    @q.manage.applicationserver.expose
+    @q.manage.applicationserver.expose_authenticated
     def categories(self, space=None, term=None):
         return self.get_items('category', space, term)
 
-    @q.manage.applicationserver.expose
+    @q.manage.applicationserver.expose_authenticated
     def search(self, text=None, space=None, category=None, tags=None):
         # ignore tags for now
 
@@ -124,11 +124,11 @@ class LFWService(object):
         breadcrumbs.reverse()
         return breadcrumbs
     
-    @q.manage.applicationserver.expose
+    @q.manage.applicationserver.expose_authenticated
     def breadcrumbs(self, space, name):
         return self._breadcrumbs(self.alkira.getPage(space, name))
     
-    @q.manage.applicationserver.expose
+    @q.manage.applicationserver.expose_authenticated
     def page(self, space, name):
         if not self.alkira.spaceExists(space) or not self.alkira.pageExists(space, name):
             return {"code": 404,
@@ -201,7 +201,7 @@ class LFWService(object):
                     q.system.fs.removeFile(file)
         
     
-    @q.manage.applicationserver.expose
+    @q.manage.applicationserver.expose_authenticated
     def createPage(self, space, name, content, parent=None, order=None, title=None, tags="", category='portal'):
         if self.alkira.pageExists(space, name):
             raise ValueError("A page with the same name already exists")
@@ -209,7 +209,7 @@ class LFWService(object):
         page = self.alkira.createPage(space=space, name=name, content=content, parent=parent, order=order, title=title, tagsList=tags.split(" "), category=category)
         #self._syncPageToDisk(space, page)
         
-    @q.manage.applicationserver.expose
+    @q.manage.applicationserver.expose_authenticated
     def updatePage(self, space, name, content, newname=None, parent=None, order=None, title=None, tags="", category='portal'):
         if not self.alkira.pageExists(space, name):
             raise ValueError("Page '%s' doesn't exists" % name)
@@ -223,7 +223,7 @@ class LFWService(object):
         
         #self._syncPageToDisk(space, page, name)
     
-    @q.manage.applicationserver.expose
+    @q.manage.applicationserver.expose_authenticated
     def deletePage(self, space, name):
         crumbs = self.breadcrumbs(space, name)
         self.alkira.deletePageAndChildren(space, name)
@@ -253,7 +253,7 @@ class LFWService(object):
 
         return result
 
-    @q.manage.applicationserver.expose
+    @q.manage.applicationserver.expose_authenticated
     def pageTree(self, space, id):
         space = self.alkira.getSpace(space)
         where = ""
@@ -307,7 +307,7 @@ class LFWService(object):
         return data
 
 
-    @q.manage.applicationserver.expose
+    @q.manage.applicationserver.expose_authenticated
     def query(self, sqlselect, rows, table, schema, dbconnection='', link='', _search='', nd='', page=1, sidx='', sord='', applicationserver_request='', *args, **kwargs):
         import sqlalchemy
         from sqlalchemy import MetaData, Table, create_engine
@@ -366,7 +366,7 @@ class LFWService(object):
             data['rows'].append({'id': index + 1, 'cell': list(pageobj)})
         return data
 
-    @q.manage.applicationserver.expose
+    @q.manage.applicationserver.expose_authenticated
     def graphviz(self, graphDot_str, applicationserver_request=''):
         import pygraphviz as pgv
         import base64
@@ -381,7 +381,7 @@ class LFWService(object):
         img_b64 = base64.b64encode(rawimage.getvalue())
         return img_b64
 
-    @q.manage.applicationserver.expose
+    @q.manage.applicationserver.expose_authenticated
     def generic(self, tagstring=None, macroname=None, params=None):
         q.logger.log('[GENERIC] Request tagstring: %s' % tagstring, 5)
         params = params or dict()
@@ -396,7 +396,7 @@ class LFWService(object):
 
         return result
 
-    @q.manage.applicationserver.expose
+    @q.manage.applicationserver.expose_authenticated
     def importSpace(self, space, filename, cleanImport = False):
         join = q.system.fs.joinPaths
         import tarfile
@@ -422,7 +422,7 @@ class LFWService(object):
         tarFile.close()
         p.application.syncPortal(appname, space)
 
-    @q.manage.applicationserver.expose
+    @q.manage.applicationserver.expose_authenticated
     def exportSpace(self, space, filename):
         join = q.system.fs.joinPaths
         def buildTree(client, path, space, pagenams = None):
@@ -470,7 +470,7 @@ class LFWService(object):
         return urlunsplit((url.scheme, "%s:%s@%s" % (repo.username, repo.password, url.netloc), url.path, url.query,
             url.fragment))
 
-    @q.manage.applicationserver.expose
+    @q.manage.applicationserver.expose_authenticated
     def hgPushSpace(self, space, repository, repo_username, repo_password=None):
         if not repository:
             return "Please give a repository to push to."
@@ -499,7 +499,7 @@ class LFWService(object):
         else:
             return False
 
-    @q.manage.applicationserver.expose
+    @q.manage.applicationserver.expose_authenticated
     def hgPullSpace(self, space, repository, repo_username, repo_password=None, dontSync=False):
         if not repository:
             return "Please give a repository to pull from."
@@ -525,7 +525,7 @@ class LFWService(object):
 
         return True
 
-    @q.manage.applicationserver.expose
+    @q.manage.applicationserver.expose_authenticated
     def space(self, space):
         if not self.alkira.spaceExists(space):
             return {}
@@ -542,10 +542,10 @@ class LFWService(object):
 
         return result
 
-    @q.manage.applicationserver.expose
+    @q.manage.applicationserver.expose_authenticated
     def macroConfig(self, space, page, macro, configId=None):
         return json.loads(self.alkira.getMacroConfig(space, page, macro, configId).data)
 
-    @q.manage.applicationserver.expose
+    @q.manage.applicationserver.expose_authenticated
     def updateMacroConfig(self, space, page, macro, config, configId=None):
         self.alkira.setMacroConfig(space, page, macro, config, configId)

@@ -47,8 +47,8 @@ var app = $.sammy(function(app) {
     var csses = new Array();
     var cssLoaded = false;
     var _pageobj = null;
-    
-    var swap = function(html, base, root) {
+
+    var swap = function(html, base, root, addItem, macroElem) {
 
         base = base || ''; // location #/space/page
         root = root || null;
@@ -57,16 +57,23 @@ var app = $.sammy(function(app) {
 
         console.log('SWAP content: ' + html);
 
-        var elem = $('<div>' + html + '</div>');
+        var elem;
+        if (!addItem && !macroElem) {
+            elem = $('<div>' + html + '</div>');
+        } else {
+            elem = $(html);
+        }
 
         if (root === null) {
           $('#main')
             .empty()
             .append(elem);
         } else {
-          $(root)
-            .empty()
-            .append(elem);
+            if (!addItem) {
+                $(root).empty().append(elem);
+            } else {
+                $(root).append(elem);
+            }
         }
 
 
@@ -86,7 +93,7 @@ var app = $.sammy(function(app) {
         console.log('SWAP END: base ' + base);
 
 
-        $('.macro', elem).each(function() {
+        $('.macro', (macroElem ? macroElem : elem)).each(function() {
             var $this = $(this),
                 classes = ($this.attr('class') || '').split(/\s+/),
                 name = null,
@@ -127,8 +134,10 @@ var app = $.sammy(function(app) {
                     'addCss': function(cssobject) {
                         addCss(cssobject);
                     },
-                    'swap': function(html) {
-                        swap(html, base, $this);
+                    'swap': function(html, customRoot, addItem, customMacroElem) {
+                        // Make sure our customRoot is something from without our macro
+                        swap(html, base, (customRoot && $this.has(customRoot) ? customRoot : $this), addItem,
+                            customMacroElem);
                     },
                     'renderWiki': function(mdstring) {
                         return renderWiki(mdstring);
@@ -398,7 +407,7 @@ data;
     var setPageObj = function(page){
         _pageobj = page;
     };
-    
+
     var setTitle = function(title) {
         _title = title;
     };
@@ -411,7 +420,7 @@ data;
     this.getTitle = getTitle;
     this.getSpace = getSpace;
     this.setSpace = setSpace;
-    
+
     this.getPageObj = function(){
         return _pageobj;
     };
@@ -530,12 +539,12 @@ data;
     };
 
     function loadCss() {
-        csslinks = $('link');
+        var csslinks = $('link');
         $.each(csslinks, function(index, csslink) {
             id = csslink.id;
             if (id != undefined) addCssId(id);
         });
-        cssStyles = $('style');
+        var cssStyles = $('style');
         $.each(cssStyles, function(index, cssStyle) {
             id = cssStyle.id;
             if (id != undefined) addCssId(id);
@@ -557,10 +566,10 @@ data;
         if (cssLoaded == false) {
             loadCss();
         }
-        id = cssobject['id'];
+        var id = cssobject['id'];
         if (addCssId(id) == true) {
-            tagname = cssobject['tag'];
-            params = cssobject['params'];
+            var tagname = cssobject['tag'];
+            var params = cssobject['params'];
             var head = document.getElementsByTagName("head")[0] || document.documentElement;
             var cssNode = document.createElement(tagname);
             cssNode.id = id;
@@ -594,6 +603,7 @@ data;
             url: LFW_CONFIG.uris.updateMacroConfig,
             dataType: "text",
             data: data,
+            type: "POST",
             success: function(data) {
                 console.log('Saving of config successful for macro ' + macroname);
             },
@@ -727,7 +737,7 @@ data;
                 var content = data['content'];
 
                 setTitle(data['title']);
-                
+
                 if ($.inArray(data.pagetype, ['py']) >= 0) {
                     content = '[[code]]\n' + content + '[[/code]]';
                 }
@@ -927,7 +937,7 @@ $(function(){
         dialog.editor("title", "");
         dialog.editor("content", "");
         dialog.editor("filetype", "md");
-        
+
         dialog.editor("disabled", "name", false);
         dialog.editor("disabled", "title", false);
         dialog.dialog("option", "buttons", {Close: function() {
@@ -946,7 +956,7 @@ $(function(){
                                                 var name = $.trim(dialog.editor("name"));
                                                 var title = $.trim(dialog.editor("title"));
                                                 var filetype = dialog.editor('filetype');
-                                                
+
                                                 if (!name) {
                                                     $.alert("Name can't be empty", "Invalid Name");
                                                     return;
@@ -954,9 +964,9 @@ $(function(){
                                                 if(!title){
                                                     title = name;
                                                 }
-                                                
+
                                                 var content = dialog.editor("content");
-                                                
+
                                                 $.ajax({
                                                         url: saveurl,
                                                         type: 'POST',
@@ -1008,7 +1018,7 @@ $(function(){
                                             },
                                             Save: function() {
                                                     var saveurl = LFW_CONFIG['uris']['updatePage'];
-                                                    
+
                                                     //append ext if needed.
                                                     var filetype = dialog.editor('filetype');
                                                     var name = $.trim(dialog.editor("name"));
@@ -1019,7 +1029,7 @@ $(function(){
                                                     if (!title){
                                                         title = name;
                                                     }
-                                                    
+
                                                     $.ajax({url: saveurl,
                                                             type: 'POST',
                                                             data: {'space': space,

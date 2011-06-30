@@ -1,6 +1,7 @@
 import ldap
+from backend import BackEnd
 
-class LDAPClient():
+class LDAPClient(BackEnd):
     def __init__(self, config, user, password):
         self.hostname = config['hostname']
         self.port = int(config['port'])
@@ -28,7 +29,6 @@ class LDAPClient():
         dn = "%s,%s" % (self.groups_rdn, self.base_dn)
         filter = "cn=%s,%s,%s" % (login, self.people_rdn, self.base_dn)
         groups = self.connection.search_s(dn, ldap.SCOPE_SUBTREE, filterstr='(member=%s)' % filter, attrlist=['cn'])
-        
         groupnames = []
         for groupdb, attrs in groups:
             cn = attrs['cn']
@@ -44,3 +44,5 @@ class LDAPClient():
                 cn = attrs['cn']
                 groupnames.append(cn[0])
         return groupnames
+
+BACKEND = LDAPClient

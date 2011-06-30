@@ -70,15 +70,17 @@ class Client:
         elif isinstance(space, self.connection.space._ROOTOBJECTTYPE):
             return space.guid
 
-    def _getSpaceInfo(self, name):
+    def _getSpaceInfo(self, name=None):
         filter = self.connection.space.getFilterObject()
-        filter.add('ui_view_space_list', 'name', name, True)
+        if name:
+            filter.add('ui_view_space_list', 'name', name, True)
         space = self.connection.space.findAsView(filter, 'ui_view_space_list')
         return space
 
-    def _getUserInfo(self, username):
+    def _getUserInfo(self, name=None):
         filter = self.connection.user.getFilterObject()
-        filter.add('ui_view_user_list', 'name', username, True)
+        if name:
+            filter.add('ui_view_user_list', 'name', name, True)
         user = self.connection.user.findAsView(filter, 'ui_view_user_list')
         return user
 
@@ -98,12 +100,12 @@ class Client:
         return "%s/%s/portal/spaces/%s" % (q.dirs.pyAppsDir, self.api.appname, fullName)
         
     def _getType(self, pagename):
-        idx = pagename.find(".")
-        if idx < 1:
-            return "md"
+        idx = pagename.rfind(".")
+        if idx <= 0:
+            return None
         ext = pagename[idx + 1:]
         if ext not in self.KNOWN_TYPES:
-            raise ValueError("This extention '%s' is not supported" % ext)
+            return None
         return ext
     
     def listPages(self, space=None):
@@ -122,13 +124,12 @@ class Client:
         return map(lambda item: item["name"],
                    self.listSpaceInfo())
 
-    def listSpaceInfo(self):
+    def listSpaceInfo(self, name=None):
         """
         List all spaces info
         """
-        spaces = self.connection.space.findAsView(self.connection.space.getFilterObject(),
-                                                  'ui_view_space_list')
-
+        spaces = self._getSpaceInfo(name)
+        
         return spaces
 
     def listPageInfo(self, space=None):
@@ -144,18 +145,17 @@ class Client:
 
         return self.connection.page.findAsView(filter, 'ui_view_page_list')
 
-
-    def listUsers(self, username=None):
+    def listUsers(self):
+        return map(lambda item: item["name"],
+                   self.listUserInfo())
+        
+    def listUserInfo(self, name=None):
         """
         Lists all the users
 
         @param space: The name of the user.
         """
-        filter = self.connection.user.getFilterObject()
-        if username:
-            filter.add('ui_view_user_list', 'name', username, True)
-
-        return self.connection.user.findAsView(filter, 'ui_view_user_list')
+        return self._getUserInfo(name)
 
     def listChildPages(self, space, name = None):
         """
@@ -217,10 +217,7 @@ class Client:
 
         @return: True if the user exists, False otherwise.
         """
-        if self._getUserInfo(name):
-            return True
-        else:
-            return False
+        return bool(self._getUserInfo(name))
 
     def pageFind(self, name='', space='', category='', parent='', tags='', order=None, title='', exact_properties=None):
         filterObject = self.connection.page.getFilterObject()
@@ -431,7 +428,7 @@ class Client:
         return space
 
     def createPage(self, space, name, content, order=None, title=None, tagsList=[], category='portal',
-                   parent=None, filename=None, contentIsFilePath=False):
+                   parent=None, filename=None, contentIsFilePath=False, pagetype="md"):
         """
         Creates a new page.
 
@@ -470,7 +467,7 @@ class Client:
             q.errorconditionhandler.raiseError("Page %s already exists."%name)
         else:
             page = self.connection.page.new()
-            params = {"name":name, "space":space, "category":category,
+            params = {"name":name, "pagetype": pagetype, "space":space, "category":category,
                       "title": title, "order": order, "filename":filename, 
                       "content":q.system.fs.fileGetContents(content) if contentIsFilePath else content
 					 }
@@ -482,7 +479,6 @@ class Client:
             tags.add('space:%s' % space)
             tags.add('page:%s' % name)
             page.tags = ' '.join(tags)
-            page.pagetype = self._getType(name)
 
             if parent:
                 parent_page = self.getPage(space, parent)
@@ -514,7 +510,7 @@ class Client:
             params = {"name":name, "password": password, "spaces":spaces, "pages":pages}
             for key in params:
                 if params[key]:
-                    setattr(page, key, params[key])
+                    setattr(user, key, params[key])
 
             tags = set(tagsList)
             tags.add('name:%s' % name)
@@ -549,7 +545,7 @@ class Client:
 
         self.connection.space.save(space)
 
-        if oldname != newname:
+        if newname != None and oldname != newname:
             #rename space page.
             self.updatePage(ADMINSPACE, oldname, name=newname, content=p.core.codemanagement.api.getSpacePage(newname))
         return space
@@ -602,11 +598,12 @@ class Client:
         if space:
             space = self._getSpaceGuid(space)
             page.space = space
-
-        params = {"name": name, "space":space, "category":category,
+        
+        type = None
+            
+        params = {"name": name, "pagetype": pagetype, "space":space, "category":category,
                   "title": title, "order": order, "filename":filename, 
-                  "content":q.system.fs.fileGetContents(content) if contentIsFilePath else content,
-                  "pagetype": self._getType(name) if name else page.pagetype
+                  "content":q.system.fs.fileGetContents(content) if contentIsFilePath else content
                   }
         
         for key in params:

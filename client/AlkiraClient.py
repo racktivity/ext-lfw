@@ -100,12 +100,13 @@ class Client:
         return "%s/%s/portal/spaces/%s" % (q.dirs.pyAppsDir, self.api.appname, fullName)
         
     def _getType(self, pagename):
-        name, _, ext = pagename.rpartition('.')
-        if not ext:
-            ext = "md"
+        idx = pagename.rfind(".")
+        if idx <= 0:
+            return None
+        ext = pagename[idx + 1:]
         if ext not in self.KNOWN_TYPES:
-            raise ValueError("This extention '%s' is not supported" % ext)
-        return name, ext
+            return None
+        return ext
     
     def listPages(self, space=None):
         """

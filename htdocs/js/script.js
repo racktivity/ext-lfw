@@ -48,7 +48,7 @@ var app = $.sammy(function(app) {
     var cssLoaded = false;
     var _pageobj = null;
 
-    var swap = function(html, base, root, addItem) {
+    var swap = function(html, base, root, addItem, macroElem) {
 
         base = base || ''; // location #/space/page
         root = root || null;
@@ -58,7 +58,7 @@ var app = $.sammy(function(app) {
         console.log('SWAP content: ' + html);
 
         var elem;
-        if (!addItem) {
+        if (!addItem && !macroElem) {
             elem = $('<div>' + html + '</div>');
         } else {
             elem = $(html);
@@ -93,7 +93,7 @@ var app = $.sammy(function(app) {
         console.log('SWAP END: base ' + base);
 
 
-        $('.macro', elem).each(function() {
+        $('.macro', (macroElem ? macroElem : elem)).each(function() {
             var $this = $(this),
                 classes = ($this.attr('class') || '').split(/\s+/),
                 name = null,
@@ -134,8 +134,10 @@ var app = $.sammy(function(app) {
                     'addCss': function(cssobject) {
                         addCss(cssobject);
                     },
-                    'swap': function(html, customRoot, addItem) {
-                        swap(html, base, (customRoot ? customRoot : $this), addItem);
+                    'swap': function(html, customRoot, addItem, customMacroElem) {
+                        // Make sure our customRoot is something from without our macro
+                        swap(html, base, (customRoot && $this.has(customRoot) ? customRoot : $this), addItem,
+                            customMacroElem);
                     },
                     'renderWiki': function(mdstring) {
                         return renderWiki(mdstring);
@@ -405,7 +407,7 @@ data;
     var setPageObj = function(page){
         _pageobj = page;
     };
-    
+
     var setTitle = function(title) {
         _title = title;
     };
@@ -418,7 +420,7 @@ data;
     this.getTitle = getTitle;
     this.getSpace = getSpace;
     this.setSpace = setSpace;
-    
+
     this.getPageObj = function(){
         return _pageobj;
     };
@@ -601,6 +603,7 @@ data;
             url: LFW_CONFIG.uris.updateMacroConfig,
             dataType: "text",
             data: data,
+            type: "POST",
             success: function(data) {
                 console.log('Saving of config successful for macro ' + macroname);
             },
@@ -734,7 +737,7 @@ data;
                 var content = data['content'];
 
                 setTitle(data['title']);
-                
+
                 if ($.inArray(data.pagetype, ['py']) >= 0) {
                     content = '[[code]]\n' + content + '[[/code]]';
                 }
@@ -934,7 +937,7 @@ $(function(){
         dialog.editor("title", "");
         dialog.editor("content", "");
         dialog.editor("filetype", "md");
-        
+
         dialog.editor("disabled", "name", false);
         dialog.editor("disabled", "title", false);
         dialog.dialog("option", "buttons", {Close: function() {
@@ -952,9 +955,9 @@ $(function(){
                                                 var saveurl = LFW_CONFIG['uris']['createPage'];
                                                 var name = $.trim(dialog.editor("name"));
                                                 var title = $.trim(dialog.editor("title"));
-                                                
+
                                                 var filetype = dialog.editor('filetype');
-                                                
+
                                                 if (!name) {
                                                     $.alert("Name can't be empty", "Invalid Name");
                                                     return;
@@ -962,15 +965,15 @@ $(function(){
                                                 if(!title){
                                                     title = name;
                                                 }
-                                                
+
                                                 //append ext if needed.
                                                 var patt = new RegExp("\\." + filetype + "$");
                                                 if (!patt.test(name)){
                                                     name += "." + filetype;
                                                 }
-                                                
+
                                                 var content = dialog.editor("content");
-                                                
+
                                                 $.ajax({
                                                         url: saveurl,
                                                         type: 'POST',
@@ -1021,7 +1024,7 @@ $(function(){
                                             },
                                             Save: function() {
                                                     var saveurl = LFW_CONFIG['uris']['updatePage'];
-                                                    
+
                                                     //append ext if needed.
                                                     var filetype = dialog.editor('filetype');
                                                     var name = $.trim(dialog.editor("name"));
@@ -1036,7 +1039,7 @@ $(function(){
                                                     if (!patt.test(name)) {
                                                         name += "." + filetype;
                                                     }
-                                                    
+
                                                     $.ajax({url: saveurl,
                                                             type: 'POST',
                                                             data: {'space': space,

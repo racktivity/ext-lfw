@@ -3,10 +3,8 @@ var LFW_DASHBOARD = {
     instance: null
 };
 
-///TODO content with new lines gives problems
-///TODO configure dashboard (# of columns)
-///TODO persist dragging
-///TODO stop dragging when you select everywhere, just let the header drag
+///TODO use metadata for description and images of widgets
+///TODO change config of widgets to wizards
 
 // Menu
 $(function() {
@@ -108,7 +106,7 @@ $(function() {
     function Widget(column, object) {
         // Make sure our object is well defined
         if (object.id === undefined) {
-            object.id = Math.random();
+            object.id = new Date().getTime();
         }
         if (object.title === undefined) {
             object.title = "New widget";
@@ -129,27 +127,28 @@ $(function() {
 
         this.options = object;
         this.parent = column;
+        this.fullId = "widget" + this.options.id;
 
         // Add the widget
         var data = $.tmpl('plugin.dashboard.widget', object);
         console.log('Widget Rendered: ' + data.html());
         LFW_DASHBOARD.opts.swap(data, column.jq, true);
-        this.jq = column.jq.find("#widget" + this.options.id);
+        this.jq = column.jq.find("#" + this.fullId);
         var that = this;
 
         // Hide the options
         this.jqOptions = this.jq.find(".portlet-options");
-        this._toggleOptions();
+        this.toggleOptions();
 
         // Make the collapse work
-        this.jq.find(".portlet-header .ui-icon-minusthick").click($.proxy(this._toggleCollapse, this));
+        this.jq.find(".portlet-header .ui-icon-minusthick").click($.proxy(this.toggleCollapse, this));
         if (this.options.collapsed) {
-            this._toggleCollapse(true);
+            this.toggleCollapse(true);
         }
 
         // Create the menu & add remove
         this.menu = new LFW_DASHBOARD.Menu(this.jq.find(".portlet-header .icon-menu"), this.jq.find(".portlet-menu"));
-        this.menu.addItem("Configure", this, this._toggleOptions);
+        this.menu.addItem("Configure", this, this.toggleOptions);
         this.menu.addItem("Remove", this, this._confirmRemoval);
 
         // Make the icons only show when hovering
@@ -163,7 +162,7 @@ $(function() {
     }
 
     // Toggle the collapse
-    Widget.prototype._toggleCollapse = function(dontSave) {
+    Widget.prototype.toggleCollapse = function(dontSave) {
         if (this.jqOptions.is(":visible")) { // Disable when we are showing the options
             return;
         }
@@ -171,7 +170,7 @@ $(function() {
         this.jq.find(".portlet-header .collapse").toggleClass("ui-icon-minusthick").toggleClass("ui-icon-plusthick");
         this.jq.find(".portlet-content").toggle();
 
-        if (!dontSave) {
+        if (dontSave !== true) {
             this.options.collapsed = !this.options.collapsed;
             LFW_DASHBOARD.opts.saveConfig();
         }
@@ -202,7 +201,7 @@ $(function() {
     };
 
     // Toggle the options
-    Widget.prototype._toggleOptions = function() {
+    Widget.prototype.toggleOptions = function() {
         if (this.jqOptions.is(":visible")) {
             this.jqOptions.hide();
             this.jq.find(".portlet-content").show();
@@ -233,13 +232,14 @@ $(function() {
         function ok() {
             isOk = true;
             ignoreSubmit = true;
-            that._toggleOptions();
+            that.toggleOptions();
 
             that.options.title = titleElem.val();
             that.options.config = contentElem.val();
 
             that.jq.find(".portlet-header .title").text(that.options.title);
-            LFW_DASHBOARD.opts.swap(that.options.config, that.jq.find(".portlet-content .macro"));
+            var data = $.tmpl('plugin.dashboard.widgetcontent', that.options);
+            LFW_DASHBOARD.opts.swap(data, that.jq.find(".portlet-content"), false, that.jq.find(".portlet-content"));
 
             // Make it persistent
             LFW_DASHBOARD.opts.saveConfig();
@@ -248,7 +248,7 @@ $(function() {
 
         // Cancel button
         this.jqOptions.find(".options-cancel").click(function() {
-            that._toggleOptions();
+            that.toggleOptions();
             cancel();
         });
         // Ok button
@@ -279,6 +279,7 @@ $(function() {
 
         this.parent = dashboard;
         this.order = parseInt(object.order, 10);
+        this.fullId = "column" + this.order;
         this._widgets = object.widgets;
         this.widgets = [];
 
@@ -286,16 +287,16 @@ $(function() {
         var data = $.tmpl('plugin.dashboard.column', object);
         console.log('Column Rendered: ' + data.html());
         LFW_DASHBOARD.opts.swap(data, dashboard.jq.find(".columns"), true);
-        this.jq = dashboard.jq.find(".columns #column" + this.order);
+        this.jq = dashboard.jq.find(".columns #" + this.fullId);
 
         // Set width (minus margins and such)
-        this.jq.width(width - (this.jq.outerWidth(true) - this.jq.width()) );
+        this.setWidth(width);
 
         // Sort the widgets by order first
         var that = this;
         this._widgets.sort(function(w1, w2) {
             if (w1.order !== w2.order) {
-                return w1.order < w2.order;
+                return w1.order > w2.order;
             } else {
                 return 0;
             }
@@ -309,33 +310,21 @@ $(function() {
     }
 
     // Add a widget
-    Column.prototype.addWidget = function(id, title, type, order) {
+    Column.prototype.addWidget = function(id, title, type, order, collapsed, config, params) {
         // Make sure we have an order
         var i;
         if (order === undefined) {
             // Get the maximum order so far and increase it
             order = 0;
             for (i = 0; i < this.widgets.length; ++i) {
-                if (this.widgets[i].order >= order) {
-                    order = this.widgets[i].order + 1;
+                if (this.widgets[i].options.order >= order) {
+                    order = this.widgets[i].options.order + 1;
                 }
             }
         }
 
-        // Make sure we have an id
-        if (id === undefined) {
-            // Get the maximum id so far and increase it
-            id = 0;
-            var localId;
-            for (i = 0; i < this.widgets.length; ++i) {
-                localId = parseInt(this.widgets[i].id, 10);
-                if (localId >= id) {
-                    id = localId + 1;
-                }
-            }
-        }
-
-        var object = { id: id, title: title, widgettype: type, order: order };
+        var object = { id: id, title: title, widgettype: type, order: order, collapsed: collapsed, config: config,
+            params: params };
         this.widgets.push(new LFW_DASHBOARD.Widget(this, object));
 
         // Make it persistant
@@ -356,6 +345,63 @@ $(function() {
         LFW_DASHBOARD.opts.saveConfig();
     };
 
+    // Set the width of the column
+    Column.prototype.setWidth = function(width) {
+        this.jq.width(width - (this.jq.outerWidth(true) - this.jq.width()) );
+    };
+
+    // Move a widget away from the column
+    Column.prototype.moveWidgetFrom = function(widgetIndex) {
+        var widgetInfo = {};
+        widgetInfo.object = this._widgets.splice(widgetIndex, 1)[0];
+        widgetInfo.widget = this.widgets.splice(widgetIndex, 1)[0];
+
+        // Resort
+        var i;
+        for (i = 0; i < this.widgets.length; ++i) {
+            this.widgets[i].options.order = i;
+        }
+
+        return widgetInfo;
+    };
+
+    // Move a widget to the column
+    Column.prototype.moveWidgetTo = function(widgetInfo) {
+        this._widgets.push(widgetInfo.object);
+        this.widgets.push(widgetInfo.widget);
+
+        this.resortFromDOM();
+    };
+
+    // Resort the column according to the current DOM
+    Column.prototype.resortFromDOM = function() {
+        var children = this.jq.children(".portlet");
+        var i, j,
+            tmpWidgets = $.extend(true, [], this.widgets),
+            tmpObjects = $.extend(true, [], this._widgets);
+
+        // Clear the arrays, don't assign new empty arrays!
+        this.widgets.length = 0;
+        this._widgets.length = 0;
+
+        for (i = 0; i < children.length; ++i) {
+            var id = children[i].id;
+            var index;
+
+            for (j = 0; j < tmpWidgets.length; ++j) {
+                if (tmpWidgets[j].fullId === id) {
+                    index = j;
+
+                    tmpWidgets[j].options.order = i;
+                    break;
+                }
+            }
+
+            this.widgets.push(tmpWidgets.splice(index, 1)[0]);
+            this._widgets.push(tmpObjects.splice(index, 1)[0]);
+        }
+    };
+
     LFW_DASHBOARD.Column = Column;
 });
 
@@ -368,7 +414,7 @@ $(function() {
             LFW_DASHBOARD.opts.config.columns = [{}];
         }
         if (!LFW_DASHBOARD.opts.config.id) {
-            LFW_DASHBOARD.opts.config.id = "default-dashboard-id";
+            LFW_DASHBOARD.opts.config.id = "dashboard-id";
         }
         if (!LFW_DASHBOARD.opts.config.title) {
             LFW_DASHBOARD.opts.config.title = "Dashboard";
@@ -376,7 +422,6 @@ $(function() {
 
         this._columns = LFW_DASHBOARD.opts.config.columns;
         this.id = LFW_DASHBOARD.opts.config.id;
-        this.title = LFW_DASHBOARD.opts.config.title;
         this.columns = [];
         this.widgetTypes = null;
 
@@ -385,20 +430,25 @@ $(function() {
         console.log('Dashboard Rendered: ' + data.html());
         LFW_DASHBOARD.opts.swap($(data).html());
         this.jq = $("#" + this.id);
-        var that = this;
+
+        // Disable selection of the headers so we are sure we can always drag them
+        this.jq.find(".portlet-header").disableSelection();
+
+        // Configure options
+        this.jqOptions = this.jq.find(".dashboard-options");
+        this._fillOptions();
 
         // Make the widget store work
         this.jq.find(".dashboard-header .ui-icon-plusthick").click($.proxy(this.showWidgetStore, this));
 
-        this.jq.find(".dashboard-header .ui-icon-wrench").remove();
-        /*this.jq.find(".dashboard-header .ui-icon-wrench").click(function() {
-            alert('Configure dashboard');
-        });*/
+        // Make configure work
+        var that = this;
+        this.jq.find(".dashboard-header .ui-icon-wrench").click(function() { that.jqOptions.dialog("open"); });
 
         // Sort the columns by order first
         this._columns.sort(function(col1, col2) {
             if (col1.order !== col2.order) {
-                return col1.order < col2.order;
+                return col1.order > col2.order;
             } else {
                 return 0;
             }
@@ -412,9 +462,16 @@ $(function() {
 
         // Make the widgets moveable
         this.jq.find(".column").sortable({
-            connectWith: ".column"
+            handle: ".portlet-header",
+            forceHelperSize: true,
+            tolerance: "pointer",
+            connectWith: ".column",
+            update: function(event, ui) {
+                if (!ui.sender) {
+                    that._moveWidget(ui.item[0]);
+                }
+            }
         });
-        this.jq.find(".column").disableSelection();
     }
 
     // Show the widget store
@@ -432,7 +489,7 @@ $(function() {
             });
             return;
         }
-        if (widgetStore.length === 0) { //add it
+        if (widgetStore.length === 0) { // Add it
             $("body").append("<div id='widgetStore' title='Widget Store'>" +
                 "<div class='column-left'><input type='text' class='search' /><ul class='types'></ul></div>" +
                 "<div class='column-right'></div>" +
@@ -499,8 +556,17 @@ $(function() {
                 display.find(".add").click(function() {
                     type = $(this).parent().attr("id").replace("widget-", "");
 
+                    // Get the column with the least amount of widgets
+                    var column = that.columns[0],
+                        i;
+                    for (i = 0; i < that.columns.length; ++i) {
+                        if (that.columns[i].widgets.length < column.widgets.length) {
+                            column = that.columns[i];
+                        }
+                    }
+
                     // Add the widget
-                    that.columns[0].addWidget(undefined, "New " + type + " widget", type);
+                    column.addWidget(undefined, "New " + type + " widget", type);
 
                     widgetStore.dialog("close");
                 });
@@ -530,6 +596,121 @@ $(function() {
         widgetStore.dialog("open");
     };
 
+    // Show the options
+    Dashboard.prototype._fillOptions = function() {
+        var titleElem = this.jqOptions.find(".options-title"),
+            columnElem = this.jqOptions.find(".options-columns"),
+            that = this;
+
+        titleElem.val(LFW_DASHBOARD.opts.config.title);
+        columnElem.val(this._columns.length);
+
+        function cancel() {
+            that.jqOptions.dialog("close");
+            titleElem.val(LFW_DASHBOARD.opts.config.title);
+            columnElem.val(that._columns.length);
+        }
+
+        function ok() {
+            that.jqOptions.dialog("close");
+
+            LFW_DASHBOARD.opts.config.title = titleElem.val();
+
+            that.jq.find(".dashboard-header .title").text(LFW_DASHBOARD.opts.config.title);
+
+            var columnCount = parseInt(columnElem.val(), 10);
+            var width, i;
+            if (columnCount > that._columns.length) { // Add columns
+                // Change the width of the current columns
+                width = that.jq.width() / columnCount;
+                for (i = 0; i < that.columns.length; ++i) {
+                    that.columns[i].setWidth(width);
+                }
+
+                // Add new columns
+                while (that._columns.length !== columnCount) {
+                    that._columns.push({ order: that._columns.length, widgets: [] });
+                    that.columns.push(new LFW_DASHBOARD.Column(that, that._columns[that._columns.length - 1], width));
+                }
+            } else if (columnCount < that._columns.length) { // Remove columns
+                // Remove columns
+                var widgets = [], column;
+                while (that._columns.length !== columnCount) {
+                    column = that._columns.pop();
+                    widgets = widgets.concat(column.widgets);
+                    column = that.columns.pop();
+                    column.jq.remove();
+                }
+
+                // Change the width of the columns that are left over
+                width = that.jq.width() / columnCount;
+                for (i = 0; i < that.columns.length; ++i) {
+                    that.columns[i].setWidth(width);
+                }
+
+                // Add all the widgets to the last column
+                column = that.columns[that.columns.length - 1];
+                for (i = 0; i < widgets.length; ++i) {
+                    var widget = widgets[i];
+                    column.addWidget(undefined, widget.title, widget.widgettype, undefined, widget.collapsed,
+                        widget.config, widget.params);
+                }
+            }
+
+            // Make it persistent
+            LFW_DASHBOARD.opts.saveConfig();
+        }
+
+        // Make the dialog work
+        this.jqOptions.dialog({
+            autoOpen: false,
+            modal: true,
+            resizable: false,
+            draggable: false,
+            minHeight: "auto",
+            width: "auto",
+            buttons: {
+                "Cancel": cancel,
+                "Ok": ok
+            }
+        });
+    };
+
+    // Move a widget from one column to another
+    Dashboard.prototype._moveWidget = function(divWidget) {
+        var toColumn, fromColumn, column, i, j, widgetIndex;
+
+        for (i = 0; i < this.columns.length; ++i) {
+            column = this.columns[i];
+            if (column.fullId === divWidget.parentNode.id) {
+                toColumn = this.columns[i];
+            }
+
+            for (j = 0; j < column.widgets.length; ++j) {
+                if (column.widgets[j].fullId === divWidget.id) {
+                    widgetIndex = j;
+                    fromColumn = column;
+                    break;
+                }
+            }
+        }
+
+        if (!toColumn) {
+            return;
+        }
+
+        debugger;
+
+        if (toColumn !== fromColumn) { // Move the widget in the structure
+            toColumn.moveWidgetTo(fromColumn.moveWidgetFrom(widgetIndex));
+        } else {
+            toColumn.resortFromDOM();
+        }
+
+        // Persist it
+        LFW_DASHBOARD.opts.saveConfig();
+    };
+
     LFW_DASHBOARD.Dashboard = Dashboard;
 });
 
@@ -538,6 +719,7 @@ var render = function(options) {
 
     // CSS
     options.addCss({'id': 'dashboardmacro', 'tag': 'style', 'params': '.dashboard { margin: 0px; }' +
+        '.dashboard-options .options-table .options-textnode { vertical-align: middle; }' +
         '.dashboard-header { margin: 0.3em; padding-bottom: 4px; padding-left: 0.2em; }' +
         '.dashboard-header .ui-icon { float: right; cursor: pointer; }' +
         '.dashboard .columns .column { margin: 0px; float: left; padding: 10px; }' +
@@ -559,8 +741,8 @@ var render = function(options) {
         '.portlet .portlet-options .options-ok { margin-top: 1.5em; float: right; margin-left: 0.5em; }' +
         '.portlet .portlet-options .options-cancel { margin-top: 1.5em; float: right; }' +
         '.portlet .portlet-content { padding: 0.4em; }' +
-        '.portlet .ui-sortable-placeholder { border: 1px dotted black; visibility: visible !important; height: 50px' +
-            ' !important; }' +
+        '.ui-sortable-placeholder { border: 1px dotted black; visibility: visible !important; height: 50px' +
+            '!important; }' +
         '.ui-sortable-placeholder * { visibility: hidden; }' +
         '#widgetStore { font-size: 1.1em; }' +
         '#widgetStore .column-left { width: 22%; float: left; height: 414px; border-right: 1px solid #999;' +
@@ -595,8 +777,17 @@ var render = function(options) {
     $.template('plugin.dashboard.main',
         '<div class="bogus">' +
             '<div class="dashboard ui-widget ui-widget-content ui-helper-clearfix ui-corner-all" id="${id}">' +
+                '<div class="dashboard-options" title="Dashboard options">' +
+                    '<table class="options-table">' +
+                        '<tr><td class="options-textnode">Title:</td>' +
+                        '<td align="left"><input type="text" class="options-title" value="" /></td></tr>' +
+                        '<tr><td class="options-textnode">Number of columns:</td>' +
+                        '<td align="left"><select class="options-columns"><option value="1">1</option>' +
+                            '<option value="2">2</option><option value="3">3</option></select></td></tr>' +
+                    '</table></div>' +
                 '<div class="dashboard-header ui-widget-header ui-corner-all">' +
-                    '<span class="ui-icon ui-icon-plusthick" /><span class="ui-icon ui-icon-wrench" />${title}</div>' +
+                    '<span class="ui-icon ui-icon-plusthick" /><span class="ui-icon ui-icon-wrench" />' +
+                        '<pan class="title">${title}</span></div>' +
                 '<div class="columns"></div>' +
             '</div>' +
         '</div>');
@@ -619,9 +810,11 @@ var render = function(options) {
                     '</td></tr>' +
                 '</table></form></div>' +
             '<div class="portlet-content">' +
-                '<div class="macro macro_${widgettype}" {{if params}}params="${params}"{{/if}}>${config}</div>' +
+                '{{tmpl "plugin.dashboard.widgetcontent"}}' +
             '</div>' +
         '</div>');
+    $.template('plugin.dashboard.widgetcontent',
+        '<div class="macro macro_${widgettype}" {{if params}}params="${params}"{{/if}}>${config}</div>');
 
     // Create the dashboard
     LFW_DASHBOARD.instance = new LFW_DASHBOARD.Dashboard();

@@ -55,20 +55,22 @@ class LFWService(object):
         self.alkira.deleteSpace(name)
 
     @q.manage.applicationserver.expose
-    def users(self, username=None):
-        return self.alkira.listUsers(username)
+    def users(self):
+        return self.alkira.listUsers()
 
     @q.manage.applicationserver.expose
-    def createUser(self, name, tags=""):
-        self.alkira.createUser(name, tags.split(' '))
+    def createUser(self, name, password, tags=""):
+        self.alkira.createUser(name, str(password), tagsList=tags.split(' '))
 
     @q.manage.applicationserver.expose
     def deleteUser(self, name):
-        self.alkira.deleteUser(name)
+        self.alkira.deleteUser(str(name))
 
     @q.manage.applicationserver.expose
-    def updateUser(self, name, newname=None, tags=""):
-        self.alkira.updateUser(name, newname, tags.split(' '))
+    def updateUser(self, name, newname=None, password=None, tags=None):
+        self.alkira.updateUser(name, name=newname,
+                               password=str(password) if password else password,
+                               tagsList=tags.split(' ') if tags else None)
 
     @q.manage.applicationserver.expose
     def pages(self, space=None, term=None):

@@ -514,7 +514,7 @@ class Client:
             params = {"name":name, "password": password, "spaces":spaces, "pages":pages}
             for key in params:
                 if params[key]:
-                    setattr(page, key, params[key])
+                    setattr(user, key, params[key])
 
             tags = set(tagsList)
             tags.add('name:%s' % name)

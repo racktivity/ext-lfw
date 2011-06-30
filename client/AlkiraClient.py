@@ -70,15 +70,17 @@ class Client:
         elif isinstance(space, self.connection.space._ROOTOBJECTTYPE):
             return space.guid
 
-    def _getSpaceInfo(self, name):
+    def _getSpaceInfo(self, name=None):
         filter = self.connection.space.getFilterObject()
-        filter.add('ui_view_space_list', 'name', name, True)
+        if name:
+            filter.add('ui_view_space_list', 'name', name, True)
         space = self.connection.space.findAsView(filter, 'ui_view_space_list')
         return space
 
-    def _getUserInfo(self, username):
+    def _getUserInfo(self, name=None):
         filter = self.connection.user.getFilterObject()
-        filter.add('ui_view_user_list', 'name', username, True)
+        if name:
+            filter.add('ui_view_user_list', 'name', name, True)
         user = self.connection.user.findAsView(filter, 'ui_view_user_list')
         return user
 
@@ -121,13 +123,12 @@ class Client:
         return map(lambda item: item["name"],
                    self.listSpaceInfo())
 
-    def listSpaceInfo(self):
+    def listSpaceInfo(self, name=None):
         """
         List all spaces info
         """
-        spaces = self.connection.space.findAsView(self.connection.space.getFilterObject(),
-                                                  'ui_view_space_list')
-
+        spaces = self._getSpaceInfo(name)
+        
         return spaces
 
     def listPageInfo(self, space=None):
@@ -143,18 +144,17 @@ class Client:
 
         return self.connection.page.findAsView(filter, 'ui_view_page_list')
 
-
-    def listUsers(self, username=None):
+    def listUsers(self):
+        return map(lambda item: item["name"],
+                   self.listUserInfo())
+        
+    def listUserInfo(self, name=None):
         """
         Lists all the users
 
         @param space: The name of the user.
         """
-        filter = self.connection.user.getFilterObject()
-        if username:
-            filter.add('ui_view_user_list', 'name', username, True)
-
-        return self.connection.user.findAsView(filter, 'ui_view_user_list')
+        return self._getUserInfo(name)
 
     def listChildPages(self, space, name = None):
         """
@@ -216,10 +216,7 @@ class Client:
 
         @return: True if the user exists, False otherwise.
         """
-        if self._getUserInfo(name):
-            return True
-        else:
-            return False
+        return bool(self._getUserInfo(name))
 
     def pageFind(self, name='', space='', category='', parent='', tags='', order=None, title='', exact_properties=None):
         filterObject = self.connection.page.getFilterObject()

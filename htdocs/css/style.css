@@ -240,3 +240,9 @@ button {  width: auto; overflow: visible; }
   h2, h3{ page-break-after: avoid; }
 }
 
+/*
+ * User management form.
+ */
+#userform form div { width:100%; float:left;}
+#userform form div label { width:40%  !important; float:left;margin-top: 13px;}
+#userform form div input {width:50%  !important; float:left;}

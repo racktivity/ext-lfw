@@ -1,6 +1,8 @@
 var LFW_DASHBOARD = {
     opts: {},
-    instance: null
+    instance: null,
+    widgetTypes: [],
+    widgetTypesByName: {}
 };
 
 ///TODO use metadata for description and images of widgets
@@ -136,10 +138,6 @@ $(function() {
         this.jq = column.jq.find("#" + this.fullId);
         var that = this;
 
-        // Hide the options
-        this.jqOptions = this.jq.find(".portlet-options");
-        this.toggleOptions();
-
         // Make the collapse work
         this.jq.find(".portlet-header .ui-icon-minusthick").click($.proxy(this.toggleCollapse, this));
         if (this.options.collapsed) {
@@ -148,7 +146,7 @@ $(function() {
 
         // Create the menu & add remove
         this.menu = new LFW_DASHBOARD.Menu(this.jq.find(".portlet-header .icon-menu"), this.jq.find(".portlet-menu"));
-        this.menu.addItem("Configure", this, this.toggleOptions);
+        this.menu.addItem("Configure", this, this.showOptions);
         this.menu.addItem("Remove", this, this._confirmRemoval);
 
         // Make the icons only show when hovering
@@ -157,16 +155,10 @@ $(function() {
             that.jq.find(".portlet-header .icons").hide();
             that.menu.hide();
         });
-
-        this._fillOptions();
     }
 
     // Toggle the collapse
     Widget.prototype.toggleCollapse = function(dontSave) {
-        if (this.jqOptions.is(":visible")) { // Disable when we are showing the options
-            return;
-        }
-
         this.jq.find(".portlet-header .collapse").toggleClass("ui-icon-minusthick").toggleClass("ui-icon-plusthick");
         this.jq.find(".portlet-content").toggle();
 
@@ -200,42 +192,16 @@ $(function() {
         });
     };
 
-    // Toggle the options
-    Widget.prototype.toggleOptions = function() {
-        if (this.jqOptions.is(":visible")) {
-            this.jqOptions.hide();
-            this.jq.find(".portlet-content").show();
-        } else {
-            this.jq.find(".portlet-content").hide();
-            this.jqOptions.show();
-        }
-    };
+    // Show the options
+    Widget.prototype.showOptions = function() {
+        var that = this,
+            wizard = (LFW_DASHBOARD.widgetTypesByName[this.options.widgettype].wizard ?
+                LFW_DASHBOARD.widgetTypesByName[this.options.widgettype].wizard : "general");
 
-    // Fill the options and make them work
-    Widget.prototype._fillOptions = function() {
-        // Don't do it inline because if the string contains ' then we're fucked
-        var titleElem = this.jqOptions.find(".options-title"),
-            contentElem = this.jqOptions.find(".options-content"),
-            that = this,
-            isOk = false,
-            ignoreSubmit = false;
-
-        titleElem.val(this.options.title);
-        contentElem.val(this.options.config);
-
-        function cancel() {
-            ignoreSubmit = true;
-            titleElem.val(that.options.title);
-            contentElem.val(that.options.config);
-        }
-
-        function ok() {
-            isOk = true;
-            ignoreSubmit = true;
-            that.toggleOptions();
-
-            that.options.title = titleElem.val();
-            that.options.config = contentElem.val();
+        function update(object) {
+            that.options.title = object.name;
+            that.options.config = object.body;
+            that.options.params = object.params;
 
             that.jq.find(".portlet-header .title").text(that.options.title);
             var data = $.tmpl('plugin.dashboard.widgetcontent', that.options);
@@ -243,23 +209,10 @@ $(function() {
 
             // Make it persistent
             LFW_DASHBOARD.opts.saveConfig();
-            isOk = false;
         }
 
-        // Cancel button
-        this.jqOptions.find(".options-cancel").click(function() {
-            that.toggleOptions();
-            cancel();
-        });
-        // Ok button
-        this.jqOptions.find(".options-ok").click(ok);
-        this.jqOptions.find("form").submit(function() {
-            if (!ignoreSubmit) {
-                ok();
-                ignoreSubmit = false;
-            }
-            return false;
-        });
+        JSWizards.launch("http://" + document.domain + "/" + LFW_CONFIG.appname +
+            "/appserver/rest/ui/wizard", "widgets", wizard, "", update);
     };
 
     LFW_DASHBOARD.Widget = Widget;
@@ -325,7 +278,7 @@ $(function() {
 
         var object = { id: id, title: title, widgettype: type, order: order, collapsed: collapsed, config: config,
             params: params };
-        this.widgets.push(new LFW_DASHBOARD.Widget(this, object));
+        this.widgets.push(new LFW_DASHBOARD.Widget(this, object, wizardName));
 
         // Make it persistant
         this._widgets.push(object);
@@ -423,7 +376,6 @@ $(function() {
         this._columns = LFW_DASHBOARD.opts.config.columns;
         this.id = LFW_DASHBOARD.opts.config.id;
         this.columns = [];
-        this.widgetTypes = null;
 
         // Add the dashboard
         var data = $.tmpl('plugin.dashboard.main', LFW_DASHBOARD.opts.config);
@@ -481,14 +433,6 @@ $(function() {
             that = this,
             search;
 
-        if (!this.widgetTypes) {
-            // Load the data first
-            $.get("appserver/rest/ui/portal/generic", { tagstring: "", macroname: "macrolist" }, function(data) {
-                that.widgetTypes = data;
-                that.showWidgetStore();
-            });
-            return;
-        }
         if (widgetStore.length === 0) { // Add it
             $("body").append("<div id='widgetStore' title='Widget Store'>" +
                 "<div class='column-left'><input type='text' class='search' /><ul class='types'></ul></div>" +
@@ -532,11 +476,11 @@ $(function() {
                 }
 
                 // Search names
-                for (i = 0; i < that.widgetTypes.length; ++i) {
-                    type = that.widgetTypes[i];
+                for (i = 0; i < LFW_DASHBOARD.widgetTypes.length; ++i) {
+                    type = LFW_DASHBOARD.widgetTypes[i];
 
                     // Search name
-                    if (contains(type, types)) {
+                    if (contains(type.name, types)) {
                         widgets.push(type);
                     }
                 }
@@ -545,11 +489,11 @@ $(function() {
                 display.empty();
                 for (i = 0; i < widgets.length; ++i) {
                     type = widgets[i];
-                    display.append("<div id='widget-" + type + "' class='widgettype'>" +
-                        "<img src='img/widget-" + type + ".png' />" +
+                    display.append("<div id='widget-" + type.name + "' class='widgettype'>" +
+                        (type.image ? "<img src='" + type.image + "' />" : "<img src='img/pixel.gif' />") +
                         "<button class='add'><span class='ui-button-text'>Pick me</span></button>" +
-                        "<h3>" + type + "</h3><p>" +
-                        "No description</p></div>");
+                        "<h3>" + type.name + "</h3><p>" + (type.description ? type.description : "No description") +
+                        "</p></div>");
                 }
 
                 // Make em clickable
@@ -557,19 +501,28 @@ $(function() {
                     type = $(this).parent().attr("id").replace("widget-", "");
 
                     // Get the column with the least amount of widgets
-                    var column = that.columns[0],
-                        i;
+                    var column = that.columns[0];
                     for (i = 0; i < that.columns.length; ++i) {
                         if (that.columns[i].widgets.length < column.widgets.length) {
                             column = that.columns[i];
                         }
                     }
 
-                    // Add the widget
-                    column.addWidget(undefined, "New " + type + " widget", type);
+                    var wizard = (LFW_DASHBOARD.widgetTypesByName[type].wizard ?
+                        LFW_DASHBOARD.widgetTypesByName[type].wizard : "general");
+
+                    function add(object) { // Add the widget
+                        column.addWidget(undefined, object.name, type, undefined, false, object.body, object.params);
+                    }
+
+                    JSWizards.JSWIZARDS_ENABLE_DEBUG = true;
+                    JSWizards.launch("http://" + document.domain + "/" + LFW_CONFIG.appname +
+                        "/appserver/rest/ui/wizard", "widgets", wizard, "", add);
 
                     widgetStore.dialog("close");
                 });
+
+                display.find(".widgettype").hover(function() { $(this).toggleClass("ui-state-hover"); });
             });
         }
 
@@ -578,10 +531,10 @@ $(function() {
         var typeContainer = widgetStore.find(".types"),
             type;
         typeContainer.empty();
-        typeContainer.append("<li title=''>All (" + this.widgetTypes.length + ")</li>");
-        for (i = 0; i < this.widgetTypes.length; ++i) {
-            type = this.widgetTypes[i];
-            typeContainer.append("<li title='" + type +"'>" + type + "</li>");
+        typeContainer.append("<li title=''>All (" + LFW_DASHBOARD.widgetTypes.length + ")</li>");
+        for (i = 0; i < LFW_DASHBOARD.widgetTypes.length; ++i) {
+            type = LFW_DASHBOARD.widgetTypes[i];
+            typeContainer.append("<li title='" + type.name +"'>" + type.name + "</li>");
         }
         // Make em clickable
         typeContainer.find("li").click(function(event) {
@@ -699,8 +652,6 @@ $(function() {
             return;
         }
 
-        debugger;
-
         if (toColumn !== fromColumn) { // Move the widget in the structure
             toColumn.moveWidgetTo(fromColumn.moveWidgetFrom(widgetIndex));
         } else {
@@ -728,18 +679,6 @@ var render = function(options) {
         '.portlet-header .icons { float: right; display: none; }' +
         '.portlet-header .icons .ui-icon { float: right; cursor: pointer; }' +
         '.portlet .portlet-menu { position: absolute; z-index: 1000; right: 5px; top: 20px; }' +
-        '.portlet .portlet-options { background: #DDDDDD; border: 1px solid #AAAAAA; position: relative; ' +
-            'overflow:hidden; }' +
-        '.portlet .portlet-options div { float: left; }' +
-        '.portlet .portlet-options .options-table .options-textnode { vertical-align: middle; }' +
-        '.portlet .portlet-options { background-color: #cccccc; }' +
-        '.portlet .portlet-options fieldset { border: 1px solid #FFFFFF; margin: 0.5em; padding: 0.5em; }' +
-        '.portlet .portlet-options .options-table { width: 100%; height: 100%; margin: 0px; }' +
-        '.portlet .portlet-options .options-table td { vertical-align: top; }' +
-        '.portlet .portlet-options .options-table .options-title { width: 98%; }' +
-        '.portlet .portlet-options .options-buttons { text-align: right; }' +
-        '.portlet .portlet-options .options-ok { margin-top: 1.5em; float: right; margin-left: 0.5em; }' +
-        '.portlet .portlet-options .options-cancel { margin-top: 1.5em; float: right; }' +
         '.portlet .portlet-content { padding: 0.4em; }' +
         '.ui-sortable-placeholder { border: 1px dotted black; visibility: visible !important; height: 50px' +
             '!important; }' +
@@ -751,12 +690,11 @@ var render = function(options) {
         '#widgetStore .column-left li { margin-top: 5px; cursor: pointer; }' +
         '#widgetStore .column-right { width: 78%; float: left; overflow: auto; height: 414px; }' +
         '#widgetStore .column-right .widgettype { padding: 0 20px 0 140px; width: 150px; height: 140px; float: left;' +
-            ' overflow: hidden; }' +
-        '#widgetStore .column-right .widgettype:hover { background-color: #0071B5; color: #FFFFFF; }' +
+            ' overflow: hidden; border: 0px; }' +
         '#widgetStore .column-right .widgettype button { margin: 81px 0 0 -131px; float: left; }' +
         '#widgetStore .column-right .widgettype img { margin: 10px 0 0 -130px; border: 1px solid #999; float: left; ' +
             'width: 120px; height: 60px; }' +
-        '#widgetStore .column-right .widgettype h3 { margin: 11px 0 0; }' +
+        '#widgetStore .column-right .widgettype h3 { margin: 11px 0px 5px 0px; font-size: 1em; }' +
         '#widgetStore .column-right .widgettype p { height: 100px; overflow: hidden; }' +
         '.menu-container { border: 1px solid #888888; background: #FFFFFF; }' +
         '.menu-item { padding: 5px 15px 5px 15px; cursor: pointer; background: #FFFFFF; position: relative; }' +
@@ -798,17 +736,6 @@ var render = function(options) {
                 '<span class="icons"><span class="ui-icon ui-icon-triangle-1-s icon-menu" />' +
                 '<span class="ui-icon ui-icon-minusthick collapse" /></span><span class="title">${title}</span></div>' +
             '<div class="portlet-menu" />' +
-            '<div class="portlet-options">' +
-                '<form><table class="options-table">' +
-                    '<tr><td class="options-textnode">Title:</td>' +
-                    '<td align="left"><input type="text" class="options-title" value="" /></td></tr>' +
-                    '<tr><td class="options-textnode">Content:</td>' +
-                    '<td align="left"><textarea class="options-content" /></td></tr>' +
-                    '<tr><td colspan="2" class="options-buttons">' +
-                        '<button class="options-ok"><span class="ui-button-text">Ok</span></button>' +
-                        '<button class="options-cancel"><span class="ui-button-text">Cancel</span></button>' +
-                    '</td></tr>' +
-                '</table></form></div>' +
             '<div class="portlet-content">' +
                 '{{tmpl "plugin.dashboard.widgetcontent"}}' +
             '</div>' +
@@ -816,8 +743,33 @@ var render = function(options) {
     $.template('plugin.dashboard.widgetcontent',
         '<div class="macro macro_${widgettype}" {{if params}}params="${params}"{{/if}}>${config}</div>');
 
-    // Create the dashboard
-    LFW_DASHBOARD.instance = new LFW_DASHBOARD.Dashboard();
+
+    function create() {
+        // Load the data first
+        $.get("appserver/rest/ui/portal/generic", { tagstring: "", macroname: "macrolist" }, function(data) {
+            LFW_DASHBOARD.widgetTypes = data;
+
+            var i;
+            for (i = 0; i < data.length; ++i) {
+                LFW_DASHBOARD.widgetTypesByName[data[i].name] = data[i];
+            }
+
+            // Create the dashboard
+            LFW_DASHBOARD.instance = new LFW_DASHBOARD.Dashboard();
+        });
+    }
+
+    options.addDependency(create, ['/static/jswizards/ext/jquery-ui.min.js', '/static/jswizards/js/jswizards.js',
+        '/static/jswizards/ext/jquery.floatbox.1.0.8.js', '/static/jswizards/ext/jquery.ui.datetimepicker.js']);
+    options.addCss({'id': 'jquery-ui', 'tag': 'link', 'params': {'rel': 'stylesheet', 'href':
+        '/static/jswizards/ext/jquery-ui.css'}});
+    options.addCss({'id': 'floatbox-wizard', 'tag': 'link', 'params': {'rel': 'stylesheet', 'href':
+        '/static/jswizards/ext/joshuaclayton-blueprint-css-c20e981/blueprint/screen.css'}});
+    // When enabled this one ruins the whole thing
+    /*options.addCss({'id': 'floatbox-wizard-btn', 'tag': 'link', 'params': {'rel': 'stylesheet', 'href':
+        '/static/jswizards/ext/joshuaclayton-blueprint-css-c20e981/blueprint/plugins/buttons/screen.css'}});*/
+    options.addCss({'id': 'wizardaction', 'tag': 'link', 'params': {'rel': 'stylesheet', 'href':
+        '/static/jswizards/style/screen.css'}});
 };
 
 register(render);

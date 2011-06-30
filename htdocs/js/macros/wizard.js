@@ -17,11 +17,12 @@ var render = function(options) {
         var action = "JSWizards.launch('" + service + "', '" + domain + "', '" + name + "', '" + extra +"')";
         //var action = "jswizards.start('" + appname + "', '" + domain + "', '"+name+"', '"+appserver+"', '"+extra+"')";
         if (type == "button"){
-            element = $("<button>").attr("onClick", action).text(title);
+            element = $("<button>");
         }
         else{
-            element = $("<a>").attr("href", "javascript:"+action).text(title);
+            element = $("<a>").attr("href", "javascript:void(0)");
         }
+        element.attr("onClick", action).text(title);
         $this.attr('style', 'float: left; width: auto');
         $this.append(element);
 	};

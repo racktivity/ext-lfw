@@ -1,6 +1,6 @@
-<!doctype html>
+<!doctype html>  
 
-<!-- pau  lirish.com/2008/conditional-stylesheets-vs-css-hacks-answer-neither/ -->
+<!-- pau  lirish.com/2008/conditional-stylesheets-vs-css-hacks-answer-neither/ --> 
 <!--[if lt IE 7 ]> <html lang="en" class="no-js ie6"> <![endif]-->
 <!--[if IE 7 ]>    <html lang="en" class="no-js ie7"> <![endif]-->
 <!--[if IE 8 ]>    <html lang="en" class="no-js ie8"> <![endif]-->
@@ -9,7 +9,7 @@
 <head>
   <meta charset="utf-8" >
 
-  <!-- Always force latest IE rendering engine (even in intranet) & Chrome Frame
+  <!-- Always force latest IE rendering engine (even in intranet) & Chrome Frame 
        Remove this if you use the .htaccess -->
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 
@@ -25,19 +25,19 @@
 
   <link rel='stylesheet'
     href='/static/lfw/css/jquery-ui.css'
-    type='text/css' media='screen, projection' />
-
+    type='text/css' media='screen, projection' /> 
+    
   <!-- link rel='stylesheet'
     href='/static/lfw/js/jquery-ui-1.8.9.custom/css/smoothness/jquery-ui-1.8.9.custom.css'
     type='text/css' media='screen, projection' / -->
-
+    
   <!-- link rel='stylesheet'
     href='/static/lfw/css/vendor/aristo/jquery-ui-1.8.7.custom.css'
     type='text/css' media='screen, projection' / -->
 
   <link rel='stylesheet' href='/static/lfw/css/vendor/blueprint-1.0/screen.css'
     type='text/css' media='screen, projection' />
-
+    
   <!-- link rel='stylesheet'
     href='/static/lfw/css/vendor/aristo/jquery-ui-1.8.7.custom.css'
     type='text/css' media='screen, projection' / -->
@@ -57,7 +57,7 @@
   <!-- All JavaScript at the bottom, except for Modernizr which enables HTML5 elements & feature detects -->
   <script src="/static/lfw/js/libs/modernizr-1.6.min.js"></script>
 
-  <!-- customizations -->
+  <!-- customizations -->  
   <link rel='stylesheet' href='/static/lfw/style/screen.css'
     type='text/css' media='screen, projection' />
   <link rel='stylesheet' href='/static/lfw/style/print.css'
@@ -69,22 +69,22 @@
   <script>
 
 
-    //Call this function after body load
-    function manageDebug(){
-    // Define a cross-browser window.console.log method.
-    // For IE and FF without Firebug, fallback to using an alert.
-    if (!window.console) {
-    var log = window.opera ? window.opera.postError : Sammy.log;
-    window.console = { log: function(str) { log(str) } };
-    }
-    }; //manageDebug ends
-
+	//Call this function after body load
+	function manageDebug(){
+	// Define a cross-browser window.console.log method.
+	// For IE and FF without Firebug, fallback to using an alert.
+	if (!window.console) {
+	var log = window.opera ? window.opera.postError : Sammy.log;
+	window.console = { log: function(str) { log(str) } };
+	}
+	}; //manageDebug ends
+		
   </script>
-
+  
   <meta http-equiv="pragma" content="no-cache">
   <meta http-equiv="cache-control" content="no-cache">
   <meta http-equiv="expires" content="0">
-
+ 
 
 </head>
 
@@ -120,7 +120,7 @@
         <img src='/static/lfw/img/pixel.gif'/>
       </div>
       <div class='span-19 last' id='search'>
-
+        
         <label for='title'>Title:</label>
         <input id='title' name='q' placeholder='PageTitle' class='text' />
 
@@ -138,27 +138,27 @@
         </form>
       </div>
     </div>
-
+    
     <div class='span-24'>
       <div id='sidebar' class='span-5'>
-
+        
         <div id='tree'></div>
       </div>
-
-      <div id='content' class='span-19 last' style='position: relative;'>
-        <div id='toolbar' class='span-20 last' style='top: 5px; position: absolute; text-align: right;'>
+      
+      <div id='content' class='span-19 last'>
+        <div id='toolbar' class='span-20 last' style='margin-top: 5px; text-align: right;'>
             <button id='newpage'>New</button>
             <button id='editpage'>Edit</button>
             <button id='deletepage'>Delete</button>
         </div>
         <div id='main'>&nbsp;</div>
-      </div>
+      </div>    
     </div>
-
+    
     <div id='footer' class='span-24 last'>
       &nbsp;
     </div>
-
+    
   </div> <!--! end of #container -->
 
   <!-- Templates go here -->
@@ -189,11 +189,11 @@
   <!-- Grab Google CDN's jQuery. fall back to local if necessary -->
   <!-- script src="//ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.js"></script -->
   <!-- script>!window.jQuery && document.write(unescape('%3Cscript src="/static/lfw/js/libs/jquery-1.4.4.js"%3E%3C/script%3E'))</script -->
-
+  
   <script src="/static/lfw/js/libs/jquery-1.5.1.js"></script>
   <script>!window.jQuery && document.write(unescape('%3Cscript src="/static/lfw/js/libs/jquery-1.5.1.js"%3E%3C/script%3E'))</script>
-
-
+  
+  
   <script src='/static/lfw/js/libs/jquery-ui.js'></script>
   <script src='/static/lfw/js/libs/oauth.js'></script>
   <script src='/static/lfw/js/libs/sha1.js'></script>
@@ -206,8 +206,8 @@
   <script src="/static/lfw/js/libs/codemirror/python.js"></script>
   <script src="/static/lfw/js/editor.js"></script>
   <script src="/static/lfw/js/autocomp.js"></script>
-
-
+          
+          
   <!-- scripts concatenated and minified via ant build script-->
   <script src='/static/lfw/js/mylibs/sammy-0.6.2.min.js'></script>
   <script src='/static/lfw/js/mylibs/sammy.mustache-0.6.2.min.js'></script>
@@ -215,10 +215,10 @@
   <script src='/static/lfw/js/mylibs/showdown-0.9.min.js'></script>
   <script src="/static/lfw/js/plugins.js"></script>
   <script src='js/config.js'></script>
-
+  
   <script src="/static/lfw/js/script.js"></script>
-  <!-- end concatenated and minified scripts-->
-
+  <!-- end concatenated and minified scripts-->  
+  
   <!--[if lt IE 7 ]>
     <script src="/static/lfw/js/libs/dd_belatedpng.js"></script>
     <script> DD_belatedPNG.fix('img, .png_bg'); //fix any <img> or .png_bg background-images </script>
@@ -230,159 +230,11 @@
   <script src="/static/lfw/js/profiling/config.js"></script>
   -->
   <!-- end profiling code -->
-
+  
   <script>
   manageDebug();
   </script>
-  <script>
-    COOKIE_NAME = "oauth_token";
-    $("#logout").click(function(event) {
-        event.preventDefault();
-        localStorage.removeItem(COOKIE_NAME);
-        eraseCookie("username");
-        location.reload();
-    });
-    function doLogin()
-    {
-        if(jQuery.trim( $('#username').val() ) == "" || jQuery.trim( $('#password').val() ) == "")
-        {
-            alert("Invalid username/password combination!");
-            return;
-        }
-        makeOAuthRequest($('#username').val(), $('#password').val());
-        $(loginDialog).dialog('close');
-    }
-    addAuthenticationHeader();
-    displayUser();
-    //GUID generator
-    function guidGenerator() {
-        var S4 = function() {
-        return (((1+Math.random())*0x10000)|0).toString(16).substring(1);
-        };
-        return (S4()+S4()+"-"+S4()+"-"+S4()+"-"+S4()+"-"+S4()+S4()+S4());
-    }
-
-    //Cookies managment functions
-    function createCookie(name,value,days) {
-      if (days) {
-          var date = new Date();
-          date.setTime(date.getTime()+(days*24*60*60*1000));
-          var expires = "; expires="+date.toGMTString();
-      }
-      else var expires = "";
-      document.cookie = name+"="+value+expires+"; path=/";
-    }
-    function readCookie(name) {
-        var nameEQ = name + "=";
-        var ca = document.cookie.split(';');
-        for(var i=0;i < ca.length;i++) {
-            var c = ca[i];
-            while (c.charAt(0)==' ') c = c.substring(1,c.length);
-            if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
-        }
-        return null;
-      }
-    function eraseCookie(name) {
-        createCookie(name,"",-1);
-    }
-    //Token generation function
-    function makeOAuthRequest(username, password)
-    {
-        var url = LFW_CONFIG['oauthservice'];
-        var accessor = {
-            token: "",
-            tokenSecret: "",
-            consumerKey : guidGenerator(),
-            consumerSecret: guidGenerator()
-        };
-
-        var message = {
-            action: url,
-            method: "GET",
-            parameters: {'user': username, 'password': password}
-        };
-
-        OAuth.completeRequest(message, accessor);
-        OAuth.SignatureMethod.sign(message, accessor);
-        url = url + '?' + OAuth.formEncode(message.parameters);
-        jQuery.ajax({
-            type: "GET",
-            dataType: 'jsonp',
-            jsonp: '_jsonp',
-            url: url,
-            success: function(data){
-                                       localStorage.setItem(COOKIE_NAME, data);
-                                       $("#loginInfo").attr("style", "");
-                                       $("#loggeduser").attr("value",username);
-                                       createCookie("username", username);
-                                   },
-        });
-
-    }
-    //Add the authentication info to the header of all Ajax request
-    function addAuthenticationHeader()
-    {
-        var url = "http://incubaid/pylabs5";
-        var accessor = {
-            token: "",
-            tokenSecret: "",
-            consumerKey : "",
-            consumerSecret: ""
-        };
-
-        var message = {
-          action: url,
-          method: "GET",
-          parameters: {'user': '', 'password': ''}
-        };
-        var token = localStorage.getItem(COOKIE_NAME);
-        var tokenKey, tokenSecret;
-        if(token != null)
-        {
-            var parts = token.split("&");
-            var firstPart = parts[0];
-            var secondPart = parts[1];
-            if(firstPart.split("=")[0] == "oauth_token")
-            {
-                tokenKey = firstPart.split("=")[1];
-                tokenSecret = secondPart.split("=")[1];
-            }
-            else
-            {
-                tokenKey = secondPart.split("=")[1];
-                tokenSecret = firstPart.split("=")[1];
-            }
-            OAuth.completeRequest(message, accessor);
-            var oauth_header_params = {
-                oauth_consumer_key: readCookie("username"),
-                oauth_token: 'token_$('+tokenKey+')',
-                oauth_verifier: '',
-                oauth_nonce: message.parameters.oauth_nonce,
-                oauth_timestamp: message.parameters.oauth_timestamp,
-                oauth_signature: message.parameters.oauth_signature
-            };
-            authorization_header = OAuth.getAuthorizationHeader('alkira',oauth_header_params);
-            jQuery.ajaxSetup({
-                'beforeSend': function(xhr) {
-                                                xhr.setRequestHeader("authorization", authorization_header);
-                                            }
-            });
-        }
-        else
-        {
-            $(loginDialog).dialog({title: 'Login required', closeOnEscape: false, width: 260, height:200, resizable: false});
-        }
-    }
-    function displayUser()
-    {
-        var username = readCookie('username');
-        if(username != null)
-        {
-            $("#loginInfo").attr("style", "");
-            $("#loggeduser").attr("value",username);
-        }
-    }
-  </script>
+<script src="/static/lfw/js/oauth.js"></script>
 </body>
 </html>
 <!-- vim: tabstop=4:shiftwidth=4:expandtab

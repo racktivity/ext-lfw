@@ -75,7 +75,6 @@ def sync_to_alkira(appname, path=None, sync_space=None, clean_up=False):
     def alkiraTree(alkira, folder_paths, root_parent=None):
         for folder_path in folder_paths:
             base_name = q.system.fs.getBaseName(folder_path)
-
             # Ignore hg dir
             if base_name == '.hg':
                 continue
@@ -121,7 +120,7 @@ def sync_to_alkira(appname, path=None, sync_space=None, clean_up=False):
 
     #make the first space is the Admin Space
     portal_spaces = sorted(portal_spaces, lambda x,y: -1 if x.endswith("/Admin") else 1)
-
+    
     for folder in portal_spaces:
         space = folder.split(os.sep)[-1]
         spaceguid = None
@@ -134,9 +133,11 @@ def sync_to_alkira(appname, path=None, sync_space=None, clean_up=False):
         q.console.echo('Syncing space: %s' % space)
 
         page_occured = []
-
-
-        folder_paths = q.system.fs.listDirsInDir(folder)
+        #Special handling for "Imported" space, dont traverse
+        if space == "Imported":
+            folder_paths = list()
+        else:
+            folder_paths = q.system.fs.listDirsInDir(folder)
         main_files = q.system.fs.listFilesInDir(folder, filter='*.md')
 
         for each_file in main_files:

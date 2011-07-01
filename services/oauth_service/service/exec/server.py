@@ -32,9 +32,11 @@ class RequestHandler(BaseHTTPRequestHandler):
         @return: True for a valid user/password combination, and False otherwise and a list of group IDs for the user
         @rtype: list
         """
-        from LDAP import LDAPClient
-        ldap = LDAPClient(self.server.config["LDAP"], username, password)
-        return ldap.isAuthenticated(username, password), ()
+        servicename = self.server.config['main']['servicename']
+        backend_service_mod = self._loadBackEndService(servicename)
+        backend_service = backend_service_mod(self.server.config[servicename], username, password)
+
+        return backend_service.isAuthenticated(username, password), ()
 
     def saveToArakoon(self, token, longlast=False, groupguids=None):
         """
@@ -140,6 +142,21 @@ class RequestHandler(BaseHTTPRequestHandler):
         
         return params
 
+    def _loadBackEndService(self, servicename):
+        plugin = None
+        pluginsdir = "."
+        print "pluginsdir = %s" % pluginsdir
+        candidates = os.listdir(pluginsdir)
+        for candidate in candidates:
+            if candidate == "__init__.py" or not candidate.endswith(".py"):
+                continue
+            modname = os.path.splitext(candidate)[0]
+            if modname != servicename:
+                continue
+            pluginmod = __import__(modname, level=1)
+            if hasattr(pluginmod, 'BACKEND'):
+                plugin = getattr(pluginmod, 'BACKEND')
+        return plugin
 
 class TokensCleanup(threading.Thread):
     def run(self):

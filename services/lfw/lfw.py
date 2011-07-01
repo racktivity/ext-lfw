@@ -59,8 +59,8 @@ class LFWService(object):
         return self.alkira.listUsers(username)
 
     @q.manage.applicationserver.expose_authenticated
-    def createUser(self, name, tags=""):
-        self.alkira.createUser(name, tags.split(' '))
+    def createUser(self, name, password, tags=""):
+        self.alkira.createUser(name, password, tags.split(' '))
 
     @q.manage.applicationserver.expose_authenticated
     def deleteUser(self, name):

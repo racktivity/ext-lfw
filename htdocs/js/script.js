@@ -1040,6 +1040,7 @@ $(function(){
                                                                    'title': title},
                                                             dataType: 'json',
                                                             success: function(data) {
+                                                                name = name.replace("/", "%2f");
                                                                 app.trigger('change-page', {title: name});
                                                                 dialog.dialog("close");
                                                             },

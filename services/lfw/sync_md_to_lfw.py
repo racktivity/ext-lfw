@@ -7,7 +7,7 @@ import functools
 def sync_to_alkira(appname, path=None, sync_space=None, sync_page=None, clean_up=False):
     from pylabs import p, q
     alkira = q.clients.alkira.getClient("localhost", appname)
-    
+
     def deletePages(sync_space):
             pages = alkira.pageFind(space=sync_space)
             for page in pages:
@@ -42,7 +42,7 @@ def sync_to_alkira(appname, path=None, sync_space=None, sync_page=None, clean_up
         name = q.system.fs.getBaseName(page_file).split('.')[0]
         content = q.system.fs.fileGetContents(page_file)
         page_info = alkira.pageFind(name=name, space=spaceguid, exact_properties=("name", "space"))
-        
+
         if len(page_info) > 1:
             raise ValueError('Multiple pages found!')
         elif len(page_info) == 1:
@@ -51,7 +51,7 @@ def sync_to_alkira(appname, path=None, sync_space=None, sync_page=None, clean_up
         else:
             save_page = alkira.createPage
             q.console.echo('Creating page: %s'%name, indent=3, withStar=True)
-            
+
         # Setting content and metadata
         page_content_dict = filterContent(content)
         content = page_content_dict.get('content', 'Page is empty.')
@@ -63,19 +63,28 @@ def sync_to_alkira(appname, path=None, sync_space=None, sync_page=None, clean_up
         tags = set(tags)
         tags.add('space:%s' % space)
         tags.add('page:%s' % name)
-        
-        if name == "Home":
-            tags.add('spaceorder:%s' % page_content_dict.get('spaceorder',1000))
-        
+
+        if name == "Home" and spaceobject.name != "Admin":
+            spacetags = set(spaceobject.tags.split(' ')) if spaceobject.tags else set()
+
+            for spacetag in spacetags:
+                if "order:" in spacetag:
+                    spacetag = 'order:%s' % page_content_dict.get('spaceorder', 1000)
+                    break
+            else:
+                spacetags.add('order:%s' % page_content_dict.get('spaceorder', 1000))
+
+            alkira.updateSpace(spaceobject.name, tagslist=spacetags)
+
         for tag in re.sub('((?=[A-Z][a-z])|(?<=[a-z])(?=[A-Z]))', ' ', name).strip().split(' '):
             tags.add(tag)
-        
+
         save_page(space=space, name=name, content=content, order=order, title=title, tagsList=tags, category='portal', parent=parent)
-        
+
     def alkiraTree(folder_paths, root_parent=None):
         for folder_path in folder_paths:
             folder_name = q.system.fs.getBaseName(folder_path).split('.')[0]
-            parent_name = folder_name + '.md' 
+            parent_name = folder_name + '.md'
             parent_path = q.system.fs.joinPaths(folder_path, parent_name)
 
             if not q.system.fs.exists(parent_path):
@@ -100,10 +109,10 @@ def sync_to_alkira(appname, path=None, sync_space=None, sync_page=None, clean_up
         md_path = q.system.fs.joinPaths(q.dirs.baseDir, 'pyapps', appname, 'portal', 'spaces')
     else:
         md_path = path
-        
+
     if clean_up:
         deletePages(sync_space)
-        
+
     if sync_space:
         space_dir = q.system.fs.joinPaths(md_path, sync_space)
         if not q.system.fs.exists(space_dir):
@@ -114,20 +123,21 @@ def sync_to_alkira(appname, path=None, sync_space=None, sync_page=None, clean_up
 
     #make the first space is the Admin Space
     portal_spaces = sorted(portal_spaces, lambda x,y: -1 if x.endswith("/Admin") else 1)
-    
+
     for folder in portal_spaces:
         space = folder.split(os.sep)[-1]
         spaceguid = None
         if space not in alkira.listSpaces():
             #create space
             alkira.createSpace(space)
-        
-        spaceguid = alkira.getSpace(space).guid
-            
+
+        spaceobject = alkira.getSpace(space)
+        spaceguid = spaceobject.guid
+
         q.console.echo('Syncing space: %s' % space)
-        
+
         page_occured = []
-        
+
         if sync_page:
             page_file = q.system.fs.walk(folder, 1, '%s.md' % sync_page)
             if not page_file:
@@ -140,7 +150,7 @@ def sync_to_alkira(appname, path=None, sync_space=None, sync_page=None, clean_up
 
         for each_file in main_files:
             createPage(each_file)
-            
+
         alkiraTree(folder_paths)
 
 if __name__ == "__main__":

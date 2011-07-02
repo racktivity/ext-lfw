@@ -12,10 +12,12 @@ var render = function(options) {
         var appname = options.params.appname || urlitems[idx+1];
         var domain = options.params.domain || urlitems[idx+3];
         var extra = options.params.extra || '';
-        //appname, domainName, wizardName, applicationserverIp, extra
-        var service = "http://" + appserver + "/" + appname + "/appserver/rest/ui/wizard";
+        var service = options.params.service || null;
+        if (!service){
+            var service = "http://" + appserver + "/" + appname + "/appserver/rest/ui/wizard";
+        }
+
         var action = "JSWizards.launch('" + service + "', '" + domain + "', '" + name + "', '" + extra +"')";
-        //var action = "jswizards.start('" + appname + "', '" + domain + "', '"+name+"', '"+appserver+"', '"+extra+"')";
         if (type == "button"){
             element = $("<button>");
         }

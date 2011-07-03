@@ -108,7 +108,6 @@ function addAuthenticationHeader()
             oauth_signature: message.parameters.oauth_signature,
             oauth_signature_method: message.parameters.oauth_signature_method
         };
-        alert(OAuth.getAuthorizationHeader("alkira", oauthParams));
         jQuery.ajaxSetup({
             'beforeSend': function(xhr) {
                                             xhr.setRequestHeader("authorization", OAuth.getAuthorizationHeader("alkira", oauthParams));

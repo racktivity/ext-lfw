@@ -1040,7 +1040,9 @@ $(function(){
                                                                    'title': title},
                                                             dataType: 'json',
                                                             success: function(data) {
-                                                                name = name.replace("/", "%2f");
+                                                                //convert slashes (/) to %2f
+                                                                name = name.replace(/\//g, "%2f");
+                                                                alert(name);
                                                                 app.trigger('change-page', {title: name});
                                                                 dialog.dialog("close");
                                                             },

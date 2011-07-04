@@ -1,3 +1,5 @@
+import json
+
 TAB_GENERAL_TITLE = 'General macro'
 TAB_GENERAL_NAME = 'Title : '
 TAB_GENERAL_PARAMS = 'Parameters : '
@@ -5,7 +7,7 @@ TAB_GENERAL_BODY = 'Body : '
 
 def getJsonResult(api, title, params, body):
     params = params.split("\n")
-    paramList = list()
+    paramDict = dict()
     for param in params:
         if not param:
             continue
@@ -15,9 +17,8 @@ def getJsonResult(api, title, params, body):
             key, value = param.split(":")
         else:
             continue
-        paramList.append("\"%s\":\"%s\"" % (key.strip(), value.strip()))
-    paramJson = "{" + ",".join(paramList) + "}"
-    result = '{"title":"%s", "params":"%s", "body":"%s"}' % (title, paramJson, body)
+        paramDict[key.strip()] = value.strip()
+    result = json.dumps({'title':title, 'params': paramDict, 'body': body})
     return result
 
 def _getExtraParam(q, params):
@@ -38,7 +39,7 @@ def _getExtraParam(q, params):
     return extra
 
 def main(q, i, p, params, tags):
-    q.logger.log("General macro wizard", level=10)
+    q.logger.log("%s wizard" % TAB_GENERAL_TITLE, level=10)
 
     extra = _getExtraParam(q, params)
 

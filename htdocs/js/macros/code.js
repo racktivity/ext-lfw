@@ -1,6 +1,8 @@
+//@metadata wizard=code
+
 var render = function(options) {
     var $this = $(this);
-    
+
     var cb = function () {
         $.template('plugin.code.highlight', '<div><pre><code>${options}</code></pre></div>');
         var c = $.tmpl('plugin.code.highlight', {'options': options.body});
@@ -12,7 +14,7 @@ var render = function(options) {
         $this.find('pre code').each(function(i, e) {hljs.highlightBlock(e, '    ')});
         $this.find('pre code').css("white-space", "pre-wrap");
     };
-    
+
     options.addCss({'id': 'codemacro', 'tag': 'link', 'params': {'rel': 'stylesheet', 'href': 'http://yandex.st/highlightjs/5.16/styles/default.min.css'}})
     options.addDependency(cb, ['http://yandex.st/highlightjs/5.16/highlight.min.js'])
 };

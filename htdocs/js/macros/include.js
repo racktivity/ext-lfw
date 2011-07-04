@@ -1,13 +1,15 @@
+//@metadata wizard=include
+
 var render = function(options) {
 
-    var me = this;    
+    var me = this;
     var space = options.params.space || options.space;
     var name = options.params.name;
-    
+
     console.log('[macro_include] Retrieving page ' + name + ' from space ' + space);
 
     // @todo: change to $.swap
-    $.getJSON(LFW_CONFIG['uris']['pages'], 
+    $.getJSON(LFW_CONFIG['uris']['pages'],
         {
             'space': space,
             'name': name

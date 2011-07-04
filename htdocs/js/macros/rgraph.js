@@ -1,3 +1,5 @@
+//@metadata wizard=rgraph
+
 var render = function(options) {
     var TEMPLATE_NAME = 'plugin.rgraph';
     var $this = $(this);

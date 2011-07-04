@@ -1,6 +1,8 @@
+//@metadata wizard=sqlgrid
+
 var render = function(options) {
     var TEMPLATE_NAME = 'plugin.grid.sql';
-    var $this = $(this);    
+    var $this = $(this);
     var space = options.space;
     var page = options.page;
     var body = $.parseJSON(options.body);
@@ -11,7 +13,7 @@ var render = function(options) {
     if (body.sqlselect){
         sqlselect = body.sqlselect;
     }else{
-        
+
         var columns = body.columns;
         var whereclouse = body.wheredict;
         $.each(columns, function(key, value){
@@ -22,10 +24,10 @@ var render = function(options) {
             }
         });
         sqlselect = sqlselect.substr(0, sqlselect.length-2);
-        
+
     if(whereclouse) {
             sqlselect += " FROM "+body.schema+"."+body.table+" WHERE ";
-            
+
             $.each(whereclouse, function(key, value){
                 sqlselect += body.table + "." + key+" = " + "'" + value + "' and ";
             });
@@ -33,21 +35,21 @@ var render = function(options) {
     }
       else
             sqlselect += " FROM "+body.schema+"."+body.table;
-        
+
     }
-  
+
     var colNames = new Array();
     var colModel = new Array();
 
     $.template(TEMPLATE_NAME, '<div><table id="sqlgrid" class="scroll" cellpadding="0" cellspacing="0"></table><div id="gridpager" class="scroll" style="text-align: center;"></div></div>');
     $.tmpl(TEMPLATE_NAME, {}).appendTo($this);
-    
+
     function success(jsondata) {
         setColNames(jsondata);
         setColModel(getColNames());
         makeGrid(jsondata);
     };
-    
+
     function getKeys(obj) {
         var keys = [];
         for (var propertyName in obj) {
@@ -55,15 +57,15 @@ var render = function(options) {
         }
         return keys;
     }
-    
+
     function setColNames(data) {
         colNames = data['columns'];
     }
-    
+
     function getColNames() {
         return colNames;
     }
-    
+
     function setColModel(colNames) {
 
         var width = 80;
@@ -82,7 +84,7 @@ var render = function(options) {
             else colModel.push({name: colname, index: colname, width: width, align: 'left'});
         })
     }
-    
+
     function linkFormatter(cellvalue, options, rowObject) {
 
         var idx = rowObject.indexOf(cellvalue);
@@ -93,20 +95,20 @@ var render = function(options) {
             var colIndx= colNames.indexOf(columnname);
             var value = rowObject[colIndx];
             return value;
-            
+
         });
 
         return '<a href= ' + urltemplate + '>'+ cellvalue +'</a>';
     }
-    
+
     function getColModel() {
         return colModel;
     }
-    
+
     function error(data) {
         console.log(data);
     }
-    
+
     function makeGrid(data){
         var height = body.height || 400;
         var width = body.width || 600;
@@ -139,11 +141,11 @@ var render = function(options) {
             error: error
         });
     }
-    
+
     var cb = function() {
         getData();
     }
-    
+
     options.addCss({'id': 'sqlgrid1', 'tag': 'link', 'params': {'rel': 'stylesheet', 'href': '/static/lfw/js/libs/jquery.jqGrid-4.0.0/src/css/ui.jqgrid.css'}});
     options.addCss({'id': 'sqlgrid2', 'tag': 'link', 'params': {'rel': 'stylesheet', 'href': '/static/lfw/js/libs/jquery.jqGrid-4.0.0/src/css/ui.multiselect.css'}});
     options.addDependency(cb, ["/static/lfw/js/libs/jquery.jqGrid-4.0.0/src/i18n/grid.locale-en.js", "/static/lfw/js/libs/jquery.jqGrid-4.0.0/js/jquery.jqGrid.min.js","/static/lfw/js/libs/jquery.jqGrid-4.0.0/src/jqModal.js", "/static/lfw/js/libs/jquery.jqGrid-4.0.0/src/jqDnR.js"]);

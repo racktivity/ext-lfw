@@ -1,3 +1,5 @@
+//@metadata wizard=tip
+
 var render = function(options) {
     var $this = $(this);
     var data  = options.body;

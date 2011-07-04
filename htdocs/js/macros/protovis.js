@@ -1,3 +1,5 @@
+//@metadata wizard=protovis
+
 var render = function(options) {
     var TEMPLATE_NAME = 'plugin.protovis'; // this is only local I think
     var $this = $(this);

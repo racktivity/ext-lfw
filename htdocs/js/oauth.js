@@ -18,13 +18,6 @@ function doLogin()
 }
 addAuthenticationHeader();
 displayUser();
-//GUID generator
-function guidGenerator() {
-    var S4 = function() {
-    return (((1+Math.random())*0x10000)|0).toString(16).substring(1);
-    };
-    return (S4()+S4()+"-"+S4()+"-"+S4()+"-"+S4()+"-"+S4()+S4()+S4());
-}
 
 //Token generation function
 function makeOAuthRequest(username, password)
@@ -44,9 +37,10 @@ function makeOAuthRequest(username, password)
         url: url,
         success: function(data){
                                    addToLocalStorage(OAUTH_TOKEN, data);
-                                   $("#loginInfo").attr("style", ""); 
+                                   $("#loginInfo").attr("style", "");
                                    $("#loggeduser").attr("value",username);
                                    addToLocalStorage(USER_NAME, username);
+                                   addAuthenticationHeader();
                                },
     });
 
@@ -90,7 +84,7 @@ function addAuthenticationHeader()
                 }
             }
         }
-        
+
         message.parameters.oauth_verifier = "";
         message.parameters.oauth_consumer_key = getFromLocalStorage(USER_NAME);
         accessor.consumerKey = message.parameters.oauth_consumer_key;
@@ -136,7 +130,7 @@ function addToLocalStorage(key, value)
 }
 function getFromLocalStorage(key)
 {
-    
+
     var item = JSON.parse(localStorage.getItem(key));
     var now = new Date().getTime().toString();
     if(item == null)

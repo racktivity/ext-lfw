@@ -647,7 +647,7 @@ data;
            }
 
            var args = {
-               space: getSpace()
+               //space: getSpace()
            };
 
            if(type === 'labels') {
@@ -698,9 +698,11 @@ data;
             page = this.params['page'];
 
         var render = true;
-
+        
+        //pages with /'s should be left unchanged
         if (page.substr(-3) === '.md') {
-            page = page.substr(0, page.length - 3);
+            if (page.indexOf("/") < 0)
+                page = page.substr(0, page.length - 3);
             render = false;
         }
 
@@ -738,7 +740,7 @@ data;
 
                 setTitle(data['title']);
 
-                if ($.inArray(data.pagetype, ['py']) >= 0) {
+                if (data.pagetype != "md") {
                     content = '[[code]]\n' + content + '[[/code]]';
                 }
                 /*
@@ -753,7 +755,7 @@ data;
                     rendered = renderWiki(content);
                 } else {
 
-                    rendered = $('<div><pre>' + content + '</pre></div>').html();
+                    rendered = $('<div><pre>' + content.replace(/</g, "&lt;") + '</pre></div>').html();
                     //rendered.append($('<div/>').text(content).text());
 
                     //rendered = rendered.html();
@@ -818,6 +820,8 @@ data;
 
     this.bind('change-page', function(e, data) {
         this.log('change-page');
+        //replace /s with %2f
+        data['title'] = data['title'].replace(/\//g, "%2f");
         this.redirect(buildUri(getSpace(), data['title']));
     });
 });
@@ -932,8 +936,14 @@ $(function(){
     $("#toolbar > #newpage").button({icons: {primary: 'ui-icon-document'}}).click(function(){
         var parent = app.getPage();
         var space = app.getSpace();
+        var defaultname = ''
+        if (parent.indexOf("/") > 0)
+        {
+            idx = parent.lastIndexOf("/")
+            defaultname = parent.substr(0, idx + 1) + 'untitled'
+        }
 
-        dialog.editor("name", "");
+        dialog.editor("name", defaultname);
         dialog.editor("title", "");
         dialog.editor("content", "");
         dialog.editor("filetype", "md");
@@ -1040,9 +1050,6 @@ $(function(){
                                                                    'title': title},
                                                             dataType: 'json',
                                                             success: function(data) {
-                                                                //convert slashes (/) to %2f
-                                                                name = name.replace(/\//g, "%2f");
-                                                                alert(name);
                                                                 app.trigger('change-page', {title: name});
                                                                 dialog.dialog("close");
                                                             },

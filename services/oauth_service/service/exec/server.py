@@ -145,7 +145,6 @@ class RequestHandler(BaseHTTPRequestHandler):
     def _loadBackEndService(self, servicename):
         plugin = None
         pluginsdir = "."
-        print "pluginsdir = %s" % pluginsdir
         candidates = os.listdir(pluginsdir)
         for candidate in candidates:
             if candidate == "__init__.py" or not candidate.endswith(".py"):

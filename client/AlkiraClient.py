@@ -108,6 +108,43 @@ class Client:
             return None
         return ext
     
+    def _syncImportedPageToFile(self, spacename, page, action, oldname = None):
+        """
+        @param page: its the page object for action "delete" it can be the page's name instead
+        @param action: "create", "update", "delete", "rename"
+        @param newname: if action is "rename", newname is the new page's name/path
+        Please note that "rename" action ALSO saves the file's content in the new location
+        """
+        if isinstance(page, str):
+            if action != "delete":
+                raise ValueError("Page object required for action %s"%action)
+            pagename = page
+        else:
+            pagename = page.name
+
+        #This function only save pages if its name contain its relative path
+        
+        if pagename.find("/") < 1:
+            if action == "rename":
+                raise ValueError("Invalid name for an imported page %s, name should be projectname/path/to/file.ext"%pagename)
+            else:
+                return False
+        #get space path
+        path = q.system.fs.joinPaths(q.dirs.pyAppsDir , self.api.appname, "portal", "spaces", spacename)
+        filename = q.system.fs.joinPaths(path, pagename)
+        if action in ("create", "update"):
+            q.system.fs.writeFile(filename, page.content or "")
+        elif action == "delete":
+            if q.system.fs.exists(filename):
+                q.system.fs.removeFile(filename)
+        elif action == "rename":
+            oldfilename = q.system.fs.joinPaths(path, oldname)
+            #delete the old file
+            if q.system.fs.exists(oldfilename):
+                q.system.fs.removeFile(oldfilename)
+            #save the new file
+            q.system.fs.writeFile(filename, page.content or "")
+    
     def listPages(self, space=None):
         """
         Lists all the pages in a certain space.
@@ -334,6 +371,8 @@ class Client:
         @type name: String
         @param name: The name of the page.
         """
+        if space == "Imported":
+            self._syncImportedPageToFile(space, name, "delete")
         space = self._getSpaceGuid(space)
         page = self.getPage(space, name)
         self.connection.page.delete(page.guid)
@@ -462,6 +501,7 @@ class Client:
         @type filename: string
         @param filename: used by import directory script to store original file path
         """
+        spacename = space
         space = self._getSpaceGuid(space)
         if self.pageExists(space, name):
             q.errorconditionhandler.raiseError("Page %s already exists."%name)
@@ -483,7 +523,10 @@ class Client:
             if parent:
                 parent_page = self.getPage(space, parent)
                 page.parent = parent_page.guid
-                
+            
+            if spacename == "Imported":
+                #the "Imported" space needs to keep filesystem in sync with database
+                self._syncImportedPageToFile(spacename, page, "create")
             self.connection.page.save(page)
             return page
 
@@ -591,6 +634,7 @@ class Client:
         @type filename: string
         @param filename: used by import directory script to store original file path
         """
+        spacename = space if space else old_space
         old_space = self._getSpaceGuid(old_space)
 
         page = self.getPage(old_space, old_name)
@@ -622,6 +666,13 @@ class Client:
         if parent:
             parent_page = self.getPage(old_space, parent)
             page.parent = parent_page.guid
+        
+        if spacename == "Imported":
+            #the "Imported" space needs to keep filesystem in sync with database
+            if name and name != old_name:
+                self._syncImportedPageToFile(spacename, page, "rename", oldname = old_name)
+            else:
+                self._syncImportedPageToFile(spacename, page, "update")
 
         self.connection.page.save(page)
         return page

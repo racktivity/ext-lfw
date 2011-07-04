@@ -5,8 +5,9 @@ var LFW_DASHBOARD = {
     widgetTypesByName: {}
 };
 
-///TODO use metadata for description and images of widgets
-///TODO change config of widgets to wizards
+///TODO persist the newly created widgets
+///TODO make configure of the widgets work
+///TODO multilines creates an invalid json in $.parseJSON
 
 // Menu
 $(function() {
@@ -199,7 +200,8 @@ $(function() {
                 LFW_DASHBOARD.widgetTypesByName[this.options.widgettype].wizard : "general");
 
         function update(object) {
-            that.options.title = object.name;
+            object = $.parseJSON(object);
+            that.options.title = object.title;
             that.options.config = object.body;
             that.options.params = object.params;
 
@@ -212,7 +214,8 @@ $(function() {
         }
 
         JSWizards.launch("http://" + document.domain + "/" + LFW_CONFIG.appname +
-            "/appserver/rest/ui/wizard", "widgets", wizard, "", update);
+            "/appserver/rest/ui/wizard", "widgets", wizard,
+            { title: this.options.title, body: this.options.config, params: this.options.params }, update);
     };
 
     LFW_DASHBOARD.Widget = Widget;
@@ -278,7 +281,7 @@ $(function() {
 
         var object = { id: id, title: title, widgettype: type, order: order, collapsed: collapsed, config: config,
             params: params };
-        this.widgets.push(new LFW_DASHBOARD.Widget(this, object, wizardName));
+        this.widgets.push(new LFW_DASHBOARD.Widget(this, object));
 
         // Make it persistant
         this._widgets.push(object);
@@ -512,10 +515,10 @@ $(function() {
                         LFW_DASHBOARD.widgetTypesByName[type].wizard : "general");
 
                     function add(object) { // Add the widget
-                        column.addWidget(undefined, object.name, type, undefined, false, object.body, object.params);
+                        object = $.parseJSON(object);
+                        column.addWidget(undefined, object.title, type, undefined, false, object.body, object.params);
                     }
 
-                    JSWizards.JSWIZARDS_ENABLE_DEBUG = true;
                     JSWizards.launch("http://" + document.domain + "/" + LFW_CONFIG.appname +
                         "/appserver/rest/ui/wizard", "widgets", wizard, "", add);
 
@@ -749,9 +752,17 @@ var render = function(options) {
         $.get("appserver/rest/ui/portal/generic", { tagstring: "", macroname: "macrolist" }, function(data) {
             LFW_DASHBOARD.widgetTypes = data;
 
-            var i;
+            // Exclude the dashboard macro itself and create widgetTypesByName
+            var i, indexToRemove = -1;
             for (i = 0; i < data.length; ++i) {
-                LFW_DASHBOARD.widgetTypesByName[data[i].name] = data[i];
+                if (data[i].name !== "dashboard") {
+                    LFW_DASHBOARD.widgetTypesByName[data[i].name] = data[i];
+                } else {
+                    indexToRemove = i;
+                }
+            }
+            if (indexToRemove !== -1) {
+                LFW_DASHBOARD.widgetTypes.splice(indexToRemove, 1);
             }
 
             // Create the dashboard

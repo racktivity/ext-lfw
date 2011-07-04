@@ -1,9 +1,9 @@
 TAB_GENERAL_TITLE = 'General macro'
-TAB_GENERAL_NAME = 'Name : '
+TAB_GENERAL_NAME = 'Title : '
 TAB_GENERAL_PARAMS = 'Parameters : '
 TAB_GENERAL_BODY = 'Body : '
 
-def getJsonResult(api, name, params, body):
+def getJsonResult(api, title, params, body):
     params = params.split("\n")
     paramList = list()
     for param in params:
@@ -17,7 +17,7 @@ def getJsonResult(api, name, params, body):
             continue
         paramList.append("\"%s\":\"%s\"" % (key.strip(), value.strip()))
     paramJson = "{" + ",".join(paramList) + "}"
-    result = '{"name":"%s", "params":"%s", "body":"%s"}' % (name, paramJson, body)
+    result = '{"title":"%s", "params":"%s", "body":"%s"}' % (title, paramJson, body)
     return result
 
 def _getExtraParam(q, params):
@@ -47,9 +47,9 @@ def main(q, i, p, params, tags):
     tab_general = form.addTab('general', TAB_GENERAL_TITLE)
 
     #define fields of tab
-    tab_general.addText(name = 'name',
+    tab_general.addText(name = '_title',
                         text = TAB_GENERAL_NAME,
-                        value = extra['name'] if ('name' in extra) else '')
+                        value = extra['title'] if ('title' in extra) else '')
 
     tab_general.addText(name = 'params',
                         text = TAB_GENERAL_PARAMS,
@@ -66,7 +66,7 @@ def main(q, i, p, params, tags):
     tab_general = form.tabs['general']
 
     result = getJsonResult(p.api,
-                          tab_general.elements['name'].value,
+                          tab_general.elements['_title'].value,
                           tab_general.elements['params'].value,
                           tab_general.elements['body'].value)
 

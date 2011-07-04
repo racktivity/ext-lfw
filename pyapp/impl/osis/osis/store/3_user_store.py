@@ -6,16 +6,12 @@ def main(q, i, p, params, tags):
     rootobject = params['rootobject']
     values = {
         'name': rootobject.name,
-        'space': rootobject.space,
-        'category': rootobject.category,
-        'parent': rootobject.parent,
-        'tags': rootobject.tags,
-        'content': rootobject.content,
-        'order': rootobject.order,
-        'title': rootobject.title,
-        'pagetype': rootobject.pagetype
+        'password': rootobject.password,
+        'spaces': ','.join(rootobject.spaces),
+        'pages': ','.join(rootobject.pages),
+        'tags': rootobject.tags
     }
     osis.viewSave(params['domain'], params['rootobjecttype'], viewname, rootobject.guid, rootobject.version, values)
 
 def match(q, i, params, tags):
-    return params['rootobjecttype'] == 'page' and params['domain'] =='ui'
+    return params['rootobjecttype'] == 'user' and params['domain'] =='ui'

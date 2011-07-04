@@ -18,3 +18,7 @@ class page(model.RootObjectModel):
     order = model.Integer(thrift_id=7)
     #@doc title of the page
     title = model.String(thrift_id=8)
+    #@doc full file name
+    filename = model.String(thrift_id=9)
+    #@doc file type (python, javascript, markup, etc...)
+    pagetype = model.String(thrift_id=10)

@@ -1,3 +1,5 @@
+//@metadata wizard=googlemaps
+
 var render = function(options) {
     var $this = $(this);
     var lat = parseFloat(options.params.latitude) || 51.1;
@@ -5,21 +7,21 @@ var render = function(options) {
     var width = parseFloat(options.params.width) || 250;
     var height = parseFloat(options.params.height) || 250;
     var zoom = parseFloat(options.params.zoom) || 8;
- 
-	var cb = function(){
-		var latlng = new google.maps.LatLng(lat, longitude);
-		var myOptions = {
-		  zoom: zoom,
-		  center: latlng,
-		  mapTypeId: google.maps.MapTypeId.ROADMAP
-		};
-	
+
+    var cb = function(){
+        var latlng = new google.maps.LatLng(lat, longitude);
+        var myOptions = {
+          zoom: zoom,
+          center: latlng,
+          mapTypeId: google.maps.MapTypeId.ROADMAP
+        };
+
         var style = 'width:' + width + 'px; height:' + height + 'px';
         var canvas = $('<div>').attr('style', style);
         $this.append(canvas);
-	
-		var map = new google.maps.Map(canvas[0], myOptions);
-	};
+
+        var map = new google.maps.Map(canvas[0], myOptions);
+    };
 
     options.addCss({'id': 'googlemaps', 'tag': 'style', 'params': 'html { height: 100% }\
     body { height: 100%; margin: 0px; padding: 0px }\

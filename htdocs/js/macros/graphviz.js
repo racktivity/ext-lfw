@@ -1,3 +1,5 @@
+//@metadata wizard=graphviz
+
 var render = function(options) {
     var TEMPLATE_NAME = 'plugin.graphviz';
     var $this = $(this);

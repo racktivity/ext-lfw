@@ -1,10 +1,12 @@
+//@metadata wizard=toc
+
 var render = function(options) {
     var $this = $(this);
-    
+
     $.template('plugin.page.toc', '<div><div id="toc"></div><div id="content">${options}</div></div>');
     var tocTemplate = $.tmpl('plugin.page.toc', {});
     $this.append(tocTemplate);
-    
+
     var value = "H1, H2, H3, H4, H5, H6";
     var previous = 1;
     var first = true;
@@ -17,15 +19,15 @@ var render = function(options) {
 
     var toc_string = "<p><b>Table of Contents:</b></p>";
     toc_string += "<ul>";
-    
+
     options.pagecontent.find(value).each(function(i) {
         var current = $(this);
         var headerLink = "header" + i;
         var headerLevel = this.tagName;
-        
+
         current.attr("id", headerLink);
         headerLevel = headerLevel.split("H")[1];
-        
+
         if (headerLevel > previous)
         {
             toc_string += "<ul>";

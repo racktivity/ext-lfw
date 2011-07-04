@@ -647,7 +647,7 @@ data;
            }
 
            var args = {
-               space: getSpace()
+               //space: getSpace()
            };
 
            if(type === 'labels') {

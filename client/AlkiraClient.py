@@ -167,6 +167,21 @@ class Client:
         """
         spaces = self._getSpaceInfo(name)
         
+        def byOrder(x, y):
+            xtags = q.base.tags.getObject(x["tags"] if "tags" in x else "")
+            ytags = q.base.tags.getObject(y["tags"] if "tags" in y else "")
+            if xtags.tagExists("order"):
+                if ytags.tagExists("order"):
+                    return cmp(int(xtags.tagGet("order")), int(ytags.tagGet("order")))
+                else:
+                    return -1
+            else:
+                if ytags.tagExists("order"):
+                    return 1
+                else:
+                    return 0
+
+        spaces.sort(byOrder)
         return spaces
 
     def listPageInfo(self, space=None):
@@ -515,6 +530,9 @@ class Client:
                 if params[key] != None:
                     setattr(page, key, params[key])
 
+			if not order:
+				page.order = 10000
+
             tags = set(tagsList)
             tags.add('space:%s' % space)
             tags.add('page:%s' % name)
@@ -655,10 +673,10 @@ class Client:
                 setattr(page, key, params[key])
                 
         if tagsList:
-            tags = page.tags.split(' ')
+            tags = set(page.tags.split(' '))
             for tag in tagsList:
                 if tag not in tags:
-                    tags.append(tag)
+                    tags.add(tag)
 
             page_tags = ' '.join(tags)
             page.tags = page_tags

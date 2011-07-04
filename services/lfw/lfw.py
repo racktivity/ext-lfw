@@ -41,7 +41,8 @@ class LFWService(object):
 
     @q.manage.applicationserver.expose_authenticated
     def spaces(self, term=None):
-        return self.alkira.listSpaces()
+        return filter(lambda s: s != "Admin", self.alkira.listSpaces())
+        #return self.alkira.listSpaces()
 
     @q.manage.applicationserver.expose_authenticated
     def createSpace(self, name, tags=""):

@@ -355,6 +355,8 @@ class Client:
         pages = self.listPageInfo(space)
 
         for page in pages:
+            if space == "Imported":
+                self._syncImportedPageToFile(space, page['name'], "delete")
             self.connection.page.delete(page['guid'])
 
         self.connection.space.delete(space.guid)

@@ -202,15 +202,15 @@ class LFWService(object):
         
     
     @q.manage.applicationserver.expose_authenticated
-    def createPage(self, space, name, content, parent=None, order=None, title=None, tags="", category='portal'):
+    def createPage(self, space, name, content, parent=None, order=None, title=None, tags="", category='portal', pagetype="md"):
         if self.alkira.pageExists(space, name):
             raise ValueError("A page with the same name already exists")
         
-        page = self.alkira.createPage(space=space, name=name, content=content, parent=parent, order=order, title=title, tagsList=tags.split(" "), category=category)
+        page = self.alkira.createPage(space=space, name=name, content=content, parent=parent, order=order, title=title, tagsList=tags.split(" "), category=category, pagetype=pagetype)
         #self._syncPageToDisk(space, page)
         
     @q.manage.applicationserver.expose_authenticated
-    def updatePage(self, space, name, content, newname=None, parent=None, order=None, title=None, tags="", category='portal'):
+    def updatePage(self, space, name, content, newname=None, parent=None, order=None, title=None, tags="", category=None, pagetype=None):
         if not self.alkira.pageExists(space, name):
             raise ValueError("Page '%s' doesn't exists" % name)
         
@@ -219,7 +219,7 @@ class LFWService(object):
                 raise ValueError("Page '%s' already exists" % newname)
             
         page = self.alkira.updatePage(old_space=space, old_name=name, name=newname,
-                               content=content, parent=parent, order=order, title=title, tagsList=tags.split(" "), category=category)
+                               content=content, parent=parent, order=order, title=title, tagsList=tags.split(" "), category=category, pagetype=pagetype)
         
         #self._syncPageToDisk(space, page, name)
     

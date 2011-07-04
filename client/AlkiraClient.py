@@ -42,7 +42,7 @@ class Client:
         @param api: The application api if hostname and appname are not passed
         """
         self.KNOWN_TYPES = ["py", "md", "html", "txt"]
-        
+
         if hostname and appname:
             api = p.application.getAPI(appname, host=hostname, context=q.enumerators.AppContext.APPSERVER)
         elif not api:
@@ -98,7 +98,7 @@ class Client:
         if page:
             fullName += "/" + page
         return "%s/%s/portal/spaces/%s" % (q.dirs.pyAppsDir, self.api.appname, fullName)
-        
+
     def _getType(self, pagename):
         idx = pagename.rfind(".")
         if idx <= 0:
@@ -107,7 +107,7 @@ class Client:
         if ext not in self.KNOWN_TYPES:
             return None
         return ext
-    
+
     def _syncImportedPageToFile(self, spacename, page, action, oldname = None):
         """
         @param page: its the page object for action "delete" it can be the page's name instead
@@ -123,7 +123,7 @@ class Client:
             pagename = page.name
 
         #This function only save pages if its name contain its relative path
-        
+
         if pagename.find("/") < 1:
             if action == "rename":
                 raise ValueError("Invalid name for an imported page %s, name should be projectname/path/to/file.ext"%pagename)
@@ -144,7 +144,7 @@ class Client:
                 q.system.fs.removeFile(oldfilename)
             #save the new file
             q.system.fs.writeFile(filename, page.content or "")
-    
+
     def listPages(self, space=None):
         """
         Lists all the pages in a certain space.
@@ -166,7 +166,7 @@ class Client:
         List all spaces info
         """
         spaces = self._getSpaceInfo(name)
-        
+
         def byOrder(x, y):
             xtags = q.base.tags.getObject(x["tags"] if "tags" in x else "")
             ytags = q.base.tags.getObject(y["tags"] if "tags" in y else "")
@@ -200,7 +200,7 @@ class Client:
     def listUsers(self):
         return map(lambda item: item["name"],
                    self.listUserInfo())
-        
+
     def listUserInfo(self, name=None):
         """
         Lists all the users
@@ -523,15 +523,15 @@ class Client:
         else:
             page = self.connection.page.new()
             params = {"name":name, "pagetype": pagetype, "space":space, "category":category,
-                      "title": title, "order": order, "filename":filename, 
+                      "title": title, "order": order, "filename":filename,
                       "content":q.system.fs.fileGetContents(content) if contentIsFilePath else content
-					 }
+                     }
             for key in params:
                 if params[key] != None:
                     setattr(page, key, params[key])
 
-			if not order:
-				page.order = 10000
+            if not order:
+                page.order = 10000
 
             tags = set(tagsList)
             tags.add('space:%s' % space)
@@ -541,7 +541,7 @@ class Client:
             if parent:
                 parent_page = self.getPage(space, parent)
                 page.parent = parent_page.guid
-            
+
             if spacename == "Imported":
                 #the "Imported" space needs to keep filesystem in sync with database
                 self._syncImportedPageToFile(spacename, page, "create")
@@ -648,7 +648,7 @@ class Client:
 
         @type contentIsFilePath: Boolean
         @param contentIsFilePath: If the content you gave is a file path, set this value to True. Default is False.
-        
+
         @type filename: string
         @param filename: used by import directory script to store original file path
         """
@@ -656,22 +656,22 @@ class Client:
         old_space = self._getSpaceGuid(old_space)
 
         page = self.getPage(old_space, old_name)
-        
+
         if space:
             space = self._getSpaceGuid(space)
             page.space = space
-        
+
         type = None
-            
+
         params = {"name": name, "pagetype": pagetype, "space":space, "category":category,
-                  "title": title, "order": order, "filename":filename, 
+                  "title": title, "order": order, "filename":filename,
                   "content":q.system.fs.fileGetContents(content) if contentIsFilePath else content
                   }
-        
+
         for key in params:
             if params[key] != None:
                 setattr(page, key, params[key])
-                
+
         if tagsList:
             tags = set(page.tags.split(' '))
             for tag in tagsList:
@@ -684,7 +684,7 @@ class Client:
         if parent:
             parent_page = self.getPage(old_space, parent)
             page.parent = parent_page.guid
-        
+
         if spacename == "Imported":
             #the "Imported" space needs to keep filesystem in sync with database
             if name and name != old_name:

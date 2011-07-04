@@ -698,9 +698,11 @@ data;
             page = this.params['page'];
 
         var render = true;
-
+        
+        //pages with /'s should be left unchanged
         if (page.substr(-3) === '.md') {
-            page = page.substr(0, page.length - 3);
+            if (page.indexOf("/") < 0)
+                page = page.substr(0, page.length - 3);
             render = false;
         }
 
@@ -738,7 +740,7 @@ data;
 
                 setTitle(data['title']);
 
-                if ($.inArray(data.pagetype, ['py']) >= 0) {
+                if (data.pagetype != "md") {
                     content = '[[code]]\n' + content + '[[/code]]';
                 }
                 /*
@@ -753,7 +755,7 @@ data;
                     rendered = renderWiki(content);
                 } else {
 
-                    rendered = $('<div><pre>' + content + '</pre></div>').html();
+                    rendered = $('<div><pre>' + content.replace(/</g, "&lt;") + '</pre></div>').html();
                     //rendered.append($('<div/>').text(content).text());
 
                     //rendered = rendered.html();

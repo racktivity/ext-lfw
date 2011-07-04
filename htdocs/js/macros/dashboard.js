@@ -5,10 +5,6 @@ var LFW_DASHBOARD = {
     widgetTypesByName: {}
 };
 
-///TODO persist the newly created widgets
-///TODO make configure of the widgets work
-///TODO multilines creates an invalid json in $.parseJSON
-
 // Menu
 $(function() {
     // The Menu class
@@ -203,7 +199,7 @@ $(function() {
             object = $.parseJSON(object);
             that.options.title = object.title;
             that.options.config = object.body;
-            that.options.params = object.params;
+            that.options.params = $.toJSON(object.params);
 
             that.jq.find(".portlet-header .title").text(that.options.title);
             var data = $.tmpl('plugin.dashboard.widgetcontent', that.options);
@@ -213,9 +209,14 @@ $(function() {
             LFW_DASHBOARD.opts.saveConfig();
         }
 
+        var args = { title: this.options.title, body: this.options.config },
+            params = $.parseJSON(this.options.params);
+        if (!$.isEmptyObject(params)) {
+            args.params = params;
+        }
+
         JSWizards.launch("http://" + document.domain + "/" + LFW_CONFIG.appname +
-            "/appserver/rest/ui/wizard", "widgets", wizard,
-            { title: this.options.title, body: this.options.config, params: this.options.params }, update);
+            "/appserver/rest/ui/wizard", "widgets", wizard, $.toJSON(args), update);
     };
 
     LFW_DASHBOARD.Widget = Widget;
@@ -244,6 +245,19 @@ $(function() {
         console.log('Column Rendered: ' + data.html());
         LFW_DASHBOARD.opts.swap(data, dashboard.jq.find(".columns"), true);
         this.jq = dashboard.jq.find(".columns #" + this.fullId);
+
+        // Make the widgets moveable
+        this.jq.sortable({
+            handle: ".portlet-header",
+            forceHelperSize: true,
+            tolerance: "pointer",
+            connectWith: ".column",
+            update: function(event, ui) {
+                if (!ui.sender) {
+                    that._moveWidget(ui.item[0]);
+                }
+            }
+        });
 
         // Set width (minus margins and such)
         this.setWidth(width);
@@ -414,19 +428,6 @@ $(function() {
         for (i = 0; i < this._columns.length; ++i) {
             this.columns.push(new LFW_DASHBOARD.Column(this, this._columns[i], this.jq.width() / this._columns.length));
         }
-
-        // Make the widgets moveable
-        this.jq.find(".column").sortable({
-            handle: ".portlet-header",
-            forceHelperSize: true,
-            tolerance: "pointer",
-            connectWith: ".column",
-            update: function(event, ui) {
-                if (!ui.sender) {
-                    that._moveWidget(ui.item[0]);
-                }
-            }
-        });
     }
 
     // Show the widget store

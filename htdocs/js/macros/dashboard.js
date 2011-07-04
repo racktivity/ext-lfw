@@ -5,8 +5,6 @@ var LFW_DASHBOARD = {
     widgetTypesByName: {}
 };
 
-///TODO multilines creates an invalid json in $.parseJSON
-
 // Menu
 $(function() {
     // The Menu class
@@ -201,7 +199,7 @@ $(function() {
             object = $.parseJSON(object);
             that.options.title = object.title;
             that.options.config = object.body;
-            that.options.params = object.params;
+            that.options.params = $.toJSON(object.params);
 
             that.jq.find(".portlet-header .title").text(that.options.title);
             var data = $.tmpl('plugin.dashboard.widgetcontent', that.options);
@@ -213,7 +211,7 @@ $(function() {
 
         var args = { title: this.options.title, body: this.options.config },
             params = $.parseJSON(this.options.params);
-        if (params.length) {
+        if (!$.isEmptyObject(params)) {
             args.params = params;
         }
 

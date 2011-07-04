@@ -12,8 +12,8 @@ def main(q, i, p, params, tags):
 
         f = open(macroFile)
         for line in f:
-            if line.startswith("@metadata"):
-                line = line.replace("@metadata", "")
+            if line.startswith("//@metadata"):
+                line = line.replace("//@metadata", "")
                 metaList = line.split("=")
 
                 header = metaList[0].strip()

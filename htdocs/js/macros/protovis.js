@@ -15,14 +15,14 @@ var render = function(options) {
 
     var cb = function() {
         var x = pv.Scale.linear(0, data.length).range(0, width);
-        var y = pv.Scale.linear(data, function(d){ return d; }).range(0, height);
+        var y = pv.Scale.linear(data, function(d){ return d; }).range(0, height - 25);
 
         $.template(TEMPLATE_NAME, '<div id=${protovis_id} style="height:${height}px;width:${width}px; "></div>');
         $.tmpl(TEMPLATE_NAME, {protovis_id:protovis_id, height:height, width:width}).appendTo($this);
 
         var vis = new pv.Panel()
             .canvas(protovis_id)
-            .width(width - 20)
+            .width(width)
             .height(height - 25)
             .left(20)
             .bottom(25);

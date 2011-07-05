@@ -14,7 +14,7 @@ function doLogin()
         return;
     }
     makeOAuthRequest($('#username').val(), $('#password').val());
-    $(loginDialog).dialog('close');
+    $("#loginDialog").dialog('close');
 }
 addAuthenticationHeader();
 displayUser();
@@ -110,7 +110,7 @@ function addAuthenticationHeader()
     }
     else
     {
-        $(loginDialog).dialog({title: 'Login required', closeOnEscape: false, width: 260, height:200, resizable: false});
+        $("#loginDialog").dialog({title: 'Login required', closeOnEscape: false, width: 260, height:200, resizable: false});
     }
 }
 function displayUser()

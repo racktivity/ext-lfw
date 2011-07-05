@@ -254,7 +254,7 @@ $(function() {
             connectWith: ".column",
             update: function(event, ui) {
                 if (!ui.sender) {
-                    that._moveWidget(ui.item[0]);
+                    that.parent._moveWidget(ui.item[0]);
                 }
             }
         });

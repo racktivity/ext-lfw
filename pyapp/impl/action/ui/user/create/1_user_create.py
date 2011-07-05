@@ -4,7 +4,7 @@ def main(q, i, p, params, tags):
     user = alkira.createUser(name=params['name'],
                              password=params['password'],
                              spaces=params['spaces'],
-                             pages=params['pages']
+                             pages=params['pages'],
                              tagsList=params.get('tags', '').split(" "))
     params['result'] = user.guid
 

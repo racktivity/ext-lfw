@@ -683,7 +683,7 @@ var render = function(options) {
         '.portlet-header .icons { float: right; display: none; }' +
         '.portlet-header .icons .ui-icon { float: right; cursor: pointer; }' +
         '.portlet .portlet-menu { position: absolute; z-index: 1000; right: 5px; top: 20px; }' +
-        '.portlet .portlet-content { padding: 0.4em; }' +
+        '.portlet .portlet-content { padding: 0.4em; overflow: auto; }' +
         '.ui-sortable-placeholder { border: 1px dotted black; visibility: visible !important; height: 50px' +
             '!important; }' +
         '.ui-sortable-placeholder * { visibility: hidden; }' +

@@ -835,6 +835,10 @@ $(function() {
     $.getJSON(LFW_CONFIG['uris']['listSpaces'], function(data) {
         var spaces = $('#space');
             for(var i = 0; i < data.length; i++) {
+                if(getFromLocalStorage("username") == null && data[i] == "Admin")
+                {
+                    continue;
+                }
                 $('<option>')
                     .attr('value', data[i])
                     .text(data[i])

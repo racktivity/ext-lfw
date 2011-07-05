@@ -28,7 +28,7 @@ TAB_GENERAL_PARAMS = {
                     'helpText': 'Height of the canvas'
                 },
     'zoom':     {
-                    'question' : 'Application Name : ',
+                    'question' : 'Zoom level : ',
                     'key': 'appname',
                     'type': 'int',
                     'helpText': 'Zoomlevel of the map'

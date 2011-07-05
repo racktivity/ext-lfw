@@ -498,7 +498,7 @@ data;
         };
 
         mdstring = mdstring.replace(simpleAnchorRegex, function(fullMatch, m1, m2, m3, url) {
-            return fullMatch.replace(url, replaceLink(url));
+            return fullMatch.replace(new RegExp("\\(\\s*" + url + "\\s*\\)"), "(" + replaceLink(url) + ")");
         });
         mdstring = mdstring.replace(linkDefinitionsRegex, function(fullMatch, m1, url) {
             return fullMatch.replace(url, replaceLink(url));
@@ -698,7 +698,7 @@ data;
             page = this.params['page'];
 
         var render = true;
-        
+
         //pages with /'s should be left unchanged
         if (page.substr(-3) === '.md') {
             if (page.indexOf("/") < 0)

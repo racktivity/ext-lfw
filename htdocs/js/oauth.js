@@ -6,6 +6,12 @@ $("#logout").click(function(event) {
     localStorage.removeItem(USER_NAME);
     location.reload();
 });
+$("#login").click(function(event) {
+    event.preventDefault();
+    $("#loginLink").attr("style", "display:none;");
+    $(loginDialog).dialog({title: 'Login required', closeOnEscape: false, width: 260, height:200, resizable: false});
+});
+
 function doLogin()
 {
     if(jQuery.trim( $('#username').val() ) == "" || jQuery.trim( $('#password').val() ) == "")
@@ -41,6 +47,7 @@ function makeOAuthRequest(username, password)
                                    $("#loggeduser").attr("value",username);
                                    addToLocalStorage(USER_NAME, username);
                                    addAuthenticationHeader();
+                                   location.reload();
                                },
     });
 
@@ -110,7 +117,7 @@ function addAuthenticationHeader()
     }
     else
     {
-        $(loginDialog).dialog({title: 'Login required', closeOnEscape: false, width: 260, height:200, resizable: false});
+        //$(loginDialog).dialog({title: 'Login required', closeOnEscape: false, width: 260, height:200, resizable: false});
     }
 }
 function displayUser()
@@ -119,6 +126,7 @@ function displayUser()
     if(username != null)
     {
         $("#loginInfo").attr("style", "");
+        $("#loginLink").attr("style", "display:none;");
         $("#loggeduser").attr("value",username);
     }
 }

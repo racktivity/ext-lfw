@@ -30,7 +30,7 @@ def main(q, i, p, params, tags):
     #define fields of tab
     tab_general.addText(name = '_title',
                         text = TAB_GENERAL_NAME,
-                        value = extra['name'] if ('name' in extra) else '')
+                        value = extra['title'] if ('title' in extra) else '')
 
     tab_general.addText(name = 'body',
                         text = TAB_GENERAL_BODY,

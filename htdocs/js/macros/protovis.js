@@ -22,8 +22,8 @@ var render = function(options) {
 
         var vis = new pv.Panel()
             .canvas(protovis_id)
-            .width(width)
-            .height(height)
+            .width(width - 20)
+            .height(height - 25)
             .left(20)
             .bottom(25);
 

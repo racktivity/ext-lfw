@@ -197,9 +197,9 @@ class Client:
 
         return self.connection.page.findAsView(filter, 'ui_view_page_list')
 
-    def listUsers(self):
+    def listUsers(self, name=None):
         return map(lambda item: item["name"],
-                   self.listUserInfo())
+                   self.listUserInfo(name))
 
     def listUserInfo(self, name=None):
         """

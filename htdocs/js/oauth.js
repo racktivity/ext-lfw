@@ -1,10 +1,12 @@
 OAUTH_TOKEN = "oauth_token";
 USER_NAME = "username";
+
+// Make the log out work
 $("#logout").click(function(event) {
     event.preventDefault();
     localStorage.removeItem(OAUTH_TOKEN);
     localStorage.removeItem(USER_NAME);
-    location.reload();
+    self.location = "http://" + document.domain + "/" + LFW_CONFIG.appname + "/";
 });
 function doLogin()
 {

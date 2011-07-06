@@ -42,7 +42,8 @@ var app = $.sammy(function(app) {
 
     var _appName = null;
     var _space = null,
-        _page = null;
+        _page = null,
+        _query = null;
     var csses = new Array();
 	var cssLoaded = false;
 
@@ -116,6 +117,7 @@ var app = $.sammy(function(app) {
                     'page': getPage(),
                     'body': htmlDecode(data),
                     'params': params,
+                    'query': getQuery(),
                     'pagecontent': elem,
 
                     'addDependency': function(callback, dependencies, ordered){
@@ -313,6 +315,14 @@ data;
     },
         getPage = function() {
         return _page;
+    }
+
+    var setQuery = function(query) {
+        _query = query;
+    }
+
+    var getQuery = function(){
+        return _query;
     }
     
     var htmlEncode = function(value){
@@ -550,6 +560,7 @@ data;
 
         setSpace(space);
         setPage(page);
+        setQuery(this.params);
 
         var context = this;
 

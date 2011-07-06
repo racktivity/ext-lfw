@@ -12,3 +12,5 @@ class config(model.RootObjectModel):
     configid = model.String(thrift_id=4)
     #@doc data of the config
     data = model.String(thrift_id=5)
+    #@doc username of the config
+    username = model.String(thrift_id=6)

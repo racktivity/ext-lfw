@@ -3,7 +3,7 @@ class config:
     Config object actions
     """
 
-    def create(self, space, page, macro, data, configid=None, jobguid="", executionparams=None):
+    def create(self, space, page, macro, data, configid=None, username=None, jobguid="", executionparams=None):
         """
         Create a new page object.
 
@@ -22,6 +22,9 @@ class config:
         @param configid:         id of the macro
         @type configid:          string
 
+        @param username:         username of the macro
+        @type username:          string
+
         @param jobguid:          guid of the job if available else empty string
         @type jobguid:           guid
 
@@ -34,7 +37,7 @@ class config:
         @raise e:                In case an error occurred, exception is raised
         """
 
-    def find(self, space="", page="", macro="", configid="", exact_properties=None, jobguid="", executionparams=None):
+    def find(self, space="", page="", macro="", configid="", username="", exact_properties=None, jobguid="", executionparams=None):
         """
         Returns a list of config objects which met the find criteria.
 
@@ -55,6 +58,9 @@ class config:
 
         @param configid:               id of the macro
         @type configid:                string
+
+        @param username:               username of the macro
+        @type username:                string
 
         @param exact_properties:       an iterable of property names whose values should be matched exactly
         @type exact_properties:        iterable of strings

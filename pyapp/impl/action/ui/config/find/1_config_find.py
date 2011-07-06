@@ -4,6 +4,7 @@ def main(q, i, p, params, tags):
                     page=params['page'],
                     macro=params['macro'],
                     configid=params['configid'],
+                    username=params['username'],
                     exact_properties=params['exact_properties'])
 
     params['result'] = result

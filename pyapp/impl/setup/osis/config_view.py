@@ -16,9 +16,10 @@ def main(q, i, params, tags):
         view.setCol('page', q.enumerators.OsisType.UUID, True)
         view.setCol('macro', q.enumerators.OsisType.STRING, True)
         view.setCol('configid', q.enumerators.OsisType.STRING, True)
+        view.setCol('username', q.enumerators.OsisType.STRING, True)
         connection.viewAdd(view)
 
-        indexes = ['space', 'page', 'macro', 'configid']
+        indexes = ['space', 'page', 'macro', 'configid', 'username']
         for field in indexes:
             context = {'schema': "%s_%s" % (domain, rootobject), 'view': view_name, 'field': field}
             connection.runQuery("CREATE INDEX %(field)s_%(schema)s_%(view)s ON %(schema)s.%(view)s (%(field)s)" % context)

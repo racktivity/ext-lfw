@@ -9,7 +9,8 @@ def main(q, i, p, params, tags):
         'page': rootobject.page,
         'macro': rootobject.macro,
         'configid': rootobject.configid,
-        'data': rootobject.data
+        'data': rootobject.data,
+        'username': rootobject.username
     }
     osis.viewSave(params['domain'], params['rootobjecttype'], viewname, rootobject.guid, rootobject.version, values)
 

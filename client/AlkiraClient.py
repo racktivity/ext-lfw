@@ -729,27 +729,33 @@ class Client:
         return user
 
 
-    def findMacroConfig(self, space="", page="", macro="", configId=None, exact_properties=None):
+    def findMacroConfig(self, space="", page="", macro="", configId=None, username=None, exact_properties=None):
         configFilter = self.connection.config.getFilterObject()
         exact_properties = exact_properties or ()
         if space:
             space = self._getSpaceGuid(space)
             configFilter.add('ui_view_config_list', 'space', space, 'space' in exact_properties)
             if page:
-                configFilter.add('ui_view_config_list', 'page', self._getPageInfo(space, page)[0]['guid'], 'page' in exact_properties)
+                configFilter.add('ui_view_config_list', 'page', self._getPageInfo(space, page)[0]['guid'],
+                    'page' in exact_properties)
         configFilter.add('ui_view_config_list', 'macro', macro, 'macro' in exact_properties)
+        configFilter.add('ui_view_config_list', 'username', username, 'username' in exact_properties)
         if configId:
             configFilter.add('ui_view_config_list', 'configid', configId, 'configid' in exact_properties)
         return self.connection.config.findAsView(configFilter, 'ui_view_config_list')
 
-    def getMacroConfig(self, space, page, macro, configId=None):
-        configInfo = self.findMacroConfig(space, page, macro, configId, exact_properties=("space", "page", "macro", "configid"))
+    def getMacroConfig(self, space, page, macro, configId=None, username=None):
+        username = username.lower() if username else None
+        configInfo = self.findMacroConfig(space, page, macro, configId, username,
+            exact_properties=("space", "page", "macro", "configid", "username"))
         if not configInfo:
-            q.errorconditionhandler.raiseError("Config does not exist for /%s/%s/%s/%s" % (space, page, macro, configId))
+            q.errorconditionhandler.raiseError("Config does not exist for /%s/%s/%s/%s for user %s" %
+                (space, page, macro, configId, username))
         return self.connection.config.get(configInfo[0]['guid'])
 
-    def setMacroConfig(self, space, page, macro, data, configId=None):
-        configInfo = self.findMacroConfig(space, page, macro, configId)
+    def setMacroConfig(self, space, page, macro, data, configId=None, username=None):
+        username = username.lower() if username else None
+        configInfo = self.findMacroConfig(space, page, macro, configId, username)
         if not configInfo:
             config = self.connection.config.new()
             config.space = self._getSpaceGuid(space)
@@ -757,6 +763,8 @@ class Client:
             config.macro = macro
             if configId:
                 config.configid = configId
+            if username:
+                config.username = username
         else:
             config = self.connection.config.get(configInfo[0]['guid'])
         config.data = data

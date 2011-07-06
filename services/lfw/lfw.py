@@ -2,6 +2,7 @@ import os
 import os.path
 from pylabs import q, p
 import urllib
+import urllib2
 import inspect
 import functools
 import json
@@ -542,10 +543,39 @@ class LFWService(object):
 
         return result
 
-    @q.manage.applicationserver.expose_authenticated
-    def macroConfig(self, space, page, macro, configId=None):
-        return json.loads(self.alkira.getMacroConfig(space, page, macro, configId).data)
+    def getHeaders(self, request):
+        headers = dict()
+        for header in request._request.requestHeaders.getAllRawHeaders():
+            headers[header[0]] = header[1][0]
+        q.logger.log("HEADERS "+ str(headers), 4)
+        return headers
+
+    def getAuthHeaders(self, headers):
+        authHeader = headers["Authorization"]
+        oAuthHeaders = dict()
+        for item in authHeader.split(','):
+            key, value = item.split('=', 1)
+            key = key.strip()
+            value = value.strip('"')
+            oAuthHeaders[key] = urllib2.unquote(value)
+        q.logger.log("OAUTH HEADERS "+ str(oAuthHeaders), 4)
+        return oAuthHeaders
+
+    def getUsername(self, request):
+        headers = self.getHeaders(request)
+        if "Authorization" in headers:
+            oAuthHeaders = self.getAuthHeaders(headers)
+            if "oauth_consumer_key" in oAuthHeaders:
+                return oAuthHeaders['oauth_consumer_key']
+
+        return None
 
     @q.manage.applicationserver.expose_authenticated
-    def updateMacroConfig(self, space, page, macro, config, configId=None):
-        self.alkira.setMacroConfig(space, page, macro, config, configId)
+    def macroConfig(self, space, page, macro, configId=None, applicationserver_request=""):
+        username = self.getUsername(applicationserver_request)
+        return json.loads(self.alkira.getMacroConfig(space, page, macro, configId, username).data)
+
+    @q.manage.applicationserver.expose_authenticated
+    def updateMacroConfig(self, space, page, macro, config, configId=None, applicationserver_request=""):
+        username = self.getUsername(applicationserver_request)
+        self.alkira.setMacroConfig(space, page, macro, config, configId, username)

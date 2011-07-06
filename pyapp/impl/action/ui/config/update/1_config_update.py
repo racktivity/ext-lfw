@@ -6,6 +6,7 @@ def main(q, i, p, params, tags):
                       page=params['page'],
                       macro=params['macro'],
                       config=params['config'],
+                      username=params['username'],
                       configid=params['configid'] if params['configid'] else None)
 
     params['result'] = True

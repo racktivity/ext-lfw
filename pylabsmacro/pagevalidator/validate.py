@@ -1,7 +1,7 @@
 __author__ = "incubaid"
 import re
 from pylabs import q
-linkRe = re.compile("/[a-zA-Z0-9]*/#/[a-zA-Z0-9/]*")
+linkRe = re.compile('<a +href *= *"([^"]*)"')
 macroRe = re.compile("\[\[([a-zA-Z0-9 =]+)\]\]")
 
 JSMACROS_GPATH = q.system.fs.joinPaths(q.dirs.baseDir, "www", "lfw", "js", "macros")
@@ -17,6 +17,11 @@ def macroExists(macro, appname):
     return q.system.fs.isFile(JSMACROS_LPATH%appname, "%s.js"%macro)
 
 def linkExists(link, client):
+    external = ["http://", "https://", "ftp://", "ftps://"]
+    for pre in external:
+        if link.startswith(pre):
+            return "external"
+    
     linkparts = link.split("/", 4)[1:]
     if len(linkparts) == 4:
         appname, hashmark, space, page = linkparts
@@ -27,7 +32,7 @@ def linkExists(link, client):
         raise Exception("Page %s is invalid "%link)
     if appname != p.api.appname: 
         client = q.clients.alkira.getClient("localhost", appname)
-    return client.pageExists(space, page)
+    return "valid" if client.pageExists(space, page) else "invalid"
     
 
 def getLinks(body):
@@ -37,15 +42,18 @@ def getMacros(body):
     return macroRe.findall(body)
 
 def getPageReport(client, space, name, recursive = False, showValid = True):
+    import markdown
+    
     result = list()
     page = client.getPage(space, name)
+    body = markdown.markdown(page.content)
     #Check links
-    links = getLinks(page.content)
+    links = getLinks(body)
     for link in links:
-        ok = linkExists(link, client)
-        if ok and not showValid:
+        result = linkExists(link, client)
+        if result in ("valid", "unknown") and not showValid:
             continue
-        result.append((space + "/" + page.name, "link", link, ok))
+        result.append((space + "/" + page.name, "link", link, result))
 
     #Check Macros
     macros = getMacros(page.content)

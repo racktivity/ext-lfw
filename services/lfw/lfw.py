@@ -143,6 +143,8 @@ class LFWService(object):
         return result
 
     def _syncPageToDisk(self, space, page, oldpagename=None):
+        if space == "Imported" and page.find("/") > 0:
+            return
         crumbs = self._breadcrumbs(page)
         _join = q.system.fs.joinPaths
         _isfile = q.system.fs.isFile
@@ -185,6 +187,8 @@ class LFWService(object):
             upper = dir
     
     def _syncPageDelete(self, space, crumbs):
+        if space == "Imported" and page.find("/") > 0:
+            return
         _join = q.system.fs.joinPaths
         _isfile = q.system.fs.isFile
         _isdir = q.system.fs.isDir

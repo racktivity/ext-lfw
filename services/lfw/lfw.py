@@ -144,6 +144,8 @@ class LFWService(object):
         return result
 
     def _syncPageToDisk(self, space, page, oldpagename=None):
+        if space == "Imported" and page.find("/") > 0:
+            return
         crumbs = self._breadcrumbs(page)
         _join = q.system.fs.joinPaths
         _isfile = q.system.fs.isFile
@@ -153,19 +155,19 @@ class LFWService(object):
         dir = _join(q.dirs.baseDir, "pyapps", p.api.appname, "portal", "spaces", space)
         upper = dir
         for i, level in enumerate(crumbs):
-            name, _, ext = level['name'].rpartition('.')
-            file = _join(dir, level['name'])
+            name = level['name']
+            filename = name + ".md"
+            file = _join(dir, filename)
             dir = _join(dir, name)
 
             if i == len(crumbs) - 1:
                 if oldpagename:
-                    oldname, _, ext = oldpagename.rpartition('.')
-                    oldfile = _join(upper, oldpagename)
-                    olddir = _join(upper, oldname)
+                    oldfile = _join(upper, oldpagename + ".md")
+                    olddir = _join(upper, oldpagename)
                     tofile = file
                     if _isdir(olddir):
                         oldfile = _join(olddir, oldpagename)
-                        tofile = _join(olddir, level['name'])
+                        tofile = _join(olddir, filename)
 
                     if _isfile(oldfile):
                         q.system.fs.renameFile(oldfile, tofile)
@@ -173,7 +175,7 @@ class LFWService(object):
                         q.system.fs.renameDir(olddir, dir)
 
                 if _isdir(dir):
-                    file = _join(dir, level['name'])
+                    file = _join(dir, filename)
                 _write(file, page.content)
             else:
                 #in the chain
@@ -181,19 +183,22 @@ class LFWService(object):
                     tmp = os.tmpnam()
                     q.system.fs.renameFile(file, tmp)
                     q.system.fs.createDir(dir)
-                    q.system.fs.renameFile(tmp, _join(dir, level['name']))
+                    q.system.fs.renameFile(tmp, _join(dir, filename))
 
             upper = dir
 
     def _syncPageDelete(self, space, crumbs):
+        if space == "Imported" and page.find("/") > 0:
+            return
         _join = q.system.fs.joinPaths
         _isfile = q.system.fs.isFile
         _isdir = q.system.fs.isDir
 
         dir = _join(q.dirs.baseDir, "pyapps", p.api.appname, "portal", "spaces", space)
         for i, level in enumerate(crumbs):
-            name, _, ext = level['name'].rpartition('.')
-            file = _join(dir, level['name'])
+            name = level['name']
+            filename = name + ".md"
+            file = _join(dir, filename)
             dir = _join(dir, name)
             if i == len(crumbs) - 1:
                 if _isdir(dir):
@@ -208,7 +213,7 @@ class LFWService(object):
             raise ValueError("A page with the same name already exists")
 
         page = self.alkira.createPage(space=space, name=name, content=content, parent=parent, order=order, title=title, tagsList=tags.split(" "), category=category, pagetype=pagetype)
-        #self._syncPageToDisk(space, page)
+        self._syncPageToDisk(space, page)
 
     @q.manage.applicationserver.expose_authenticated
     def updatePage(self, space, name, content, newname=None, parent=None, order=None, title=None, tags="", category=None, pagetype=None):
@@ -222,7 +227,7 @@ class LFWService(object):
         page = self.alkira.updatePage(old_space=space, old_name=name, name=newname,
                                content=content, parent=parent, order=order, title=title, tagsList=tags.split(" "), category=category, pagetype=pagetype)
 
-        #self._syncPageToDisk(space, page, name)
+        self._syncPageToDisk(space, page, name)
 
     @q.manage.applicationserver.expose_authenticated
     def deletePage(self, space, name):

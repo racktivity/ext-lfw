@@ -13,7 +13,7 @@ var render = function(options) {
     	$this.jstree({
     		"json_data": {
     			"ajax": {
-    				"url": "appserver/rest/ui/portal/pageTree?space=" + space,
+    				"url": "appserver/rest/ui/portal/generic?macroname=pagetree&space=" + space,
     				"data": function(n) {
     					return {id: n.attr ? n.attr("id") : root};
     				},

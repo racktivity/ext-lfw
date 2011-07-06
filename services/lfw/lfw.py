@@ -2,6 +2,7 @@ import os
 import os.path
 from pylabs import q, p
 import urllib
+import urllib2
 import inspect
 import functools
 import json
@@ -120,14 +121,14 @@ class LFWService(object):
                                 'name': parent.name,
                                 'title': parent.title})
             parent = self.alkira.getPageByGUID(parent.parent) if parent.parent else None
-        
+
         breadcrumbs.reverse()
         return breadcrumbs
-    
+
     @q.manage.applicationserver.expose_authenticated
     def breadcrumbs(self, space, name):
         return self._breadcrumbs(self.alkira.getPage(space, name))
-    
+
     @q.manage.applicationserver.expose_authenticated
     def page(self, space, name):
         if not self.alkira.spaceExists(space) or not self.alkira.pageExists(space, name):
@@ -150,14 +151,14 @@ class LFWService(object):
         _isfile = q.system.fs.isFile
         _isdir = q.system.fs.isDir
         _write = q.system.fs.writeFile
-        
+
         dir = _join(q.dirs.baseDir, "pyapps", p.api.appname, "portal", "spaces", space)
         upper = dir
         for i, level in enumerate(crumbs):
             name, _, ext = level['name'].rpartition('.')
             file = _join(dir, level['name'])
             dir = _join(dir, name)
-            
+
             if i == len(crumbs) - 1:
                 if oldpagename:
                     oldname, _, ext = oldpagename.rpartition('.')
@@ -167,12 +168,12 @@ class LFWService(object):
                     if _isdir(olddir):
                         oldfile = _join(olddir, oldpagename)
                         tofile = _join(olddir, level['name'])
-                    
+
                     if _isfile(oldfile):
                         q.system.fs.renameFile(oldfile, tofile)
                     if _isdir(olddir):
                         q.system.fs.renameDir(olddir, dir)
-                
+
                 if _isdir(dir):
                     file = _join(dir, level['name'])
                 _write(file, page.content)
@@ -183,16 +184,16 @@ class LFWService(object):
                     q.system.fs.renameFile(file, tmp)
                     q.system.fs.createDir(dir)
                     q.system.fs.renameFile(tmp, _join(dir, level['name']))
-            
+
             upper = dir
-    
+
     def _syncPageDelete(self, space, crumbs):
         if space == "Imported" and page.find("/") > 0:
             return
         _join = q.system.fs.joinPaths
         _isfile = q.system.fs.isFile
         _isdir = q.system.fs.isDir
-        
+
         dir = _join(q.dirs.baseDir, "pyapps", p.api.appname, "portal", "spaces", space)
         for i, level in enumerate(crumbs):
             name, _, ext = level['name'].rpartition('.')
@@ -203,36 +204,36 @@ class LFWService(object):
                     q.system.fs.removeDirTree(dir)
                 elif _isfile(file):
                     q.system.fs.removeFile(file)
-        
-    
+
+
     @q.manage.applicationserver.expose_authenticated
     def createPage(self, space, name, content, parent=None, order=None, title=None, tags="", category='portal', pagetype="md"):
         if self.alkira.pageExists(space, name):
             raise ValueError("A page with the same name already exists")
-        
+
         page = self.alkira.createPage(space=space, name=name, content=content, parent=parent, order=order, title=title, tagsList=tags.split(" "), category=category, pagetype=pagetype)
         self._syncPageToDisk(space, page)
-        
+
     @q.manage.applicationserver.expose_authenticated
     def updatePage(self, space, name, content, newname=None, parent=None, order=None, title=None, tags="", category=None, pagetype=None):
         if not self.alkira.pageExists(space, name):
             raise ValueError("Page '%s' doesn't exists" % name)
-        
+
         if newname and newname != name:
             if self.alkira.pageExists(space, newname):
                 raise ValueError("Page '%s' already exists" % newname)
-            
+
         page = self.alkira.updatePage(old_space=space, old_name=name, name=newname,
                                content=content, parent=parent, order=order, title=title, tagsList=tags.split(" "), category=category, pagetype=pagetype)
-        
+
         self._syncPageToDisk(space, page, name)
-    
+
     @q.manage.applicationserver.expose_authenticated
     def deletePage(self, space, name):
         crumbs = self.breadcrumbs(space, name)
         self.alkira.deletePageAndChildren(space, name)
         self._syncPageDelete(space, crumbs)
-    
+
     def get_items(self, prop, space=None, term=None):
         if space:
             space = self.alkira.getSpace(space)
@@ -546,10 +547,39 @@ class LFWService(object):
 
         return result
 
-    @q.manage.applicationserver.expose_authenticated
-    def macroConfig(self, space, page, macro, configId=None):
-        return json.loads(self.alkira.getMacroConfig(space, page, macro, configId).data)
+    def getHeaders(self, request):
+        headers = dict()
+        for header in request._request.requestHeaders.getAllRawHeaders():
+            headers[header[0]] = header[1][0]
+        q.logger.log("HEADERS "+ str(headers), 4)
+        return headers
+
+    def getAuthHeaders(self, headers):
+        authHeader = headers["Authorization"]
+        oAuthHeaders = dict()
+        for item in authHeader.split(','):
+            key, value = item.split('=', 1)
+            key = key.strip()
+            value = value.strip('"')
+            oAuthHeaders[key] = urllib2.unquote(value)
+        q.logger.log("OAUTH HEADERS "+ str(oAuthHeaders), 4)
+        return oAuthHeaders
+
+    def getUsername(self, request):
+        headers = self.getHeaders(request)
+        if "Authorization" in headers:
+            oAuthHeaders = self.getAuthHeaders(headers)
+            if "oauth_consumer_key" in oAuthHeaders:
+                return oAuthHeaders['oauth_consumer_key']
+
+        return None
 
     @q.manage.applicationserver.expose_authenticated
-    def updateMacroConfig(self, space, page, macro, config, configId=None):
-        self.alkira.setMacroConfig(space, page, macro, config, configId)
+    def macroConfig(self, space, page, macro, configId=None, applicationserver_request=""):
+        username = self.getUsername(applicationserver_request)
+        return json.loads(self.alkira.getMacroConfig(space, page, macro, configId, username).data)
+
+    @q.manage.applicationserver.expose_authenticated
+    def updateMacroConfig(self, space, page, macro, config, configId=None, applicationserver_request=""):
+        username = self.getUsername(applicationserver_request)
+        self.alkira.setMacroConfig(space, page, macro, config, configId, username)

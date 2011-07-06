@@ -168,6 +168,12 @@ class Client:
         spaces = self._getSpaceInfo(name)
 
         def byOrder(x, y):
+            #Always put the admin space last
+            if x["name"] == ADMINSPACE:
+                return 1
+            elif y["name"] == ADMINSPACE:
+                return -1
+
             xtags = q.base.tags.getObject(x["tags"] if "tags" in x else "")
             ytags = q.base.tags.getObject(y["tags"] if "tags" in y else "")
             if xtags.tagExists("order"):

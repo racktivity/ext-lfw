@@ -1,16 +1,20 @@
 __author__ = "incubaid"
-#!/usr/bin/env python
-from pylabs.InitBaseCore import q
 import re
+from pylabs import q
 linkRe = re.compile("/[a-zA-Z0-9]*/#/[a-zA-Z0-9/]*")
 macroRe = re.compile("\[\[([a-zA-Z0-9 =]+)\]\]")
 
-def macroExists(macro, space):
-    if q.system.fs.isFile("/opt/qbase5/www/lfw/js/macros/%s.js"%macro):
+JSMACROS_GPATH = q.system.fs.joinPaths(q.dirs.baseDir, "www", "lfw", "js", "macros")
+JSMACROS_LPATH = q.system.fs.joinPaths(q.dirs.pyAppsDir, "%s", "impl", "portal", "jsmacros")
+PYMACROS_GPATH = q.system.fs.joinPaths(q.dirs.baseDir, "lib", "python", "site-packages", "alkira", "tasklets", "pylabsmacro")
+
+def macroExists(macro, appname):
+    join = q.system.fs.joinPaths
+    if  q.system.fs.isFile(join(JSMACROS_GPATH, "%s.js"%macro)):
         return True
-    if q.system.fs.isDir("/opt/qbase5/lib/python/site-packages/alkira/tasklets/pylabsmacro/%s/"%macro):
+    if q.system.fs.isDir(join(PYMACROS_GPATH, macro)):
         return True
-    return q.system.fs.isFile("/opt/qbase5/pyapps/%s/impl/portal/jsmacros/%s.js"%(space, macro))
+    return q.system.fs.isFile(JSMACROS_LPATH%appname, "%s.js"%macro)
 
 def linkExists(link, client):
     linkparts = link.split("/", 4)[1:]
@@ -21,7 +25,10 @@ def linkExists(link, client):
         page = "Home"
     else:
         raise Exception("Page %s is invalid "%link)
+    if appname != p.api.appname: 
+        client = q.clients.alkira.getClient("localhost", appname)
     return client.pageExists(space, page)
+    
 
 def getLinks(body):
     return linkRe.findall(body)
@@ -43,7 +50,7 @@ def getPageReport(client, space, name, recursive = False, showValid = True):
     #Check Macros
     macros = getMacros(page.content)
     for macro in macros:
-        ok = macroExists(macro, space)
+        ok = macroExists(macro, appname)
         if ok and not showValid:
             continue
         result.append((space + "/" + page.name, "macro", macro, ok))

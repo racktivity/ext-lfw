@@ -30,10 +30,14 @@ $(function() {
         "name='password' id='password' placeholder='password' class='input.text' /></div><div><input type='submit' " +
         "name='login' id='login' value='Login' /></div></form></div>");
 
-    $("#loginInfo").find("#login").click(function(event) {
-        event.preventDefault();
+    function showLoginDialog(event) {
+        if (event) {
+            event.preventDefault();
+        }
         $("#loginDialog").dialog({title: 'Log in', closeOnEscape: false, width: 260, height:200, resizable: false});
-    });
+    }
+
+    $("#loginInfo").find("#login").click(showLoginDialog);
 
     $("#loginInfo").find("#logout").click(function(event) {
         event.preventDefault();
@@ -51,6 +55,14 @@ $(function() {
         $("#loginDiv").css("display", "none");
         $("#logoutDiv").css("display", "inline");
     }
+
+    //Install global error handler so we can show a login box if required but only if we got it from the rest api
+    //from the applicationserver
+    $(document).ajaxError(function(event, xhr, options) {
+        if (xhr.status === 403 && options.url.indexOf(LFW_CONFIG["appname"] + "/appserver/rest/") !== -1) {
+            showLoginDialog();
+        }
+    });
 
     //Add the authentication info to the header of all Ajax request
     function addAuthenticationHeader() {

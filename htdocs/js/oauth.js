@@ -1,4 +1,18 @@
-(function($) {
+function getFromLocalStorage(key) {
+    var item = JSON.parse(localStorage.getItem(key));
+    var now = new Date().getTime().toString();
+    if (item === null) {
+        return null;
+    }
+    if (now - item.timestamp > 0) {
+        localStorage.removeItem(key);
+        alert("The Authentication token has expired!");
+        return null;
+    }
+    return item.value;
+}
+
+$(function() {
     var OAUTH_TOKEN = "oauth_token";
     var USER_NAME = "username";
 
@@ -9,7 +23,8 @@
     $("#loginInfo").append("<div id='loginDiv' style='display:none';><a href='#' id='login' name='login'>Log in</a>" +
         "</div>");
 
-  $('body').append("<div id='loginDialog' style='display:none;'><form name='login-form' id='login-form' method='get'>" +
+    $('body').append("<div id='loginDialog' style='display:none;'>" +
+        "<form name='login-form' id='login-form' method='get'>" +
         "<div><label for='username'>User name:</label><input name='username' id='username' placeholder='username' " +
         "class='input.text' /></div><div><label for='password'>Password:</label><input type='password' " +
         "name='password' id='password' placeholder='password' class='input.text' /></div><div><input type='submit' " +
@@ -37,24 +52,9 @@
         $("#logoutDiv").css("display", "inline");
     }
 
-    function getFromLocalStorage(key) {
-        var item = JSON.parse(localStorage.getItem(key));
-        var now = new Date().getTime().toString();
-        if(item === null) {
-            return null;
-        }
-        if(now - item.timestamp > 0)
-        {
-            localStorage.removeItem(key);
-            alert("The Authentication token has expired!");
-            return null;
-        }
-        return item.value;
-    }
-
     //Add the authentication info to the header of all Ajax request
     function addAuthenticationHeader() {
-        if(getFromLocalStorage(OAUTH_TOKEN) !== null) {
+        if (getFromLocalStorage(OAUTH_TOKEN) !== null) {
             var tokenKey, tokenSecret;
             var accessor = {
                     consumerSecret: "",
@@ -120,7 +120,7 @@
 
     function displayUser() {
         var username = getFromLocalStorage('username');
-        if(username !== null) {
+        if (username !== null) {
             showLogoutLink();
             $("#loginInfo").find("#loggeduser").html(username);
         }
@@ -160,7 +160,7 @@
 
     $("#loginDialog").find("#login").click(function(event) {
         event.preventDefault();
-        if(jQuery.trim( $('#username').val() ) === "" || jQuery.trim( $('#password').val() ) === "") {
+        if (jQuery.trim( $('#username').val() ) === "" || jQuery.trim( $('#password').val() ) === "") {
             alert("Invalid username/password combination!");
             return;
         }
@@ -170,4 +170,4 @@
 
     addAuthenticationHeader();
     displayUser();
-})(jQuery);
+});

@@ -155,19 +155,19 @@ class LFWService(object):
         dir = _join(q.dirs.baseDir, "pyapps", p.api.appname, "portal", "spaces", space)
         upper = dir
         for i, level in enumerate(crumbs):
-            name, _, ext = level['name'].rpartition('.')
-            file = _join(dir, level['name'])
+            name = level['name']
+            filename = name + ".md"
+            file = _join(dir, filename)
             dir = _join(dir, name)
 
             if i == len(crumbs) - 1:
                 if oldpagename:
-                    oldname, _, ext = oldpagename.rpartition('.')
-                    oldfile = _join(upper, oldpagename)
-                    olddir = _join(upper, oldname)
+                    oldfile = _join(upper, oldpagename + ".md")
+                    olddir = _join(upper, oldpagename)
                     tofile = file
                     if _isdir(olddir):
                         oldfile = _join(olddir, oldpagename)
-                        tofile = _join(olddir, level['name'])
+                        tofile = _join(olddir, filename)
 
                     if _isfile(oldfile):
                         q.system.fs.renameFile(oldfile, tofile)
@@ -175,7 +175,7 @@ class LFWService(object):
                         q.system.fs.renameDir(olddir, dir)
 
                 if _isdir(dir):
-                    file = _join(dir, level['name'])
+                    file = _join(dir, filename)
                 _write(file, page.content)
             else:
                 #in the chain
@@ -183,7 +183,7 @@ class LFWService(object):
                     tmp = os.tmpnam()
                     q.system.fs.renameFile(file, tmp)
                     q.system.fs.createDir(dir)
-                    q.system.fs.renameFile(tmp, _join(dir, level['name']))
+                    q.system.fs.renameFile(tmp, _join(dir, filename))
 
             upper = dir
 
@@ -196,8 +196,9 @@ class LFWService(object):
 
         dir = _join(q.dirs.baseDir, "pyapps", p.api.appname, "portal", "spaces", space)
         for i, level in enumerate(crumbs):
-            name, _, ext = level['name'].rpartition('.')
-            file = _join(dir, level['name'])
+            name = level['name']
+            filename = name + ".md"
+            file = _join(dir, filename)
             dir = _join(dir, name)
             if i == len(crumbs) - 1:
                 if _isdir(dir):

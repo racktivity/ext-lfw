@@ -8,6 +8,17 @@ JSMACROS_GPATH = q.system.fs.joinPaths(q.dirs.baseDir, "www", "lfw", "js", "macr
 JSMACROS_LPATH = q.system.fs.joinPaths(q.dirs.pyAppsDir, "%s", "impl", "portal", "jsmacros")
 PYMACROS_GPATH = q.system.fs.joinPaths(q.dirs.baseDir, "lib", "python", "site-packages", "alkira", "tasklets", "pylabsmacro")
 
+def isExternalLink(linkparts):
+    external = ["http://", "https://", "ftp://", "ftps://"]
+    for pre in external:
+        if link.startswith(pre):
+            if pre[:3] == "ftp":
+                return True
+            if link.index("/#/") < 0:
+                return True
+            return False
+    return False
+
 def macroExists(macro, appname):
     join = q.system.fs.joinPaths
     if  q.system.fs.isFile(join(JSMACROS_GPATH, "%s.js"%macro)):
@@ -17,13 +28,13 @@ def macroExists(macro, appname):
     return q.system.fs.isFile(JSMACROS_LPATH%appname, "%s.js"%macro)
 
 def linkExists(link, client):
-    external = ["http://", "https://", "ftp://", "ftps://"]
-    for pre in external:
-        if link.startswith(pre):
-            return "external"
+    linkparts = link.split("/")
+    if isExternalLink(linkparts):
+        return "external"
     
-    linkparts = link.split("/", 4)[1:]
     if len(linkparts) == 4:
+        appname, hashmark, space, page = linkparts    
+    elif len(linkparts) == 4:
         appname, hashmark, space, page = linkparts
     elif len(linkparts) == 3:
         appname, hashmark, space = linkparts

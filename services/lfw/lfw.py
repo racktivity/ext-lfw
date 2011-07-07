@@ -27,7 +27,21 @@ class LFWService(object):
         self._tasklet_engine = q.taskletengine.get(tasklet_path)
         self._tasklet_engine.addFromPath(os.path.join(q.dirs.baseDir,'lib','python','site-packages','alkira', 'tasklets'))
         self.db_config_path = q.system.fs.joinPaths(q.dirs.cfgDir, 'qconfig', 'dbconnections.cfg')
-
+    
+    #rename doesn't work accross different mount points but has higher performance, so we implemented this move functions 
+    def moveFile(self, filePath, new_name):
+        try:
+            q.system.fs.renameFile(filePath, new_name)
+        except:
+            q.system.fs.moveFile(filePath, new_name)
+    
+    def moveDir(self, filePath, new_name):
+        try:
+            q.system.fs.renameDir(filePath, new_name)
+        except:
+            q.system.fs.moveDir(filePath, new_name)
+        
+    
     @q.manage.applicationserver.expose_authenticated
     def tags(self, space=None, term=None):
         results = self.get_items('tags', space=space, term=term)
@@ -179,9 +193,9 @@ class LFWService(object):
                         tofile = _join(olddir, filename)
 
                     if _isfile(oldfile):
-                        q.system.fs.renameFile(oldfile, tofile)
+                        self.moveFile(oldfile, tofile)
                     if _isdir(olddir):
-                        q.system.fs.renameDir(olddir, dir)
+                        self.moveDir(olddir, dir)
 
                 if _isdir(dir):
                     file = _join(dir, filename)
@@ -190,9 +204,9 @@ class LFWService(object):
                 #in the chain
                 if _isfile(file):
                     tmp = os.tmpnam()
-                    q.system.fs.renameFile(file, tmp)
+                    self.moveFile(file, tmp)
                     q.system.fs.createDir(dir)
-                    q.system.fs.renameFile(tmp, _join(dir, filename))
+                    self.moveFile(tmp, _join(dir, filename))
 
             upper = dir
 

@@ -1,16 +1,4 @@
-function getFromLocalStorage(key) {
-    var item = JSON.parse(localStorage.getItem(key));
-    var now = new Date().getTime().toString();
-    if (item === null) {
-        return null;
-    }
-    if (now - item.timestamp > 0) {
-        localStorage.removeItem(key);
-        alert("The Authentication token has expired!");
-        return null;
-    }
-    return item.value;
-}
+var Auth = {};
 
 $(function() {
     var OAUTH_TOKEN = "oauth_token";
@@ -59,14 +47,14 @@ $(function() {
     //Install global error handler so we can show a login box if required but only if we got it from the rest api
     //from the applicationserver
     $(document).ajaxError(function(event, xhr, options) {
-        if (xhr.status === 403 && options.url.indexOf(LFW_CONFIG["appname"] + "/appserver/rest/") !== -1) {
+        if (xhr.status === 403 && options.url.indexOf(LFW_CONFIG.appname + "/appserver/rest/") !== -1) {
             showLoginDialog();
         }
     });
 
     //Add the authentication info to the header of all Ajax request
     function addAuthenticationHeader() {
-        if (getFromLocalStorage(OAUTH_TOKEN) !== null) {
+        if (Auth.getFromLocalStorage(OAUTH_TOKEN) !== null) {
             var tokenKey, tokenSecret;
             var accessor = {
                     consumerSecret: "",
@@ -80,7 +68,7 @@ $(function() {
                     parameters: {}
                 };
 
-            var token = getFromLocalStorage(OAUTH_TOKEN);
+            var token = Auth.getFromLocalStorage(OAUTH_TOKEN);
             if (token !== null) {
                 var parts = token.split("&");
                 if (parts.length === 2) {
@@ -103,7 +91,7 @@ $(function() {
             }
 
             message.parameters.oauth_verifier = "";
-            message.parameters.oauth_consumer_key = getFromLocalStorage(USER_NAME);
+            message.parameters.oauth_consumer_key = Auth.getFromLocalStorage(USER_NAME);
             accessor.consumerKey = message.parameters.oauth_consumer_key;
             message.parameters.oauth_consumer_secret = "";
             OAuth.setTimestampAndNonce(message);
@@ -131,7 +119,7 @@ $(function() {
     }
 
     function displayUser() {
-        var username = getFromLocalStorage('username');
+        var username = Auth.getFromLocalStorage(USER_NAME);
         if (username !== null) {
             showLogoutLink();
             $("#loginInfo").find("#loggeduser").html(username);
@@ -160,14 +148,9 @@ $(function() {
             dataType: 'jsonp',
             jsonp: '_jsonp',
             url: url,
-            success: function(data){
-               addToLocalStorage(OAUTH_TOKEN, data);
-               showLogoutLink();
-               $("#loginInfo").find("#loggeduser").html(username);
-               addToLocalStorage(USER_NAME, username);
-               addAuthenticationHeader();
-               location.reload();
-           }
+            success: function(data) {
+                Auth.parseOAuthToken(data, username);
+            }
         });
     }
 
@@ -180,6 +163,31 @@ $(function() {
         makeOAuthRequest($('#username').val(), $('#password').val());
         $("#loginDialog").dialog('close');
     });
+
+    Auth.getFromLocalStorage = function(key) {
+        var item = JSON.parse(localStorage.getItem(key));
+        var now = new Date().getTime().toString();
+        if (item === null) {
+            return null;
+        }
+        if (now - item.timestamp > 0) {
+            localStorage.removeItem(key);
+            alert("The Authentication token has expired!");
+            return null;
+        }
+        return item.value;
+    };
+
+    Auth.parseOAuthToken = function(token, username, noreload) {
+        addToLocalStorage(OAUTH_TOKEN, token);
+        showLogoutLink();
+        $("#loginInfo #loggeduser").html(username);
+        addToLocalStorage(USER_NAME, username);
+        addAuthenticationHeader();
+        if (!noreload) {
+            location.reload();
+        }
+    };
 
     addAuthenticationHeader();
     displayUser();

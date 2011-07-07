@@ -625,7 +625,20 @@ data;
         }
     };
 
+    // Check wether a token parameter was added to the url, if so use this as an OAuth token
+    var checkToken = function() {
+        if (this.params.hasOwnProperty("token") && Auth.parseOAuthToken) {
+            Auth.parseOAuthToken(this.params.token, (this.params.user ? this.params.user : ""), true);
+
+            // We only want to do this once
+            delete this.params.token;
+            delete this.params.user;
+        }
+    };
+
     this.get('#/:space', function() {
+        checkToken.call(this);
+
         setSpace(this.params['space']);
         setPage(null);
 
@@ -691,6 +704,7 @@ data;
     });
 
     this.get('#/:space/:page', function() {
+        checkToken.call(this);
 
         clearFields();
 
@@ -835,8 +849,7 @@ $(function() {
     $.getJSON(LFW_CONFIG['uris']['listSpaces'], function(data) {
         var spaces = $('#space');
             for(var i = 0; i < data.length; i++) {
-                if(getFromLocalStorage("username") == null && data[i] == "Admin")
-                {
+                if (Auth.getFromLocalStorage("username") == null && data[i] == "Admin") {
                     continue;
                 }
                 $('<option>')

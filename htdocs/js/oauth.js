@@ -147,6 +147,7 @@ $(function() {
     //Token generation function
     function makeOAuthRequest(username, password) {
         var url = LFW_CONFIG.oauthservice;
+        url = url.replace("[HOST]", window.location.hostname);
 
         var message = {
             action: url,

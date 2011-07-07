@@ -104,7 +104,7 @@ class RequestHandler(BaseHTTPRequestHandler):
             q.logger.log('Request sent for authentication, user:%s'%data['user'], 2)
             try:
                 #Generate a new access token
-                oauth_request = oauth.Request.from_request(self.command, '%s%s' % (self.server.config['main']['host'], self.path), headers=self.headers)
+                oauth_request = oauth.Request.from_request(self.command, 'http://%s:%s%s' % (self.server.config['main']['host'], self.server.config['main']['port'],self.path), headers=self.headers)
                 token = oauth.Token(str(uuid.uuid4()), str(uuid.uuid4()))
                 token.set_verifier('')
                 self.send_response(200)
@@ -144,7 +144,9 @@ class RequestHandler(BaseHTTPRequestHandler):
 
     def _loadBackEndService(self, servicename):
         plugin = None
-        pluginsdir = "."
+        pluginsdir = os.path.dirname(__file__)
+        if not pluginsdir:
+            pluginsdir = "."
         candidates = os.listdir(pluginsdir)
         for candidate in candidates:
             if candidate == "__init__.py" or not candidate.endswith(".py"):

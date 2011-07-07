@@ -1,18 +1,27 @@
 __author__ = "incubaid"
-#!/usr/bin/env python
-from pylabs.InitBaseCore import q
 import re
-linkRe = re.compile("/[a-zA-Z0-9]*/#/[a-zA-Z0-9/]*")
+from pylabs import q
+linkRe = re.compile('<a +href *= *"([^"]*)"')
 macroRe = re.compile("\[\[([a-zA-Z0-9 =]+)\]\]")
 
-def macroExists(macro, space):
-    if q.system.fs.isFile("/opt/qbase5/www/lfw/js/macros/%s.js"%macro):
+JSMACROS_GPATH = q.system.fs.joinPaths(q.dirs.baseDir, "www", "lfw", "js", "macros")
+JSMACROS_LPATH = q.system.fs.joinPaths(q.dirs.pyAppsDir, "%s", "impl", "portal", "jsmacros")
+PYMACROS_GPATH = q.system.fs.joinPaths(q.dirs.baseDir, "lib", "python", "site-packages", "alkira", "tasklets", "pylabsmacro")
+
+def macroExists(macro, appname):
+    join = q.system.fs.joinPaths
+    if  q.system.fs.isFile(join(JSMACROS_GPATH, "%s.js"%macro)):
         return True
-    if q.system.fs.isDir("/opt/qbase5/lib/python/site-packages/alkira/tasklets/pylabsmacro/%s/"%macro):
+    if q.system.fs.isDir(join(PYMACROS_GPATH, macro)):
         return True
-    return q.system.fs.isFile("/opt/qbase5/pyapps/%s/impl/portal/jsmacros/%s.js"%(space, macro))
+    return q.system.fs.isFile(JSMACROS_LPATH%appname, "%s.js"%macro)
 
 def linkExists(link, client):
+    external = ["http://", "https://", "ftp://", "ftps://"]
+    for pre in external:
+        if link.startswith(pre):
+            return "external"
+    
     linkparts = link.split("/", 4)[1:]
     if len(linkparts) == 4:
         appname, hashmark, space, page = linkparts
@@ -21,7 +30,10 @@ def linkExists(link, client):
         page = "Home"
     else:
         raise Exception("Page %s is invalid "%link)
-    return client.pageExists(space, page)
+    if appname != p.api.appname: 
+        client = q.clients.alkira.getClient("localhost", appname)
+    return "valid" if client.pageExists(space, page) else "invalid"
+    
 
 def getLinks(body):
     return linkRe.findall(body)
@@ -30,20 +42,23 @@ def getMacros(body):
     return macroRe.findall(body)
 
 def getPageReport(client, space, name, recursive = False, showValid = True):
+    import markdown
+    
     result = list()
     page = client.getPage(space, name)
+    body = markdown.markdown(page.content)
     #Check links
-    links = getLinks(page.content)
+    links = getLinks(body)
     for link in links:
-        ok = linkExists(link, client)
-        if ok and not showValid:
+        result = linkExists(link, client)
+        if result in ("valid", "unknown") and not showValid:
             continue
-        result.append((space + "/" + page.name, "link", link, ok))
+        result.append((space + "/" + page.name, "link", link, result))
 
     #Check Macros
     macros = getMacros(page.content)
     for macro in macros:
-        ok = macroExists(macro, space)
+        ok = macroExists(macro, appname)
         if ok and not showValid:
             continue
         result.append((space + "/" + page.name, "macro", macro, ok))

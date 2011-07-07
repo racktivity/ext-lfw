@@ -6,7 +6,7 @@
 /*-------------------layout------------------*/
 body {  background: #000 url(../img/body-bg.png) repeat-x top left scroll ; }
 #header * {margin:0px; padding:0px;  color:#fff;}
-#container  { position:relative; width:1002px; margin-left:-501px; left:50%; float:left;}	
+#container  { position:relative; width:1002px; margin-left:-501px; left:50%; float:left;}
 #header {  background: url(../img/nav-bg.png) no-repeat bottom left scroll ; padding-bottom:7px; }
 #footer, #header, .span-24 { float:left; width:100% !important;}
 .span-24 { background:#fff;}
@@ -18,5 +18,5 @@ a.logo {     background: url("../img/logo.png") no-repeat scroll left top transp
 #search { width: auto; }
 #spaces { width:auto; padding-left:155px !important; margin-right:50px !important;}
 #footer { background:#111;}
-#main { border:none; padding:20px 10px 10px}
+#main { border:none; padding:5px 10px 10px}
 

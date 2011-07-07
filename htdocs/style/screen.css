@@ -10,7 +10,7 @@
     padding: 2px;
 }
 #spinner {
-	position: absolute;
+    position: absolute;
     display: block;
     width: 16px;
     height: 16px;
@@ -19,7 +19,7 @@
 }
 
 #spaces input{
-    padding: 2px;    
+    padding: 2px;
 }
 
 #sidebar {
@@ -28,8 +28,8 @@
     display: inline;
 }
 #main {
-	border:1px solid #BBBBBB;
-	padding: 5px;
+    border:1px solid #BBBBBB;
+    padding: 5px;
 }
 #actions {
     /** display: inline; **/
@@ -47,7 +47,6 @@
 
 #actions button.text {
     display: inline;
-    
 }
 
 code{
@@ -63,4 +62,24 @@ code{
     color: #8A1F11;
     border: 2px solid #FBC2C4;
     margin-bottom: 1em;
-    padding: 0.8em; 
+    padding: 0.8em;
+}
+
+#toolbar {
+    text-align: right;
+    height: 20px;
+    margin-top: 1em;
+}
+
+#toolbar .ui-button {
+    height: 20px;
+}
+
+#toolbar .ui-icon {
+    margin-top: -9px;
+}
+
+#toolbar .ui-button-text {
+    padding: 0em 1em 0em 2.1em;
+    line-height: 20px;
+}

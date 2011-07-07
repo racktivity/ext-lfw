@@ -4,8 +4,6 @@ $(function() {
     var OAUTH_TOKEN = "oauth_token";
     var USER_NAME = "username";
 
-    $('body').append("<div id='loginInfo' name='loginInfo' style='position:absolute; top: 0.3em; right:1em;'" +
-        " align='right'></div>");
     $("#loginInfo").append("<div id='logoutDiv' style='display:none';><span id='loggeduser'>" +
         " </span>&nbsp;|&nbsp;<a href='#' id='logout' name='logout'>Log out</a>&nbsp;</div>");
     $("#loginInfo").append("<div id='loginDiv' style='display:none';><a href='#' id='login' name='login'>Log in</a>" +

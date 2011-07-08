@@ -165,7 +165,11 @@ $(function() {
     });
 
     Auth.getFromLocalStorage = function(key) {
-        var item = JSON.parse(localStorage.getItem(key));
+        var itemJson = localStorage.getItem(key);
+        if (!itemJson) {
+            return null;
+        }
+        var item = $.parseJSON(itemJson);
         var now = new Date().getTime().toString();
         if (item === null) {
             return null;

@@ -31,9 +31,9 @@ var render = function(options) {
         }
 
         JSWizards.launch(service, domain, name, extra, function() {
-            alert('ok');
+            window.close();
         }, function() {
-            alert('canceled');
+            window.close();
         });
 
     };

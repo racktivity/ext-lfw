@@ -58,11 +58,8 @@
   <script src="/static/lfw/js/libs/modernizr-1.6.min.js"></script>
 
   <!-- customizations -->
-  <link rel='stylesheet' href='/static/lfw/style/screen.css'
-    type='text/css' media='screen, projection' />
   <link rel='stylesheet' href='/static/lfw/style/print.css'
     type='text/css' media='print' />
-     <link rel='stylesheet' href='/static/lfw/css/theme.css' type='text/css' media='screen, projection' />
      <link rel='stylesheet' href='/static/lfw/css/codemirror/codemirror.css' type='text/css' media='screen, projection' />
      <link rel='stylesheet' href='/static/lfw/css/codemirror/theme/neat.css' type='text/css' media='screen, projection' />
      <link rel='stylesheet' href='/static/lfw/css/editor/editor.css' type='text/css' media='screen, projection' />
@@ -90,55 +87,10 @@
 
 <body>
 
-  <div id='loginInfo' name='loginInfo' style='position:absolute; top: 0.3em; right:1em;' align='right'></div>
-
   <div id="container">
-    <a class="logo"></a>
-    <div id='header' class='span-24 last'>
-      <div class='span-5' id='spaces'>
-        <span id='spinner'>&nbsp;</span>
-        <label for='space'>Space:</label>
-        <select name='space' id='space' class='text'></select>
-        <img src='/static/lfw/img/pixel.gif'/>
+     <div id='content' class='span-19 last' style='position: relative;'>
+       <div id='main' class='span-20'>&nbsp;</div>
       </div>
-      <div class='span-19 last' id='search'>
-
-        <label for='title'>Title:</label>
-        <input id='title' name='q' placeholder='PageTitle' class='text' />
-
-        <form name='label-search' id='label-search' method='get'>
-          <label for='labels'>Labels:</label>
-          <input type='search' name='q' id='labels' required
-            placeholder='label, label' class='text' />
-          <input type='hidden' name='type' value='labels' />
-        </form>
-        <form name='fulltext-search' id='fulltext-search' method='get'>
-          <label for='text'>Search:</label>
-          <input type='search' name='q' id='text' required
-            placeholder='Search Text' class='text' />
-          <input type='hidden' name='type' value='fulltext' />
-        </form>
-      </div>
-    </div>
-
-    <div class='span-24'>
-      <div id='sidebar' class='span-5'>
-
-        <div id='tree'></div>
-      </div>
-
-      <div id='content' class='span-19 last' style='position: relative;'>
-        <div id='toolbar' class='span-20'>
-            <button id='newpage'>New</button>
-            <button id='editpage'>Edit</button>
-            <button id='deletepage'>Delete</button>
-        </div>
-        <div id='main' class='span-20'>&nbsp;</div>
-      </div>
-    </div>
-
-    <div id='footer' class='span-24 last'>
-      &nbsp;
     </div>
 
   </div> <!--! end of #container -->

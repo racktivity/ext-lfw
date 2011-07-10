@@ -4,23 +4,31 @@
 
 
 [generic]: /#/alkiradocs/MacroGeneric
+[tasklet]: /#/Overview/Tasklets
 
 #How to Create Macros
 Adding dynamic content to an Alkira page is easy by using macros. There are two ways to add dynamic content:
 
-1. using PyLabs tasklets with the [generic][] macro
+1. using PyLabs tasklets
 2. using JavaScript macros
 
-Both options will be explained in this section.
+Both options are explained in this section.
 
 
 ##PyLabs Tasklets
-The [generic][] macro is a macro that looks up tasklets in a specific directory of an application. By providing labels to this macro, a specific tasklet is executed.
-For more details about this way of adding dynamic content, see the [Generic Macro][generic] page.
+Creating PyLabs macros is creating a directory in `/opt/qbase5/lib/python/site-packages/alkira/tasklets/pylabsmacro` and putting one or more [tasklets][tasklet] in it. 
+Once you have created the directory with a tasklet, you can start using the macro by using the directory name.
+
+For example, create a directory `demo` in `/opt/qbase5/lib/python/site-packages/alkira/tasklets/pylabsmacro` and create a tasklet in it.
+
+In your Alkira page you can then use the macro \[\[demo\]\].
+
+If you have more than one tasklet in the directory you must create a `match` function in the tasklets and provide a label or tags to the macro.
+See the [generic] macro page for an example.
 
 
 ##JavaScript Macros
-Instead of using PyLabs' _generic_ macro, you can also create your own macros in JavaScript. Below we elaborate how you can create a JavaScript macro by using the Google Maps macro as a reference.
+Instead of using PyLabs' macro system, you can also create your own macros in JavaScript. Below we elaborate how you can create a JavaScript macro by using the Google Maps macro as a reference.
 
 
 ###Google Maps Macro Code

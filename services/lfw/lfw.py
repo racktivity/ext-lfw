@@ -410,13 +410,16 @@ class LFWService(object):
         img_b64 = base64.b64encode(rawimage.getvalue())
         return img_b64
 
-    @q.manage.applicationserver.expose_authenticated
-    def generic(self, tagstring=None, macroname=None, params=None):
+    @q.manage.applicationserver.expose
+    def generic(self, tagstring=None, macroname=None, params=None, *args, **kwargs):
         q.logger.log('[GENERIC] Request tagstring: %s' % tagstring, 5)
         params = params or dict()
         tags = q.base.tags.getObject(tagstring)
 
         params['tags'] = tags
+        params['service'] = self
+        params.update(kwargs)
+        params['args'] = args
 
         self._tasklet_engine.execute(params=params, tags=('pylabsmacro', macroname, ))
 

@@ -114,7 +114,14 @@ var render = function(options) {
         var width = body.width || 600;
         console.log(data);
         jQuery('#sqlgrid').jqGrid({
-            url: 'appserver/rest/ui/portal/query?sqlselect=' + sqlselect + '&table=' + body.table + '&schema=' + body.schema + '&dbconnection=' + body.dbconnection,
+            url: 'appserver/rest/ui/portal/generic',
+            postData: { tagstring: "",
+                    sqlselect: sqlselect, 
+                    table: body.table, 
+                    schema: body.schema, 
+                    dbconnection: body.dbconnection,
+                    macroname: "sqlgrid"
+            },
             datatype: 'json',
             colNames: getColNames(),
             colModel: getColModel(),
@@ -132,10 +139,16 @@ var render = function(options) {
 
     function getData() {
         $.ajax({
-            url: 'appserver/rest/ui/portal/query?sqlselect=' + sqlselect + '&table=' + body.table + '&schema=' + body.schema + '&rows=' + body.pagesize + '&dbconnection=' + body.dbconnection,
-            data: "{}",
+            url: 'appserver/rest/ui/portal/generic',
+            data: { tagstring: "",
+                    sqlselect: sqlselect,
+                    table: body.table,
+                    schema: body.schema,
+                    rows: body.pagesize,
+                    dbconnection: body.dbconnection,
+                    macroname: "sqlgrid"
+            },
             dataType: 'json',
-            type: 'POST',
             contentType: "application/json; charset=utf-8",
             success: success,
             error: error

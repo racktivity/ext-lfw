@@ -120,13 +120,13 @@
             //extract the token, find the first stop character from right.
             var leftstop = leftpatt.exec(leftline);
             if (!leftstop) {
-                return;
+                return false;
             }
 
             var spaceIndex = leftline.lastIndexOf(leftstop[0]);
             var token = leftline.substring(spaceIndex);
             if (token.length < 2) {
-                return;
+                return false;
             }
             //get available options.
 
@@ -186,7 +186,7 @@
 
             var candidates = getCandidates(token);
             if ($.isEmptyObject(candidates)) {
-                return;
+                return false;
             }
 
             $.each(candidates, function(k, v){
@@ -205,6 +205,7 @@
 
             body.append(complete);
             list.focus();
+            return true;
         };
 
         return this.each(function(){

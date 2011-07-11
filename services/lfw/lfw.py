@@ -68,6 +68,10 @@ class LFWService(object):
         dir = _join(dir, "Home.md")
         q.system.fs.createEmptyFile(dir)
 
+    @q.manage.applicationserver.expose
+    def updateSpace(self, name, newname=None, tags=""):
+        self.alkira.updateSpace(name, newname, tags.split(' '))
+
     @q.manage.applicationserver.expose_authenticated
     def deleteSpace(self, name):
         if name in ("Admin", "Imported"):

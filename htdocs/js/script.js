@@ -37,6 +37,26 @@ var Utils = {
     }
 };
 
+$.fillSpacesList = function(options) {
+    var options = $.extend({success: $.noop}, options);
+    
+    $.getJSON(LFW_CONFIG['uris']['listSpaces'], function(data) {
+        var spaces = $('#space');
+        spaces.empty();
+        for(var i = 0; i < data.length; i++) {
+            if (Auth.getFromLocalStorage("username") == null && data[i] == "Admin") {
+                continue;
+            }
+            $('<option>')
+                .attr('value', data[i])
+                .text(data[i])
+                .appendTo(spaces);
+        }
+        
+        options.success();
+    });
+};
+
 var app = $.sammy(function(app) {
     this.use('Title');
     this.use('Mustache');
@@ -853,31 +873,22 @@ data;
     });
 });
 
+
+
 $(function() {
     if(typeof(LFW_CONFIG) === 'undefined' || !LFW_CONFIG) {
         throw new Error('No LFW_CONFIG defined');
     }
-
-    // Set up spaces dropdown
-    $.getJSON(LFW_CONFIG['uris']['listSpaces'], function(data) {
-        var spaces = $('#space');
-            for(var i = 0; i < data.length; i++) {
-                if (Auth.getFromLocalStorage("username") == null && data[i] == "Admin") {
-                    continue;
-                }
-                $('<option>')
-                    .attr('value', data[i])
-                    .text(data[i])
-                    .appendTo(spaces);
-            }
-
-            spaces.change(function() {
-                app.trigger('change-space', {space: $(this).val()});
-            });
-
-            app.run('#/' + $('#space').val() + '/' + DEFAULT_PAGE_NAME);
+    
+    $("#space").change(function() {
+        app.trigger('change-space', {space: $(this).val()});
     });
-
+    
+    // Set up spaces dropdown
+    $.fillSpacesList({success: function(){
+        app.run('#/' + $('#space').val() + '/' + DEFAULT_PAGE_NAME);
+    }});
+    
     // Set up search boxes
     $('#labels')
         .bind('keydown', function(event) {

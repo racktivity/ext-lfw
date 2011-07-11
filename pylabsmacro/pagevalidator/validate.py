@@ -1,7 +1,7 @@
 __author__ = "incubaid"
 import re
-from pylabs import q
-linkRe = re.compile('<a +href *= *"([^"]*)"')
+from pylabs import q, p
+linkRe = (re.compile('\[[^\]]*] *\( *([^ \)]*)'), re.compile('\[[^\]]*] *: *([^ \)"]*)'))
 macroRe = re.compile("\[\[([a-zA-Z0-9 =]+)\]\]")
 
 JSMACROS_GPATH = q.system.fs.joinPaths(q.dirs.baseDir, "www", "lfw", "js", "macros")
@@ -9,14 +9,12 @@ JSMACROS_LPATH = q.system.fs.joinPaths(q.dirs.pyAppsDir, "%s", "impl", "portal",
 PYMACROS_GPATH = q.system.fs.joinPaths(q.dirs.baseDir, "lib", "python", "site-packages", "alkira", "tasklets", "pylabsmacro")
 
 def isExternalLink(linkparts):
-    external = ["http://", "https://", "ftp://", "ftps://"]
-    for pre in external:
-        if link.startswith(pre):
-            if pre[:3] == "ftp":
-                return True
-            if link.index("/#/") < 0:
-                return True
-            return False
+    if linkparts[0] in ("ftp:", "ftps:"):
+       return True
+    if linkparts[0] in ("http:", "https:"):
+        if linkparts[-1] == "#":
+            return True
+        return "#" not in linkparts
     return False
 
 def macroExists(macro, appname):
@@ -27,49 +25,76 @@ def macroExists(macro, appname):
         return True
     return q.system.fs.isFile(JSMACROS_LPATH%appname, "%s.js"%macro)
 
-def linkExists(link, client):
+def linkExists(link, client, currentSpace):
     linkparts = link.split("/")
     if isExternalLink(linkparts):
         return "external"
     
-    if len(linkparts) == 4:
-        appname, hashmark, space, page = linkparts    
-    elif len(linkparts) == 4:
-        appname, hashmark, space, page = linkparts
-    elif len(linkparts) == 3:
-        appname, hashmark, space = linkparts
-        page = "Home"
+    lenLink = len(linkparts)
+    
+    if linkparts[0] in ("http:", "https:"):
+        #['http:', '', '0.0.0.0', 'test', '#', 'Admin', 'Home']
+        if not (7 >= lenLink >= 6) or linkparts[4] != "#":
+            return "invalid"
+        if lenLink == 7:
+            appname, space, page = linkparts[3], linkparts[5], linkparts[6]
+        else:
+            appname, space, page = linkparts[3], linkparts[5], "Home"
+        
+    if linkparts[0] in ('', '.'):
+        #['', 'test', '#', 'Admin', 'Home']
+        if not (5 >= lenLink >= 4) or linkparts[2] != "#":
+            return "invalid"
+        if lenLink == 5:
+            appname, space, page = linkparts[1], linkparts[3], linkparts[4]
+        else:
+            appname, space, page = linkparts[1], linkparts[3], "Home"
+    
+    elif linkparts[0] == '#':
+        #['#', 'Admin', 'Home']
+        if not (3 >= lenLink >= 2):
+            return "invalid"
+        appname = client.api.appname
+        if lenLink == 3:
+            space, page = linkparts[1:]
+        else:
+            space, page = linkparts[1], "Home"
+    
+    elif lenLink == 1:
+        appname = client.api.appname
+        space = currentSpace
+        page = linkparts[0]
     else:
-        raise Exception("Page %s is invalid "%link)
-    if appname != p.api.appname: 
+        return "invalid"
+    if appname != client.api.appname: 
         client = q.clients.alkira.getClient("localhost", appname)
-    return "valid" if client.pageExists(space, page) else "invalid"
+    return "exists" if client.pageExists(space, page) else "MISSING"
     
 
 def getLinks(body):
-    return linkRe.findall(body)
+    result = list()
+    for lre in linkRe:
+        result += lre.findall(body)
+    return result
 
 def getMacros(body):
     return macroRe.findall(body)
 
-def getPageReport(client, space, name, recursive = False, showValid = True):
-    import markdown
-    
+def getPageReport(client, space, name, recursive = False, showValid = True):    
     result = list()
     page = client.getPage(space, name)
-    body = markdown.markdown(page.content)
     #Check links
-    links = getLinks(body)
+    links = getLinks(page.content)
     for link in links:
-        result = linkExists(link, client)
-        if result in ("valid", "unknown") and not showValid:
+        state = linkExists(link, client, space)
+        if result in ("valid", "external") and not showValid:
             continue
-        result.append((space + "/" + page.name, "link", link, result))
+        result.append((space + "/" + page.name, "link", link, state))
 
     #Check Macros
     macros = getMacros(page.content)
     for macro in macros:
-        ok = macroExists(macro, appname)
+        ok = macroExists(macro, p.api.appname)
         if ok and not showValid:
             continue
         result.append((space + "/" + page.name, "macro", macro, ok))
@@ -120,14 +145,12 @@ def main(q, i, p, params, tags):
         if item[1] == "link":
             html += row%(
                 "[%s](%s)"%(parenturl, parenturl),
-               "[%s](%s)"%(item[2], item[2]),
-                "OK" if item[3] else "INVALID"
-            )
+               "[%s](%s)"%(item[2], item[2]), item[3])
         elif item[1] == "macro":
             html += row%(
                 "[%s](%s)"%(parenturl, parenturl),
                 "[[%s]]"%(item[2]),
-                "OK" if item[3] else "INVALID"
+                "OK" if item[3] else "MISSING"
             )
     html += "</TABLE>"
     params['result'] = "%s"%html

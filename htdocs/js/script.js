@@ -43,7 +43,8 @@ var app = $.sammy(function(app) {
 
     var _appName = null;
     var _space = null,
-        _page = null;
+        _page = null,
+        _query = null;
     var csses = new Array();
     var cssLoaded = false;
     var _pageobj = null;
@@ -125,6 +126,7 @@ var app = $.sammy(function(app) {
                     'page': getPage(),
                     'body': htmlDecode(data),
                     'params': params,
+                    'query': getQuery(),
                     'pagecontent': elem,
                     'config': {},
 
@@ -403,6 +405,13 @@ data;
         getPage = function() {
         return _page;
     };
+    var setQuery = function(query) {
+        _query = query;
+    };
+
+    var getQuery = function(){
+        return _query;
+    };
 
     var setPageObj = function(page){
         _pageobj = page;
@@ -625,7 +634,20 @@ data;
         }
     };
 
+    // Check wether a token parameter was added to the url, if so use this as an OAuth token
+    var checkToken = function() {
+        if (this.params.hasOwnProperty("token") && Auth.parseOAuthToken) {
+            Auth.parseOAuthToken(this.params.token, (this.params.user ? this.params.user : ""), true);
+
+            // We only want to do this once
+            delete this.params.token;
+            delete this.params.user;
+        }
+    };
+
     this.get('#/:space', function() {
+        checkToken.call(this);
+
         setSpace(this.params['space']);
         setPage(null);
 
@@ -691,6 +713,7 @@ data;
     });
 
     this.get('#/:space/:page', function() {
+        checkToken.call(this);
 
         clearFields();
 
@@ -712,6 +735,7 @@ data;
 
         setSpace(space);
         setPage(page);
+        setQuery(this.params);
 
         if (page == "Home"){
             $("#toolbar > #deletepage").button("option", "disabled", true);
@@ -835,8 +859,7 @@ $(function() {
     $.getJSON(LFW_CONFIG['uris']['listSpaces'], function(data) {
         var spaces = $('#space');
             for(var i = 0; i < data.length; i++) {
-                if(getFromLocalStorage("username") == null && data[i] == "Admin")
-                {
+                if (Auth.getFromLocalStorage("username") == null && data[i] == "Admin") {
                     continue;
                 }
                 $('<option>')

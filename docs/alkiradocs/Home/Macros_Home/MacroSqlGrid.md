@@ -74,9 +74,6 @@ Using the `columns` and `wheredict` parameters:
             "name": "Page name",
             "parent": "Parent guid"
             },
-        "wheredict": {
-            "space": "alkiradocs"
-            },
         "link": {"name": "/pylabsdoc/#/alkiradocs/$name$"},
         "sort": "name",
         "pagesize": 10,
@@ -103,9 +100,6 @@ Using the `columns` and `wheredict` parameters:
             "category": null,
             "name": "Page name",
             "parent": "Parent guid"
-            },
-        "wheredict": {
-            "space": "alkiradocs"
             },
         "link": {"name": "/pylabsdoc/#/alkiradocs/$name$"},
         "sort": "name",

@@ -12,17 +12,17 @@ var render = function(options) {
     options.addCss({'id': 'pagetree', 'tag': 'link', 'params': {'rel': 'stylesheet', 'href': '/static/lfw/js/libs/jstree/themes/classic/style.css'}});
 
     var cb = function(){
-
-        $this.jstree({
-            "json_data": {
-                "ajax": {
-                    "url": "appserver/rest/ui/portal/pageTree?space=" + space,
-                    "data": function(n) {
-                        return {id: n.attr ? n.attr("id") : root};
-                    },
-                "progressive_render" : true
-                }
-            },
+    	
+    	$this.jstree({
+    		"json_data": {
+    			"ajax": {
+    				"url": "appserver/rest/ui/portal/generic?macroname=pagetree&space=" + space,
+    				"data": function(n) {
+    					return {id: n.attr ? n.attr("id") : root};
+    				},
+    			"progressive_render" : true
+    			}
+    		},
             "themes" : {
                "theme" : "classic",
             },

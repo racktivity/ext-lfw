@@ -66,9 +66,14 @@ def linkExists(link, client, currentSpace):
         page = linkparts[0]
     else:
         return "INVALID"
+    
+    if not q.manage.applicationserver.isRunning(appname):
+        return "UNKNOWN"
+    
     if appname != client.api.appname: 
         client = q.clients.alkira.getClient("localhost", appname)
-    return "OK" if client.pageExists(space, page) else "MISSING"
+    result = client.spaceExists(space) and client.pageExists(space, page)
+    return "OK" if result else "MISSING"
     
 
 def getLinks(body):

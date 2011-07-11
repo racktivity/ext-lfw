@@ -153,7 +153,7 @@
                 .blur(hide)
                 .dblclick(pick)
                 .keydown(function(e){
-                    var code = e.keyCode;
+                    var code = e.which;
                     if (code == 27){
                         //escape.
                         e.preventDefault();
@@ -170,18 +170,21 @@
                     }
                 })
                 .keypress(function(e){
-                    var code = e.keyCode
+                    var code = e.which
+                    if (e.ctrlKey) return false;
                     if (code == 13 || code == 32) {
                         //enter and space
                         e.preventDefault();
                         pick.call(this);
-                    } else {
+                        return true;
+                    } else if ($.inArray(code, [0, 8, 27]) < 0) {
                         //continues typing
-                        line = line.substring(0, cur.ch) + String.fromCharCode(e.keyCode) + line.substring(cur.ch);
+                        line = line.substring(0, cur.ch) + String.fromCharCode(code) + line.substring(cur.ch);
                         editor.setLine(cur.line, line);
                         editor.focus();
-                        startComplete.call(editor, body, event);
+                        return startComplete.call(editor, body, event);
                     }
+                    return false;
                 });
 
             var candidates = getCandidates(token);
@@ -204,6 +207,7 @@
                             .css('top', (coords.yBot - offset.top) + "px");
 
             body.append(complete);
+            
             list.focus();
             return true;
         };

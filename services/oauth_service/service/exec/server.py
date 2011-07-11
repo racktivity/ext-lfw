@@ -165,7 +165,7 @@ class TokensCleanup(threading.Thread):
         deleteList=[]
         while self.loop:
             try:
-                keys = self.arakoon_client.range(beginKey='a', beginKeyIncluded=True, endKey='z', endKeyIncluded=True)
+                keys = self.arakoon_client.range(beginKey='t', beginKeyIncluded=True, endKey='z', endKeyIncluded=True)
                 for key in keys:
                     if not key.startswith('token_$('):
                         #this key is not related to the Authentication service

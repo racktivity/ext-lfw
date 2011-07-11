@@ -27,21 +27,21 @@ class LFWService(object):
         self._tasklet_engine = q.taskletengine.get(tasklet_path)
         self._tasklet_engine.addFromPath(os.path.join(q.dirs.baseDir,'lib','python','site-packages','alkira', 'tasklets'))
         self.db_config_path = q.system.fs.joinPaths(q.dirs.cfgDir, 'qconfig', 'dbconnections.cfg')
-    
-    #rename doesn't work accross different mount points but has higher performance, so we implemented this move functions 
+
+    #rename doesn't work accross different mount points but has higher performance, so we implemented this move functions
     def moveFile(self, filePath, new_name):
         try:
             q.system.fs.renameFile(filePath, new_name)
         except:
             q.system.fs.moveFile(filePath, new_name)
-    
+
     def moveDir(self, filePath, new_name):
         try:
             q.system.fs.renameDir(filePath, new_name)
         except:
             q.system.fs.moveDir(filePath, new_name)
-        
-    
+
+
     @q.manage.applicationserver.expose_authenticated
     def tags(self, space=None, term=None):
         results = self.get_items('tags', space=space, term=term)
@@ -283,134 +283,6 @@ class LFWService(object):
         return result
 
     @q.manage.applicationserver.expose_authenticated
-    def pageTree(self, space, id):
-        space = self.alkira.getSpace(space)
-        where = ""
-        if id == 0:
-            where = "and pagelist.parent is null"
-        elif q.basetype.guid.check(id):
-            where = "and pagelist.parent = '%s'" % id
-        else:
-            sql1 = """
-                SELECT DISTINCT pagelist.guid
-                FROM ONLY ui_page.ui_view_page_list as pagelist
-                WHERE pagelist.space ='%(space)s' and pagelist.name = '%(id)s';
-                """ % {'space': space.guid, 'id': id}
-
-            parent_guid_result = self.connection.page.query(sql1)
-            parent_guid = parent_guid_result[0]['guid']
-            where = "and pagelist.parent = '%s'" % parent_guid
-
-        sql = """
-        SELECT DISTINCT pagelist.guid,
-                pagelist.parent,
-                pagelist.name,
-                pagelist.title,
-                pagelist.order,
-                (select count(guid) FROM ui_page.ui_view_page_list WHERE ui_page.ui_view_page_list.parent = pagelist.guid) as nrofkids
-                FROM ONLY ui_page.ui_view_page_list as pagelist
-                WHERE pagelist.space = '%(space)s' %(where)s ORDER BY pagelist.order, pagelist.title;
-        """ % {'space': space.guid, 'where': where}
-
-        result = self.connection.page.query(sql)
-        data = list()
-        for node in result :
-            if node['name'] == 'pagetree':
-                continue
-            nodedata = dict()
-            children = list()
-            state = 'closed' if node['nrofkids'] > 0 else 'leaf'
-            nodedata = {'data': {'title': node['title'],
-                                 'type': 'link',
-                                 'attr': {'href': '#/%s/%s' % (space.name, node['name'])},
-                                 'children':[]
-                                 },
-                        'attr': {
-                                 'class': 'TreeTitle',
-                                 'id': node['guid']
-                                },
-                        'state' : state
-                        }
-            data.append(nodedata)
-        q.logger.log(data, 1)
-        return data
-
-
-    @q.manage.applicationserver.expose_authenticated
-    def query(self, sqlselect, rows, table, schema, dbconnection='', link='', _search='', nd='', page=1, sidx='', sord='', applicationserver_request='', *args, **kwargs):
-        import sqlalchemy
-        from sqlalchemy import MetaData, Table, create_engine
-        from sqlalchemy.orm import sessionmaker
-        import math
-        import re
-
-        localdb = False
-        cfgfilepath = self.db_config_path
-        q.logger.log('FILE IS %s' % cfgfilepath, 1)
-        if q.system.fs.exists(cfgfilepath):
-            inifile = q.tools.inifile.open(cfgfilepath)
-            section = 'db_%s' % dbconnection
-            if inifile.checkSection(section):
-                dbserver = inifile.getValue(section, 'dbserver')
-                dblogin = inifile.getValue(section, 'dblogin')
-                dbpassword = inifile.getValue(section, 'dbpasswd')
-                dbname = inifile.getValue(section, 'dbname')
-            else:
-                localdb = True
-        else:
-            localdb = True
-        if localdb:
-            dbname = 'sampleapp'
-            dbserver = '127.0.0.1'
-            dblogin = q.manage.postgresql8.cmdb.rootLogin
-            dbpassword = q.manage.postgresql8.cmdb.rootPasswd
-
-        start = (int(page) - 1) * int(rows)
-        pagefields = list()
-
-        #sqlalchemy stuff
-        engine = create_engine('postgresql://%s:%s@%s/%s' % (dblogin, dbpassword, dbserver, dbname))
-        connection = engine.connect()
-
-        comp = re.compile(".*from(?P<end>.*)", re.I)
-        countquery = comp.sub("select count(*) as count from \g<end>", sqlselect)
-        if sidx:
-            sqlselect += " ORDER BY %s %s" % (sidx, sord)
-        sqlselect += ' LIMIT %s OFFSET %s' % (rows, start)
-
-        t = engine.text(countquery)
-        totalrowcount = t.execute().fetchone()[0]
-        t = engine.text(sqlselect)
-        output = t.execute()
-        result = output.fetchall()
-
-        data = dict()
-        data['columns'] = output.keys()
-        data['page'] = page
-        data['total'] = int(math.ceil(totalrowcount/float(rows)))
-        data['records'] = rows
-        data['rows'] = list()
-
-        for index, pageobj in enumerate(result):
-            data['rows'].append({'id': index + 1, 'cell': list(pageobj)})
-        return data
-
-    @q.manage.applicationserver.expose_authenticated
-    def graphviz(self, graphDot_str, applicationserver_request=''):
-        import pygraphviz as pgv
-        import base64
-        import StringIO
-
-        graphDot_str = graphDot_str.replace("&gt;", ">")
-        G = pgv.AGraph(string=graphDot_str)
-        G.layout(prog='dot')
-        rawimage = StringIO.StringIO()
-        G.draw(rawimage, 'gif')
-        rawimage.buf = ''
-        img_b64 = base64.b64encode(rawimage.getvalue())
-        return img_b64
-
-    @q.manage.applicationserver.expose
     def generic(self, tagstring=None, macroname=None, params=None, *args, **kwargs):
         q.logger.log('[GENERIC] Request tagstring: %s' % tagstring, 5)
         params = params or dict()

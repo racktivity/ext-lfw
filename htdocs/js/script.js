@@ -491,6 +491,7 @@ data;
         var simpleAnchorRegex = /(\[((?:\[[^\]]*\]|[^\[\]])*)\]\([ \t]*()<?(.*?)>?[ \t]*((['"])(.*?)\6[ \t]*)?\))/g;
         var linkDefinitionsRegex = /^[ ]{0,3}\[(.+)\]:[ \t]*\n?[ \t]*<?(\S+?)>?[ \t]*\n?[ \t]*(?:(\n*)["(](.+?)[")][ \t]*)?(?:\n+|\Z)/gm;
         var replaceLink = function(url) {
+            debugger;
             if (!url.length) {
                 return url;
             }
@@ -506,8 +507,10 @@ data;
             return url;
         };
 
-        mdstring = mdstring.replace(simpleAnchorRegex, function(fullMatch, m1, m2, m3, url) {
-            return fullMatch.replace(new RegExp("\\(\\s*" + url + "\\s*\\)"), "(" + replaceLink(url) + ")");
+        mdstring = mdstring.replace(simpleAnchorRegex, function(fullMatch, m1, m2, m3, url, title) {
+            title = (title ? title : "")
+            return fullMatch.replace(new RegExp("\\(\\s*" + url + "\\s*" + title + "\\s*\\)"),
+                "(" + replaceLink(url) + " " + title + ")");
         });
         mdstring = mdstring.replace(linkDefinitionsRegex, function(fullMatch, m1, url) {
             return fullMatch.replace(url, replaceLink(url));

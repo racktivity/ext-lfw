@@ -28,14 +28,14 @@ def macroExists(macro, appname):
 def linkExists(link, client, currentSpace):
     linkparts = link.split("/")
     if isExternalLink(linkparts):
-        return "external"
+        return "EXTERNAL"
     
     lenLink = len(linkparts)
     
     if linkparts[0] in ("http:", "https:"):
         #['http:', '', '0.0.0.0', 'test', '#', 'Admin', 'Home']
         if not (7 >= lenLink >= 6) or linkparts[4] != "#":
-            return "invalid"
+            return "INVALID"
         if lenLink == 7:
             appname, space, page = linkparts[3], linkparts[5], linkparts[6]
         else:
@@ -44,7 +44,7 @@ def linkExists(link, client, currentSpace):
     if linkparts[0] in ('', '.'):
         #['', 'test', '#', 'Admin', 'Home']
         if not (5 >= lenLink >= 4) or linkparts[2] != "#":
-            return "invalid"
+            return "INVALID"
         if lenLink == 5:
             appname, space, page = linkparts[1], linkparts[3], linkparts[4]
         else:
@@ -53,7 +53,7 @@ def linkExists(link, client, currentSpace):
     elif linkparts[0] == '#':
         #['#', 'Admin', 'Home']
         if not (3 >= lenLink >= 2):
-            return "invalid"
+            return "INVALID"
         appname = client.api.appname
         if lenLink == 3:
             space, page = linkparts[1:]
@@ -65,10 +65,10 @@ def linkExists(link, client, currentSpace):
         space = currentSpace
         page = linkparts[0]
     else:
-        return "invalid"
+        return "INVALID"
     if appname != client.api.appname: 
         client = q.clients.alkira.getClient("localhost", appname)
-    return "exists" if client.pageExists(space, page) else "MISSING"
+    return "OK" if client.pageExists(space, page) else "MISSING"
     
 
 def getLinks(body):
@@ -87,7 +87,7 @@ def getPageReport(client, space, name, recursive = False, showValid = True):
     links = getLinks(page.content)
     for link in links:
         state = linkExists(link, client, space)
-        if result in ("valid", "external") and not showValid:
+        if result in ("OK", "EXTERNAL") and not showValid:
             continue
         result.append((space + "/" + page.name, "link", link, state))
 

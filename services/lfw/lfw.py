@@ -71,7 +71,18 @@ class LFWService(object):
     @q.manage.applicationserver.expose
     def updateSpace(self, name, newname=None, tags=""):
         self.alkira.updateSpace(name, newname, tags.split(' '))
-
+    
+    @q.manage.applicationserver.expose
+    def sortSpaces(self, spaces, tags=""):
+        """
+        get space names in a specific order and update the actual spaces to reflect this order
+        @spaces: list of spaces in the desired order
+        """
+        c=0
+        for space in spaces:
+            c += 1
+            self.alkira.updateSpace(space, order=c)
+    
     @q.manage.applicationserver.expose_authenticated
     def deleteSpace(self, name):
         if name in ("Admin", "Imported"):

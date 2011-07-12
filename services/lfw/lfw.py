@@ -59,8 +59,8 @@ class LFWService(object):
         return self.alkira.listSpaces()
 
     @q.manage.applicationserver.expose_authenticated
-    def createSpace(self, name, tags=""):
-        self.alkira.createSpace(name, tags.split(' '))
+    def createSpace(self, name, tags="", order=None):
+        self.alkira.createSpace(name, tags.split(' '), order=order)
         #update file system
         _join = q.system.fs.joinPaths
         dir = _join(q.dirs.baseDir, "pyapps", p.api.appname, "portal", "spaces", name, "Home")
@@ -71,7 +71,18 @@ class LFWService(object):
     @q.manage.applicationserver.expose
     def updateSpace(self, name, newname=None, tags=""):
         self.alkira.updateSpace(name, newname, tags.split(' '))
-
+    
+    @q.manage.applicationserver.expose
+    def sortSpaces(self, spaces, tags=""):
+        """
+        get space names in a specific order and update the actual spaces to reflect this order
+        @spaces: list of spaces in the desired order
+        """
+        c=0
+        for space in spaces:
+            c += 1
+            self.alkira.updateSpace(space, order=c)
+    
     @q.manage.applicationserver.expose_authenticated
     def deleteSpace(self, name):
         if name in ("Admin", "Imported"):
@@ -402,6 +413,7 @@ class LFWService(object):
         if retval == 1 and "no changes found" in msg: #no changes we can push
             #set the username for the commit
             hg._ui.environ["HGUSER"] = spaceInfo.repository.username
+            hg.addremove('Add new files, and drop deleted files')
             hg.pushcommit("automated commit by Alkira", addRemoveUntrackedFiles=True)
             return True
         else:
@@ -423,8 +435,13 @@ class LFWService(object):
 
         #pull everything
         q.logger.log('pulling space %s from %s' % (spaceInfo.name, spaceInfo.repository.url), 5)
-        hg = q.clients.mercurial.getclient(q.dirs.pyAppsDir + "/" + p.api.appname + "/portal/spaces/" + spaceInfo.name,
-            repoUrl)
+        repoDir = q.dirs.pyAppsDir + "/" + p.api.appname + "/portal/spaces/" + spaceInfo.name
+        cleandir = False
+        if self.alkira.countPages(space):
+            homepage = self.alkira.getPage(space, 'Home')
+            cleandir = not bool(homepage.content)
+            
+        hg = q.clients.mercurial.getclient(repoDir, repoUrl, cleandir=cleandir)
         hg.pullupdate()
 
         #resync pages for space

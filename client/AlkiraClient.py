@@ -154,6 +154,14 @@ class Client:
         return map(lambda i: i['name'],
                    self.listPageInfo(space))
 
+    def countPages(self, space=None):
+        where = ''
+        if space:
+            space = self._getSpaceGuid(space)
+            where = "where space='%s'" % space
+            
+        return self.connection.page.query("SELECT count(guid) from ui_page.ui_view_page_list %s;" % where)[0]['count']
+    
     def listSpaces(self):
         """
         Lists all the spaces.
@@ -174,15 +182,13 @@ class Client:
             elif y["name"] == ADMINSPACE:
                 return -1
 
-            xtags = q.base.tags.getObject(x["tags"] if "tags" in x else "")
-            ytags = q.base.tags.getObject(y["tags"] if "tags" in y else "")
-            if xtags.tagExists("order"):
-                if ytags.tagExists("order"):
-                    return cmp(int(xtags.tagGet("order")), int(ytags.tagGet("order")))
+            if "order" in x and x["order"] != None:
+                if "order" in y and y["order"] != None:
+                    return cmp(x["order"], y["order"])
                 else:
                     return -1
             else:
-                if ytags.tagExists("order"):
+                if "order" in y and y["order"] != None:
                     return 1
                 else:
                     return 0
@@ -462,7 +468,7 @@ class Client:
         for page_guid in delete_list:
             self.connection.page.delete(page_guid)
 
-    def createSpace(self, name, tagsList=[], repository="", repo_username="", repo_password=""):
+    def createSpace(self, name, tagsList=[], repository="", repo_username="", repo_password="", order=None):
         if self.spaceExists(name):
             q.errorconditionhandler.raiseError("Space %s already exists." % name)
 
@@ -475,6 +481,11 @@ class Client:
         repo.username = repo_username
         repo.password = repo_password
         space.repository = repo
+
+        if not order:
+            space.order = 10000
+        else:
+            space.order = order
 
         self.connection.space.save(space)
 
@@ -587,7 +598,7 @@ class Client:
             self.connection.user.save(user)
             return user
 
-    def updateSpace(self, space, newname=None, tagslist=None, repository=None, repo_username=None, repo_password=None):
+    def updateSpace(self, space, newname=None, tagslist=None, repository=None, repo_username=None, repo_password=None, order=None):
         space = self.getSpace(space)
 
         if space.name == ADMINSPACE:
@@ -611,6 +622,9 @@ class Client:
 
         if repo_password:
             space.repository.password = repo_password
+
+        if order:
+            space.order = order
 
         self.connection.space.save(space)
 

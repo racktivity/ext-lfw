@@ -828,19 +828,16 @@ data;
             //cache: false,
             dataType: 'json',
             error: function(xhr, text, exc) {
-                if(xhr.status === 404) {
+                if (xhr.status === 404) {
                     context.notFound();
-                }
-                else if (xhr.status === 401){
-                 swap("<p class='error'> Invalid User Name /Password</p>", '#/' + space + '/' + page);
-                }
-
-                else if (xhr.responseText.indexOf("Authorization failed") >0){
-                 swap("<p class='error'> Authorization failed</p>", '#/' + space + '/' + page);
-                }
-
-                else {
-                    app.error('Unknown error: ' + text, exc);
+                } else if (xhr.status === 401) {
+                    swap("<p class='error'> Invalid User Name /Password</p>", '#/' + space + '/' + page);
+                } else if (xhr.status === 403) {
+                    swap("<p class='error'>Authentication needed</p>", '#/' + space + '/' + page);
+                } else if (xhr.responseText.indexOf("Authorization failed") > 0) {
+                    swap("<p class='error'> Authorization failed</p>", '#/' + space + '/' + page);
+                } else {
+                    app.error('Unknown error: ' + text, new Error(exc));
                 }
             }
         });

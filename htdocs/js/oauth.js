@@ -16,10 +16,17 @@ $(function() {
         "name='password' id='password' placeholder='password' class='input.text' /></div><div><input type='submit' " +
         "name='login' id='login' value='Login' /></div></form></div>");
 
+    function clearUserInfo() {
+        localStorage.removeItem(OAUTH_TOKEN);
+        localStorage.removeItem(USER_NAME);
+    };
+
     function showLoginDialog(event) {
         if (event) {
             event.preventDefault();
         }
+        clearUserInfo();
+        showLoginLink();
         $("#loginDialog").dialog({title: 'Log in', closeOnEscape: false, width: 260, height:200, resizable: false});
     }
 
@@ -27,8 +34,7 @@ $(function() {
 
     $("#loginInfo").find("#logout").click(function(event) {
         event.preventDefault();
-        localStorage.removeItem(OAUTH_TOKEN);
-        localStorage.removeItem(USER_NAME);
+        clearUserInfo();
         self.location = "http://" + document.domain + "/" + LFW_CONFIG.appname + "/";
     });
 

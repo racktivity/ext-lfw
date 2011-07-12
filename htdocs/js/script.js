@@ -327,9 +327,9 @@ data;
 
         _space = space;
         if (space == ADMINSPACE){
-            $("#toolbar > button").button("option", "disabled", true);
+            $("#toolbar").css("visibility", "hidden");
         } else {
-            $("#toolbar > button").button("option", "disabled", false);
+            $("#toolbar").css("visibility", "visible");
         }
 
         var spaces = $('#space option');
@@ -759,12 +759,8 @@ data;
         setSpace(space);
         setPage(page);
         setQuery(this.params);
-
-        if (page == "Home"){
-            $("#toolbar > #deletepage").button("option", "disabled", true);
-        } else if (space != ADMINSPACE) {
-            $("#toolbar > #deletepage").button("option", "disabled", false);
-        }
+        
+        
 
         var context = this;
 
@@ -773,6 +769,7 @@ data;
             success: function(data) {
                 setPageObj(data);
                 if (data['code']) {
+                    $("#toolbar > button").button("option", "disabled", true);
                     if (data['code'] == 404)
                     {
                         context.notFound();
@@ -781,6 +778,14 @@ data;
                     }
                     return;
                 }
+                
+                $("#toolbar > button").button("option", "disabled", false);
+                
+                if (page == "Home") {
+                    //disable deleting of Home page.
+                    $("#toolbar > #deletepage").button("option", "disabled", true);
+                }
+                
                 context.title(data['title']);
 
                 var content = data['content'];
@@ -1040,14 +1045,13 @@ $(function(){
     });
 
     $("#toolbar > #editpage").button({icons: {primary: 'ui-icon-gear'}}).click(function(){
-        var page = app.getPage();
         var space = app.getSpace();
         var pageobj = app.getPageObj();
         var content = pageobj.content;
 
         dialog.editor("title", app.getTitle());
         dialog.editor("name", pageobj.name);
-        if (page === "Home"){
+        if (pageobj.name === "Home"){
             dialog.editor("disabled", "name", true);
             dialog.editor("disabled", "title", true);
         } else {
@@ -1084,7 +1088,7 @@ $(function(){
                                                     $.ajax({url: saveurl,
                                                             type: 'POST',
                                                             data: {'space': space,
-                                                                   'name': page,
+                                                                   'name': pageobj.name,
                                                                    'newname': name,
                                                                    'pagetype': filetype,
                                                                    'content': dialog.editor("content"),

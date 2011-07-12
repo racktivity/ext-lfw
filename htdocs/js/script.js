@@ -771,14 +771,24 @@ data;
                     $("#toolbar > button").button("option", "disabled", true);
                     if (data['code'] == 404)
                     {
-                        context.notFound();
+                        data = {title: 'Page Not Found',
+                                pagetype: 'md',
+                                content: '## Page Not Found\n\
+\n\
+###To create new page\n\
+\n\
+- Navigate to the place where you want to place page\n\
+- Press the _New_ button\n\
+- Enter page *Name* and *Title* and write the page content\n\
+- Press Save\n'};
+                        //context.notFound();
                     } else {
                         app.error('Unknown error: ' + data['error']);
+                        return;
                     }
-                    return;
+                } else {
+                    $("#toolbar > button").button("option", "disabled", false);
                 }
-                
-                $("#toolbar > button").button("option", "disabled", false);
                 
                 if (page == "Home") {
                     //disable deleting of Home page.

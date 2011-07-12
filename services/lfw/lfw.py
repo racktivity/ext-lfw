@@ -424,8 +424,13 @@ class LFWService(object):
 
         #pull everything
         q.logger.log('pulling space %s from %s' % (spaceInfo.name, spaceInfo.repository.url), 5)
-        hg = q.clients.mercurial.getclient(q.dirs.pyAppsDir + "/" + p.api.appname + "/portal/spaces/" + spaceInfo.name,
-            repoUrl)
+        repoDir = q.dirs.pyAppsDir + "/" + p.api.appname + "/portal/spaces/" + spaceInfo.name
+        cleandir = False
+        if self.alkira.countPages(space):
+            homepage = self.alkira.getPage(space, 'Home')
+            cleandir = not bool(homepage.content)
+            
+        hg = q.clients.mercurial.getclient(repoDir, repoUrl, cleandir=cleandir)
         hg.pullupdate()
 
         #resync pages for space

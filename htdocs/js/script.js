@@ -511,7 +511,6 @@ data;
         var simpleAnchorRegex = /(\[((?:\[[^\]]*\]|[^\[\]])*)\]\([ \t]*()<?(.*?)>?[ \t]*((['"])(.*?)\6[ \t]*)?\))/g;
         var linkDefinitionsRegex = /^[ ]{0,3}\[(.+)\]:[ \t]*\n?[ \t]*<?(\S+?)>?[ \t]*\n?[ \t]*(?:(\n*)["(](.+?)[")][ \t]*)?(?:\n+|\Z)/gm;
         var replaceLink = function(url) {
-            debugger;
             if (!url.length) {
                 return url;
             }

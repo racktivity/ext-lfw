@@ -3,7 +3,7 @@ class space:
     space object actions
     """
 
-    def create(self, name, tags="", repository="", repo_username="", repo_password="", jobguid="", executionparams=None):
+    def create(self, name, tags="", repository="", repo_username="", repo_password="", order=None, jobguid="", executionparams=None):
         """
         Create a new space object.
 
@@ -22,6 +22,9 @@ class space:
         @param repo_password:    password of the repository
         @type repo_password:     string
 
+        @param order:            order of the space
+        @type order:             integer
+
         @param jobguid:          guid of the job if available else empty string
         @type jobguid:           guid
 
@@ -34,7 +37,7 @@ class space:
         @raise e:                In case an error occurred, exception is raised
         """
 
-    def find(self, name="", tags="", repository="", exact_properties=None, jobguid="", executionparams=None):
+    def find(self, name="", tags="", repository="", exact_properties=None, order=None, jobguid="", executionparams=None):
         """
         Returns a list of space objects which met the find criteria.
 
@@ -49,6 +52,9 @@ class space:
 
         @param repository:             repository of the space
         @type repository:              string
+
+        @param order:                  order of the space
+        @type order:                   integer
 
         @param exact_properties:       an iterable of property names whose values should be matched exactly
         @type exact_properties:        iterable of strings
@@ -114,7 +120,7 @@ class space:
         @raise e:                        In case an error occurred, exception is raised
         """
 
-    def update(self, spaceguid, name, tags="", repository="", repo_username="", repo_password="", jobguid="", executionparams=dict()):
+    def update(self, spaceguid, name, tags="", repository="", repo_username="", repo_password="", order=None, jobguid="", executionparams=dict()):
         """
         Create a new space object.
 
@@ -135,6 +141,9 @@ class space:
 
         @param repo_password:    password of the repository
         @type repo_password:     string
+
+        @param order:            order of the space
+        @type order:             integer
 
         @param jobguid:          guid of the job if available else empty string
         @type jobguid:           guid

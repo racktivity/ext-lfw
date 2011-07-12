@@ -39,12 +39,12 @@ var Utils = {
 
 $.fillSpacesList = function(options) {
     var options = $.extend({success: $.noop}, options);
-    
+
     $.getJSON(LFW_CONFIG['uris']['listSpaces'], function(data) {
         var spaces = $('#space');
         spaces.empty();
         for(var i = 0; i < data.length; i++) {
-            if (Auth.getFromLocalStorage("username") == null && data[i] == "Admin") {
+            if (Auth.getFromLocalStorage("username") == null && data[i] == ADMINSPACE) {
                 continue;
             }
             $('<option>')
@@ -52,7 +52,7 @@ $.fillSpacesList = function(options) {
                 .text(data[i])
                 .appendTo(spaces);
         }
-        
+
         options.success();
     });
 };
@@ -758,8 +758,8 @@ data;
         setSpace(space);
         setPage(page);
         setQuery(this.params);
-        
-        
+
+
 
         var context = this;
 
@@ -789,12 +789,12 @@ data;
                 } else {
                     $("#toolbar > button").button("option", "disabled", false);
                 }
-                
+
                 if (page == "Home") {
                     //disable deleting of Home page.
                     $("#toolbar > #deletepage").button("option", "disabled", true);
                 }
-                
+
                 context.title(data['title']);
 
                 var content = data['content'];
@@ -893,16 +893,16 @@ $(function() {
     if(typeof(LFW_CONFIG) === 'undefined' || !LFW_CONFIG) {
         throw new Error('No LFW_CONFIG defined');
     }
-    
+
     $("#space").change(function() {
         app.trigger('change-space', {space: $(this).val()});
     });
-    
+
     // Set up spaces dropdown
     $.fillSpacesList({success: function(){
         app.run('#/' + $('#space').val() + '/' + DEFAULT_PAGE_NAME);
     }});
-    
+
     // Set up search boxes
     $('#labels')
         .bind('keydown', function(event) {

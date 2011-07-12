@@ -154,6 +154,14 @@ class Client:
         return map(lambda i: i['name'],
                    self.listPageInfo(space))
 
+    def countPages(self, space=None):
+        where = ''
+        if space:
+            space = self._getSpaceGuid(space)
+            where = "where space='%s'" % space
+            
+        return self.connection.page.query("SELECT count(guid) from ui_page.ui_view_page_list %s;" % where)[0]['count']
+    
     def listSpaces(self):
         """
         Lists all the spaces.

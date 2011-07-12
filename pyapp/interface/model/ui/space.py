@@ -17,3 +17,5 @@ class space(model.RootObjectModel):
     tags = model.String(thrift_id=2)
     #@doc repository related to the space
     repository = model.Object(repository, thrift_id=3)
+    #@doc order of the space
+    order = model.Integer(thrift_id=4)

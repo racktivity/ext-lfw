@@ -3,7 +3,8 @@ def main(q, i, p, params, tags):
     alkira = q.clients.alkira.getClientByApi(p.api)
     alkira.createSpace(params['name'],
         params.get("tags", "").split(" "), params.get('repository'),
-		params.get('repo_username'), params.get('repo_password'))
+        params.get('repo_username'), params.get('repo_password'),
+        order=params['order'] if params['order'] else 10000)
 
     params['result'] = True
 

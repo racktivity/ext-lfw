@@ -59,8 +59,8 @@ class LFWService(object):
         return self.alkira.listSpaces()
 
     @q.manage.applicationserver.expose_authenticated
-    def createSpace(self, name, tags=""):
-        self.alkira.createSpace(name, tags.split(' '))
+    def createSpace(self, name, tags="", order=None):
+        self.alkira.createSpace(name, tags.split(' '), order=order)
         #update file system
         _join = q.system.fs.joinPaths
         dir = _join(q.dirs.baseDir, "pyapps", p.api.appname, "portal", "spaces", name, "Home")

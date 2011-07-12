@@ -49,11 +49,27 @@ $(function() {
             showLoginDialog();
         }
     });
+    //Intercept all Ajax requests to add the OAuth header parameters if any
+    $(document).ajaxSend(
+        function(event, xhr, settings)
+        {
+            addAuthenticationHeader(xhr, settings.url);
+        }
+    );
 
     //Add the authentication info to the header of all Ajax request
-    function addAuthenticationHeader() {
+    function addAuthenticationHeader(xhr, url) {
         if (Auth.getFromLocalStorage(OAUTH_TOKEN) !== null) {
-            var tokenKey, tokenSecret;
+            var completeUrl = "http://alkira";
+            if(url.charAt(0) == '/')
+            {
+                completeUrl += url;
+            }
+            else
+            {
+                completeUrl += "/" + url;
+            }
+            
             var accessor = {
                     consumerSecret: "",
                     tokenSecret: "",
@@ -61,11 +77,10 @@ $(function() {
                     consumerKey:""
                 },
                 message = {
-                    action: "http://alkira",
+                    action: completeUrl,
                     method: "GET",
                     parameters: {}
                 };
-
             var token = Auth.getFromLocalStorage(OAUTH_TOKEN);
             if (token !== null) {
                 var parts = token.split("&");
@@ -75,15 +90,11 @@ $(function() {
                     if (firstPart.split("=")[0] === "oauth_token") {
                         message.parameters.oauth_token = "token_$(" + firstPart.split("=")[1] + ")";
                         accessor.token = message.parameters.oauth_token;
-                        tokenKey = "token_$(" + firstPart.split("=")[1] + ")";
-                        tokenSecret = secondPart.split("=")[1];
                         accessor.tokenSecret = secondPart.split("=")[1];
                     } else {
                         message.parameters.oauth_token = "token_$(" + secondPart.split("=")[1] + ")";
-                        tokenKey = "token_$(" + secondPart.split("=")[1] + ")";
                         accessor.token = message.parameters.oauth_token;
                         accessor.tokenSecret = firstPart.split("=")[1];
-                        tokenSecret = firstPart.split("=")[1];
                     }
                 }
             }
@@ -98,18 +109,15 @@ $(function() {
             //form the OAuth header
             var oauthParams = {
                 oauth_consumer_key: message.parameters.oauth_consumer_key,
-                oauth_token: tokenKey,
+                oauth_token: message.parameters.oauth_token,
                 oauth_verifier: message.parameters.oauth_verifier,
                 oauth_nonce: message.parameters.oauth_nonce,
                 oauth_timestamp: message.parameters.oauth_timestamp,
                 oauth_signature: message.parameters.oauth_signature,
                 oauth_signature_method: message.parameters.oauth_signature_method
             };
-            jQuery.ajaxSetup({
-                'beforeSend': function(xhr) {
-                    xhr.setRequestHeader("authorization", OAuth.getAuthorizationHeader("alkira", oauthParams));
-                }
-            });
+
+            xhr.setRequestHeader("authorization", OAuth.getAuthorizationHeader("alkira", oauthParams));
         }
         else {
             showLoginLink();
@@ -185,12 +193,10 @@ $(function() {
         showLogoutLink();
         $("#loginInfo #loggeduser").html(username);
         addToLocalStorage(USER_NAME, username);
-        addAuthenticationHeader();
         if (!noreload) {
             location.reload();
         }
     };
 
-    addAuthenticationHeader();
     displayUser();
 });

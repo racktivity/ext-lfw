@@ -402,6 +402,7 @@ class LFWService(object):
         if retval == 1 and "no changes found" in msg: #no changes we can push
             #set the username for the commit
             hg._ui.environ["HGUSER"] = spaceInfo.repository.username
+            hg.addremove('Add new files, and drop deleted files')
             hg.pushcommit("automated commit by Alkira", addRemoveUntrackedFiles=True)
             return True
         else:

@@ -22,16 +22,15 @@ def sync_to_alkira(appname, path=None, sync_space=None, sync_page=None, clean_up
     def filterContent(page_content):
         content_dict = {}
         page_lines = page_content.splitlines()
-        if len(page_lines):
-            while page_lines[0].startswith('@metadata'):
-                meta_line = page_lines.pop(0)
-                meta_line = meta_line.replace('@metadata', "")
-                meta_list = meta_line.split('=')
+        while len(page_lines) and page_lines[0].startswith('@metadata'):
+            meta_line = page_lines.pop(0)
+            meta_line = meta_line.replace('@metadata', "")
+            meta_list = meta_line.split('=')
 
-                header = meta_list[0].strip()
-                value = meta_list[1].strip()
+            header = meta_list[0].strip()
+            value = meta_list[1].strip()
 
-                content_dict[header] = value
+            content_dict[header] = value
 
         filtered_content = "\n".join(page_lines)
         content_dict['content'] = filtered_content
@@ -66,16 +65,7 @@ def sync_to_alkira(appname, path=None, sync_space=None, sync_page=None, clean_up
         tags.add('page:%s' % name)
 
         if name == "Home" and spaceobject.name != "Admin":
-            spacetags = set(spaceobject.tags.split(' ')) if spaceobject.tags else set()
-
-            for spacetag in spacetags:
-                if "order:" in spacetag:
-                    spacetag = 'order:%s' % page_content_dict.get('spaceorder', 1000)
-                    break
-            else:
-                spacetags.add('order:%s' % page_content_dict.get('spaceorder', 1000))
-
-            alkira.updateSpace(spaceobject.name, tagslist=spacetags)
+            alkira.updateSpace(spaceobject.name, order=int(page_content_dict.get('spaceorder', '1000')))
 
         for tag in re.sub('((?=[A-Z][a-z])|(?<=[a-z])(?=[A-Z]))', ' ', name).strip().split(' '):
             tags.add(tag)

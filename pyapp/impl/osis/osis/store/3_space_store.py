@@ -7,7 +7,8 @@ def main(q, i, p, params, tags):
     values = {'name': rootobject.name,
               'tags': rootobject.tags,
               'repository': rootobject.repository.url,
-              'repo_username': rootobject.repository.username}
+              'repo_username': rootobject.repository.username,
+              'order': rootobject.order}
 
     osis.viewSave(params['domain'], params['rootobjecttype'], viewname, rootobject.guid, rootobject.version, values)
 

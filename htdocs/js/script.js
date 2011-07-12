@@ -39,12 +39,12 @@ var Utils = {
 
 $.fillSpacesList = function(options) {
     var options = $.extend({success: $.noop}, options);
-    
+
     $.getJSON(LFW_CONFIG['uris']['listSpaces'], function(data) {
         var spaces = $('#space');
         spaces.empty();
         for(var i = 0; i < data.length; i++) {
-            if (Auth.getFromLocalStorage("username") == null && data[i] == "Admin") {
+            if (Auth.getFromLocalStorage("username") == null && data[i] == ADMINSPACE) {
                 continue;
             }
             $('<option>')
@@ -52,7 +52,7 @@ $.fillSpacesList = function(options) {
                 .text(data[i])
                 .appendTo(spaces);
         }
-        
+
         options.success();
     });
 };
@@ -327,9 +327,9 @@ data;
 
         _space = space;
         if (space == ADMINSPACE){
-            $("#toolbar > button").button("option", "disabled", true);
+            $("#toolbar").css("visibility", "hidden");
         } else {
-            $("#toolbar > button").button("option", "disabled", false);
+            $("#toolbar").css("visibility", "visible");
         }
 
         var spaces = $('#space option');
@@ -759,11 +759,7 @@ data;
         setPage(page);
         setQuery(this.params);
 
-        if (page == "Home"){
-            $("#toolbar > #deletepage").button("option", "disabled", true);
-        } else if (space != ADMINSPACE) {
-            $("#toolbar > #deletepage").button("option", "disabled", false);
-        }
+
 
         var context = this;
 
@@ -772,14 +768,33 @@ data;
             success: function(data) {
                 setPageObj(data);
                 if (data['code']) {
+                    $("#toolbar > button").button("option", "disabled", true);
                     if (data['code'] == 404)
                     {
-                        context.notFound();
+                        data = {title: 'Page Not Found',
+                                pagetype: 'md',
+                                content: '## Page Not Found\n\
+\n\
+###To create new page\n\
+\n\
+- Navigate to the place where you want to place page\n\
+- Press the _New_ button\n\
+- Enter page *Name* and *Title* and write the page content\n\
+- Press Save\n'};
+                        //context.notFound();
                     } else {
                         app.error('Unknown error: ' + data['error']);
+                        return;
                     }
-                    return;
+                } else {
+                    $("#toolbar > button").button("option", "disabled", false);
                 }
+
+                if (page == "Home") {
+                    //disable deleting of Home page.
+                    $("#toolbar > #deletepage").button("option", "disabled", true);
+                }
+
                 context.title(data['title']);
 
                 var content = data['content'];
@@ -878,16 +893,16 @@ $(function() {
     if(typeof(LFW_CONFIG) === 'undefined' || !LFW_CONFIG) {
         throw new Error('No LFW_CONFIG defined');
     }
-    
+
     $("#space").change(function() {
         app.trigger('change-space', {space: $(this).val()});
     });
-    
+
     // Set up spaces dropdown
     $.fillSpacesList({success: function(){
         app.run('#/' + $('#space').val() + '/' + DEFAULT_PAGE_NAME);
     }});
-    
+
     // Set up search boxes
     $('#labels')
         .bind('keydown', function(event) {
@@ -1039,14 +1054,13 @@ $(function(){
     });
 
     $("#toolbar > #editpage").button({icons: {primary: 'ui-icon-gear'}}).click(function(){
-        var page = app.getPage();
         var space = app.getSpace();
         var pageobj = app.getPageObj();
         var content = pageobj.content;
 
         dialog.editor("title", app.getTitle());
         dialog.editor("name", pageobj.name);
-        if (page === "Home"){
+        if (pageobj.name === "Home"){
             dialog.editor("disabled", "name", true);
             dialog.editor("disabled", "title", true);
         } else {
@@ -1083,7 +1097,7 @@ $(function(){
                                                     $.ajax({url: saveurl,
                                                             type: 'POST',
                                                             data: {'space': space,
-                                                                   'name': page,
+                                                                   'name': pageobj.name,
                                                                    'newname': name,
                                                                    'pagetype': filetype,
                                                                    'content': dialog.editor("content"),

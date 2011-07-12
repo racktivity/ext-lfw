@@ -59,8 +59,8 @@ class LFWService(object):
         return self.alkira.listSpaces()
 
     @q.manage.applicationserver.expose_authenticated
-    def createSpace(self, name, tags=""):
-        self.alkira.createSpace(name, tags.split(' '))
+    def createSpace(self, name, tags="", order=None):
+        self.alkira.createSpace(name, tags.split(' '), order=order)
         #update file system
         _join = q.system.fs.joinPaths
         dir = _join(q.dirs.baseDir, "pyapps", p.api.appname, "portal", "spaces", name, "Home")
@@ -402,6 +402,7 @@ class LFWService(object):
         if retval == 1 and "no changes found" in msg: #no changes we can push
             #set the username for the commit
             hg._ui.environ["HGUSER"] = spaceInfo.repository.username
+            hg.addremove('Add new files, and drop deleted files')
             hg.pushcommit("automated commit by Alkira", addRemoveUntrackedFiles=True)
             return True
         else:

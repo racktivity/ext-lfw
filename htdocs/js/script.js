@@ -804,6 +804,7 @@ data;
                 if (data.pagetype != "md") {
                     content = '[[code]]\n' + content + '[[/code]]';
                 }
+                
                 /*
                 if(!content || !content.length || content.length === 0) {
                     context.notFound();
@@ -821,6 +822,11 @@ data;
 
                     //rendered = rendered.html();
                 }
+                
+                //For page name that contains /, display its path as header (appname/page.name)
+                if (data.name.indexOf("/") > 0)
+                    rendered = "<h4><br>" + LFW_CONFIG.appname + "/" + data.name + "</h4>" + rendered
+
                 console.log('Page rendered: ' + rendered);
 
                 swap(rendered, '#/' + space + '/' + page);
@@ -828,19 +834,16 @@ data;
             //cache: false,
             dataType: 'json',
             error: function(xhr, text, exc) {
-                if(xhr.status === 404) {
+                if (xhr.status === 404) {
                     context.notFound();
-                }
-                else if (xhr.status === 401){
-                 swap("<p class='error'> Invalid User Name /Password</p>", '#/' + space + '/' + page);
-                }
-
-                else if (xhr.responseText.indexOf("Authorization failed") >0){
-                 swap("<p class='error'> Authorization failed</p>", '#/' + space + '/' + page);
-                }
-
-                else {
-                    app.error('Unknown error: ' + text, exc);
+                } else if (xhr.status === 401) {
+                    swap("<p class='error'> Invalid User Name /Password</p>", '#/' + space + '/' + page);
+                } else if (xhr.status === 403) {
+                    swap("<p class='error'>Authentication needed</p>", '#/' + space + '/' + page);
+                } else if (xhr.responseText.indexOf("Authorization failed") > 0) {
+                    swap("<p class='error'> Authorization failed</p>", '#/' + space + '/' + page);
+                } else {
+                    app.error('Unknown error: ' + text, new Error(exc));
                 }
             }
         });

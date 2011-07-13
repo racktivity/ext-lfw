@@ -32,6 +32,11 @@ class RequestHandler(BaseHTTPRequestHandler):
         @return: True for a valid user/password combination, and False otherwise and a list of group IDs for the user
         @rtype: list
         """
+        #special handling for the admin user
+        if username.lower() == 'admin':
+            if self._checkAdminCredentials(username, password):
+                return True, ()
+
         servicename = self.server.config['main']['servicename']
         backend_service_mod = self._loadBackEndService(servicename)
         backend_service = backend_service_mod(self.server.config[servicename], username, password)
@@ -158,6 +163,13 @@ class RequestHandler(BaseHTTPRequestHandler):
             if hasattr(pluginmod, 'BACKEND'):
                 plugin = getattr(pluginmod, 'BACKEND')
         return plugin
+
+    def _checkAdminCredentials(self, adminuser, adminpassword):
+        cfg = q.config.getConfig('pyapps')
+        if cfg.has_key('admin'):
+            if adminuser == cfg['admin']['username'] and adminpassword == cfg['admin']['password']:
+                return True
+        return False
 
 class TokensCleanup(threading.Thread):
     def run(self):

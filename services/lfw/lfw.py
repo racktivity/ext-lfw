@@ -71,7 +71,18 @@ class LFWService(object):
     @q.manage.applicationserver.expose
     def updateSpace(self, name, newname=None, tags=""):
         self.alkira.updateSpace(name, newname, tags.split(' '))
-
+    
+    @q.manage.applicationserver.expose
+    def sortSpaces(self, spaces, tags=""):
+        """
+        get space names in a specific order and update the actual spaces to reflect this order
+        @spaces: list of spaces in the desired order
+        """
+        c=0
+        for space in spaces:
+            c += 1
+            self.alkira.updateSpace(space, order=c)
+    
     @q.manage.applicationserver.expose_authenticated
     def deleteSpace(self, name):
         if name in ("Admin", "Imported"):
@@ -424,8 +435,13 @@ class LFWService(object):
 
         #pull everything
         q.logger.log('pulling space %s from %s' % (spaceInfo.name, spaceInfo.repository.url), 5)
-        hg = q.clients.mercurial.getclient(q.dirs.pyAppsDir + "/" + p.api.appname + "/portal/spaces/" + spaceInfo.name,
-            repoUrl)
+        repoDir = q.dirs.pyAppsDir + "/" + p.api.appname + "/portal/spaces/" + spaceInfo.name
+        cleandir = False
+        if self.alkira.countPages(space):
+            homepage = self.alkira.getPage(space, 'Home')
+            cleandir = not bool(homepage.content)
+            
+        hg = q.clients.mercurial.getclient(repoDir, repoUrl, cleandir=cleandir)
         hg.pullupdate()
 
         #resync pages for space

@@ -811,9 +811,9 @@ class Alkira:
         if space.name == IMPORTSPACE:
             #the "Imported" space needs to keep filesystem in sync with database
             if name and name != old_name:
-                self._syncImportedPageToFile(spacename, page, "rename", oldname = old_name)
+                self._syncImportedPageToFile(space.name, page, "rename", oldname = old_name)
             else:
-                self._syncImportedPageToFile(spacename, page, "update")
+                self._syncImportedPageToFile(space.name, page, "update")
         else:
             self._syncPageToDisk(space.name, page, old_name)
             

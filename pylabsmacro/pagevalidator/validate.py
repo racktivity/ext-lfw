@@ -1,6 +1,8 @@
 __author__ = "incubaid"
 import re
 from pylabs import q, p
+from alkira import Alkira
+
 linkRe = (re.compile('\[[^\]]*] *\( *([^ \)]*)'), re.compile('\[[^\]]*] *: *([^ \)"]*)'))
 macroRe = re.compile("\[\[([a-zA-Z0-9 =]+)\]\]")
 
@@ -71,7 +73,7 @@ def linkExists(link, client, currentSpace):
         return "UNKNOWN"
     
     if appname != client.api.appname: 
-        client = q.clients.alkira.getClient("localhost", appname)
+        client = Alkira(p.api)
     result = client.spaceExists(space) and client.pageExists(space, page)
     return "OK" if result else "MISSING"
     
@@ -111,7 +113,8 @@ def getPageReport(client, space, name, recursive = False, showValid = True):
 
 def getInvalidLinks(appname, spaces = None, pages = None, showValid = True):
     result = list()
-    client = q.clients.alkira.getClient("localhost", appname)
+    client = Alkira(p.api)
+    
     if not spaces:
         spaces = client.listSpaces()
     
@@ -125,7 +128,7 @@ def getInvalidLinks(appname, spaces = None, pages = None, showValid = True):
 def main(q, i, p, params, tags):
     tags = params["tags"].tags
     appname = p.api.appname
-    client = q.clients.alkira.getClient("localhost", appname)
+    client = Alkira(p.api)
     #
     pages = spaces = None
     showValid = True

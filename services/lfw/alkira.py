@@ -1018,6 +1018,31 @@ class Alkira:
 
         return True
     
+    def getitems(self, prop, space=None, term=None):
+        SQL_PAGES = 'SELECT DISTINCT ui_page.ui_view_page_list.%(prop)s FROM ui_page.ui_view_page_list %(space_criteria)s'
+        SQL_PAGES_FILTER = 'SELECT DISTINCT ui_page.ui_view_page_list.%(prop)s FROM ui_page.ui_view_page_list WHERE ui_page.ui_view_page_list.%(prop)s LIKE \'%(term)s%%\'  %(space_criteria)s'
+        SQL_PAGE_TAGS = 'SELECT DISTINCT ui_page.ui_view_page_list.%(prop)s FROM ui_page.ui_view_page_list WHERE ui_page.ui_view_page_list.space=\'%(space)s\''
+        SQL_PAGE_TAGS_FILTER = 'SELECT DISTINCT ui_page.ui_view_page_list.%(prop)s FROM ui_page.ui_view_page_list WHERE ui_page.ui_view_page_list.space=\'%(space)s\' AND ui_page.ui_view_page_list.%(prop)s LIKE \'%%%(term)s%%\''
+        
+        if space:
+            space = self.getSpace(space)
+        t = term.split(', ')[-1] if term else ''
+        
+        d = {'prop': prop, 'space': space.guid, 'term': t}
+        if prop in ('tags',):
+            sql = SQL_PAGE_TAGS_FILTER % d if t else SQL_PAGE_TAGS % d
+        else:
+            if t:
+                d['space_criteria'] = 'AND ui_view_page_list.space = \'%s\'' % space.guid if space else ''
+                sql = SQL_PAGES_FILTER % d
+            else:
+                d['space_criteria'] = 'WHERE ui_view_page_list.space = \'%s\'' % space.guid if space else ''
+                sql = SQL_PAGES % d
+
+        qr = self.connection.page.query(sql)
+        result = map(lambda _: _[prop], qr)
+        return result
+    
     def syncPortal(self, path=None, space=None, page=None, cleanup=None):
         def deletePages(space):
                 pages = self.pageFind(space=space)

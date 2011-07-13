@@ -529,7 +529,7 @@ class Alkira:
             self._syncImportedPageToFile(space, name, "delete")
         self._syncPageDelete(space, crumbs)
 
-    def createSpace(self, name, tagsList=[], repository="", repo_username="", repo_password="", order=None):
+    def createSpace(self, name, tagsList=[], repository="", repo_username="", repo_password="", order=None, createHomePage=True):
         if self.spaceExists(name):
             q.errorconditionhandler.raiseError("Space %s already exists." % name)
 
@@ -557,7 +557,8 @@ class Alkira:
 
         #create a space page under the default admin space
         spacectnt = p.core.codemanagement.api.getSpacePage(name)
-        self.createPage(name, "Home", content="", order=10000, title="Home", tagsList=tagsList)
+        if createHomePage:
+            self.createPage(name, "Home", content="", order=10000, title="Home", tagsList=tagsList)
         self.createPage(ADMINSPACE, name, spacectnt, title=name, parent="Spaces")
         
         return space
@@ -1162,7 +1163,7 @@ class Alkira:
             spaceguid = None
             if space not in self.listSpaces():
                 #create space
-                self.createSpace(space)
+                self.createSpace(space, createHomePage=False)
     
             spaceobject = self.getSpace(space)
             spaceguid = spaceobject.guid

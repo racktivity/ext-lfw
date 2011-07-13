@@ -1,13 +1,12 @@
 from pylabs import q, p
 
-import os
-import inspect
-
-ADMINSPACE = "Admin"
+import urllib
+import httplib
+import json
 
 class AlkiraClient:
 
-    def getClient(self, hostname, appname):
+    def getClient(self, hostname, appname, username=None, password=None, port=80):
         """
         Gets a client object.
 
@@ -16,776 +15,137 @@ class AlkiraClient:
 
         @return: A client object.
         """
-        return Client(hostname=hostname, appname=appname)
-
-    def getClientByApi(self, api):
-        """
-        Gets a client object.
-
-        @param api: The application API (p.api)
-
-        @return: A client object.
-        """
-        return Client(api=api)
-
+        return Client(hostname, appname, username=username, password=password, port=port)
+    
 class Client:
-
-    def __init__(self, hostname=None, appname=None, api=None):
+    def __init__(self, hostname, appname, username=None, password=None, port=80):
         """
         Initialize a new Alkira Client with the given (hostname, appname) connection
         but if hostname and appname are not given, the given api is used
 
         @param hostname: The hostname of alikra
-
         @param appname: The application name
-
-        @param api: The application api if hostname and appname are not passed
+        @param username: The username  (Not Implemented)
+        @param password: The password (Not Implemented)
+        @param port: Alkira Web port
         """
-        self.KNOWN_TYPES = ["py", "md", "html", "txt"]
-
-        if hostname and appname:
-            api = p.application.getAPI(appname, host=hostname, context=q.enumerators.AppContext.APPSERVER)
-        elif not api:
-            q.errorconditionhandler.raiseError("'api' is not optional if hostname and appname are empty")
-
-        self.connection = api.model.ui
-        self.api = api
-
-    def _getPageInfo(self, space, name):
-        page_filter = self.connection.page.getFilterObject()
-        page_filter.add('ui_view_page_list', 'name', name, True)
-        page_filter.add('ui_view_page_list', 'space', space, True)
-        page_info = self.connection.page.findAsView(page_filter, 'ui_view_page_list')
-        return page_info
-
-    def _getSpaceGuid(self, space):
-        if isinstance(space, basestring):
-            if q.basetype.guid.check(space):
-                return space
-            else:
-                spaces = self._getSpaceInfo(space)
-                if not spaces:
-                    q.errorconditionhandler.raiseError("Space %s does not exist." % space)
-                return spaces[0]['guid']
-        elif isinstance(space, self.connection.space._ROOTOBJECTTYPE):
-            return space.guid
-
-    def _getSpaceInfo(self, name=None):
-        filter = self.connection.space.getFilterObject()
-        if name:
-            filter.add('ui_view_space_list', 'name', name, True)
-        space = self.connection.space.findAsView(filter, 'ui_view_space_list')
-        return space
-
-    def _getUserInfo(self, name=None):
-        filter = self.connection.user.getFilterObject()
-        if name:
-            filter.add('ui_view_user_list', 'name', name, True)
-        user = self.connection.user.findAsView(filter, 'ui_view_user_list')
-        return user
-
-    def _getParentGUIDS(self, guid_list):
-        parent_list = []
-        for guid in guid_list:
-            page = self.connection.page.get(guid)
-            if page.parent:
-                parent_list.append(page.parent)
-
-        return parent_list
-
-    def _getDir(self, space, page=None):
-        fullName = space
-        if page:
-            fullName += "/" + page
-        return "%s/%s/portal/spaces/%s" % (q.dirs.pyAppsDir, self.api.appname, fullName)
-
-    def _getType(self, pagename):
-        idx = pagename.rfind(".")
-        if idx <= 0:
-            return None
-        ext = pagename[idx + 1:]
-        if ext not in self.KNOWN_TYPES:
-            return None
-        return ext
-
-    def _syncImportedPageToFile(self, spacename, page, action, oldname = None):
-        """
-        @param page: its the page object for action "delete" it can be the page's name instead
-        @param action: "create", "update", "delete", "rename"
-        @param newname: if action is "rename", newname is the new page's name/path
-        Please note that "rename" action ALSO saves the file's content in the new location
-        """
-        if isinstance(page, str):
-            if action != "delete":
-                raise ValueError("Page object required for action %s"%action)
-            pagename = page
-        else:
-            pagename = page.name
-
-        #This function only save pages if its name contain its relative path
-
-        if pagename.find("/") < 1:
-            if action == "rename":
-                raise ValueError("Invalid name for an imported page %s, name should be projectname/path/to/file.ext"%pagename)
-            else:
-                return False
-        #get space path
-        path = q.system.fs.joinPaths(q.dirs.pyAppsDir , self.api.appname, "portal", "spaces", spacename)
-        filename = q.system.fs.joinPaths(path, pagename)
-        if action in ("create", "update"):
-            q.system.fs.writeFile(filename, page.content or "")
-        elif action == "delete":
-            if q.system.fs.exists(filename):
-                q.system.fs.removeFile(filename)
-        elif action == "rename":
-            oldfilename = q.system.fs.joinPaths(path, oldname)
-            #delete the old file
-            if q.system.fs.exists(oldfilename):
-                q.system.fs.removeFile(oldfilename)
-            #save the new file
-            q.system.fs.writeFile(filename, page.content or "")
-
-    def listPages(self, space=None):
-        """
-        Lists all the pages in a certain space.
-
-        @param space: The name, guid or space object of the space.
-        """
-        return map(lambda i: i['name'],
-                   self.listPageInfo(space))
-
-    def countPages(self, space=None):
-        where = ''
-        if space:
-            space = self._getSpaceGuid(space)
-            where = "where space='%s'" % space
-            
-        return self.connection.page.query("SELECT count(guid) from ui_page.ui_view_page_list %s;" % where)[0]['count']
+        
+        self.__hostname = hostname
+        self.__port = port
+        self.__appname = appname
+        
+    @property
+    def hostname(self):
+        return self.__hostname
     
-    def listSpaces(self):
-        """
-        Lists all the spaces.
-        """
-        return map(lambda item: item["name"],
-                   self.listSpaceInfo())
-
-    def listSpaceInfo(self, name=None):
-        """
-        List all spaces info
-        """
-        spaces = self._getSpaceInfo(name)
-
-        def byOrder(x, y):
-            #Always put the admin space last
-            if x["name"] == ADMINSPACE:
-                return 1
-            elif y["name"] == ADMINSPACE:
-                return -1
-
-            if "order" in x and x["order"] != None:
-                if "order" in y and y["order"] != None:
-                    return cmp(x["order"], y["order"])
-                else:
-                    return -1
+    @property
+    def appname(self):
+        return self.__appname
+    
+    @property
+    def port(self):
+        return self.__port
+    
+    def __call(self, method, **args):
+        data = {}
+        #only pass arguments that has value
+        for k, v in args.iteritems():
+            if v != None:
+                data[k] = v
+        
+        data = urllib.urlencode(data)
+        headers = {'Content-Type': "application/x-www-form-urlencoded"}
+        
+        con = httplib.HTTPConnection(self.hostname, self.port)
+        try:
+            con.request("POST",'/%(appname)s/appserver/rest/ui/portal/%(method)s' % {'appname': self.appname,
+                                                                                            'method': method}, body=data, headers=headers)
+            res = con.getresponse()
+            body = json.loads(res.read())
+            if res.status == 200:
+                return body
             else:
-                if "order" in y and y["order"] != None:
-                    return 1
-                else:
-                    return 0
+                raise Exception(body['exception'] if 'exception' in body else res.reason, res.status)
+        finally:
+            con.close()
+    
+    def tags(self, space=None, term=None):
+        return self.__call('tags', space=space, term=term)
 
-        spaces.sort(byOrder)
-        return spaces
+    def listSpaces(self, term=None):
+        return self.__call('listSpaces', term=term)
 
-    def listPageInfo(self, space=None):
-        """
-        Lists all the pages in a space with their info.
+    def createSpace(self, name, tags="", order=None):
+        return self.__call("createSpace", name=name, tags=tags, order=order)
 
-        @param space: The name, guid or space object of the space.
-        """
-        filter = self.connection.page.getFilterObject()
-        if space:
-            space = self._getSpaceGuid(space)
-            filter.add('ui_view_page_list', 'space', space, True)
+    def updateSpace(self, name, newname=None, tags=""):
+        return self.__call("updateSpace", name=name, newname=newname, tags=tags)
 
-        return self.connection.page.findAsView(filter, 'ui_view_page_list')
+    def deleteSpace(self, name):
+        return self.__call("deleteSpace", name=name)
 
-    def listUsers(self, name=None):
-        return map(lambda item: item["name"],
-                   self.listUserInfo(name))
+    def listUsers(self, username=None):
+        return self.__call("listUsers", username=username)
 
-    def listUserInfo(self, name=None):
-        """
-        Lists all the users
-
-        @param space: The name of the user.
-        """
-        return self._getUserInfo(name)
-
-    def listChildPages(self, space, name = None):
-        """
-        Lists child pages of page "name"
-
-        @type space: String
-        @param space: The name of the space.
-
-        @type name: String
-        @param name: The name of the parent page.
-        """
-        space = self._getSpaceGuid(space)
-        filter = self.connection.page.getFilterObject()
-        filter.add('ui_view_page_list', 'space', space, True)
-        #Get page guid
-        if name:
-            guid = self._getPageInfo(space, name)[0]["guid"]
-            filter.add('ui_view_page_list', 'parent', guid, True)
-        else:
-            filter.add('ui_view_page_list', 'parent', None, True)
-
-        query = self.connection.page.findAsView(filter, 'ui_view_page_list')
-        return list(name["name"] for name in query)
-
-    def spaceExists(self, name):
-        """
-        Checks whether a space exists or not
-
-        @param name: Space name
-
-        @return: True if the space exists, False otherwise
-        """
-        return bool(self._getSpaceInfo(name))
-
-    def pageExists(self, space, name):
-        """
-        Checks whether a page exists or not.
-
-        @type space: String
-        @param space: The name of the space.
-
-        @type name: String
-        @param name: The name of the page.
-
-        @return: True if the page exists, False otherwise.
-        """
-        space = self._getSpaceGuid(space)
-        if self._getPageInfo(space, name):
-            return True
-        else:
-            return False
-
-    def userExists(self, name):
-        """
-        Checks whether a user exists or not.
-
-        @type name: String
-        @param name: The name of the user
-
-        @return: True if the user exists, False otherwise.
-        """
-        return bool(self._getUserInfo(name))
-
-    def pageFind(self, name='', space='', category='', parent='', tags='', order=None, title='', exact_properties=None):
-        filterObject = self.connection.page.getFilterObject()
-        exact_properties = exact_properties or ()
-
-        space = self._getSpaceGuid(space) if space else ''
-
-        frame = inspect.currentframe()
-        args, _, _, values = inspect.getargvalues(frame)
-
-        properties = ('name', 'space', 'category', 'parent', 'tags', 'order', 'title')
-        for property_name, value in values.iteritems():
-            if property_name in properties and not value in (None, ''):
-                exact = property_name in exact_properties
-                filterObject.add('ui_view_page_list', property_name, value, exactMatch=exact)
-
-        return self.connection.page.find(filterObject)
-
-    def userFind(self, name='', tags='', exact_properties=None):
-        filterObject = self.connection.user.getFilterObject()
-        exact_properties = exact_properties or ()
-
-        frame = inspect.currentframe()
-        args, _, _, values = inspect.getargvalues(frame)
-
-        properties = ('name', 'tags')
-        for property_name, value in values.iteritems():
-            if property_name in properties and not value in (None, ''):
-                exact = property_name in exact_properties
-                filterObject.add('ui_view_page_list', property_name, value, exactMatch=exact)
-
-        return self.connection.user.find(filterObject)
-
-    def getSpace(self, space):
-        """
-        Gets a space object
-
-        @param name: The space name, or guid
-        """
-
-        space = self._getSpaceGuid(space)
-        return self.connection.space.get(space)
-
-    def getPage(self, space, name):
-        """
-        Gets a page object.
-
-        @type space: String
-        @param space: The name of the space.
-
-        @type name: String
-        @param name: The name of the page.
-
-        @return: Page object.
-        """
-        space = self._getSpaceGuid(space)
-        page_info = self._getPageInfo(space, name)
-        if not page_info:
-            q.errorconditionhandler.raiseError("Page %s does not exist." % name)
-        return self.connection.page.get(page_info[0]['guid'])
-
-    def getUser(self, name):
-        """
-        Gets a user object.
-
-        @type name: String
-        @param name: The name of the user.
-
-        @return: User object.
-        """
-        user_info = self._getUserInfo(name)
-        if not user_info:
-            q.errorconditionhandler.raiseError("User %s does not exist." % name)
-        return self.connection.user.get(user_info[0]['guid'])
-
-    def getPageByGUID(self, guid):
-        """
-        Get a page object by guid
-
-        @param guid: Page guid
-        """
-
-        return self.connection.page.get(guid)
-
-    def deleteSpace(self, space):
-        """
-        Delete space
-
-        @param space: The space name, object or guid to delete
-
-        @note: Deleting a space will delete all the pages in that space.
-        """
-        if space == ADMINSPACE:
-            raise RuntimeError("Invalid space")
-
-        space = self.getSpace(space)
-
-        pages = self.listPageInfo(space)
-
-        for page in pages:
-            if space == "Imported":
-                self._syncImportedPageToFile(space, page['name'], "delete")
-            self.connection.page.delete(page['guid'])
-
-        self.connection.space.delete(space.guid)
-        self.deletePage(ADMINSPACE, space.name)
-        q.system.fs.removeDirTree(self._getDir(space.name))
-
-    def deletePage(self, space, name):
-        """
-        Deletes a page.
-
-        @type space: String
-        @param space: The name of the space.
-
-        @type name: String
-        @param name: The name of the page.
-        """
-        if space == "Imported":
-            self._syncImportedPageToFile(space, name, "delete")
-        space = self._getSpaceGuid(space)
-        page = self.getPage(space, name)
-        self.connection.page.delete(page.guid)
+    def createUser(self, name, password, tags=""):
+        return self.__call("createUser", name=name, password=password, tags=tags)
 
     def deleteUser(self, name):
-        """
-        Deletes a user.
-
-        @type name: String
-        @param name: The name of the user.
-        """
-        user = self.getUser(name)
-        self.connection.user.delete(user.guid)
-
-    def deleteUserByGUID(self, userguid):
-        """
-        Deletes a user using its GUID
-
-        @type userguid: GUID
-        @param userguid: The GUID of the user.
-        """
-        self.connection.user.delete(userguid)
-
-    def deletePageByGUID(self, guid):
-        """
-        Delete a page by guid
-
-        @param guid: page guid
-        """
-        self.connection.page.delete(guid)
-
-    def deletePageAndChildren(self, space, name):
-        """
-        Deletes a page and its chlidren (recursively).
-
-        @type space: String
-        @param space: The name of the space.
-
-        @type name: String
-        @param name: The name of the page.
-        """
-        space = self._getSpaceGuid(space)
-
-        space_filter = self.connection.page.getFilterObject()
-        space_filter.add('ui_view_page_list', 'space', space, True)
-        space_guids = self.connection.page.find(space_filter)
-
-        delete_list = []
-        parent_list = self._getParentGUIDS(space_guids)
-
-        page = self.getPage(space, name)
-        delete_list.append(page.guid)
-        space_guids.remove(page.guid)
-
-        while (set(delete_list) & set(parent_list)):
-            for guid in space_guids:
-                page = self.connection.page.get(guid)
-                parent_guid = page.parent
-                if parent_guid in delete_list:
-                    delete_list.append(guid)
-                    space_guids.remove(guid)
-            parent_list = self._getParentGUIDS(space_guids)
-
-        for page_guid in delete_list:
-            self.connection.page.delete(page_guid)
-
-    def createSpace(self, name, tagsList=[], repository="", repo_username="", repo_password="", order=None):
-        if self.spaceExists(name):
-            q.errorconditionhandler.raiseError("Space %s already exists." % name)
-
-        space = self.connection.space.new()
-        space.name = name
-        space.tags = ' '.join(tagsList)
-
-        repo = space.repository.new()
-        repo.url = repository
-        repo.username = repo_username
-        repo.password = repo_password
-        space.repository = repo
-
-        if not order:
-            space.order = 10000
-        else:
-            space.order = order
-
-        self.connection.space.save(space)
-
-        if name == ADMINSPACE:
-            return
-
-        q.system.fs.createDir(self._getDir(name))
-
-        #create a space page under the default admin space
-        spacectnt = p.core.codemanagement.api.getSpacePage(name)
-        self.createPage(name, "Home", content="", order=10000, title="Home", tagsList=tagsList)
-        self.createPage(ADMINSPACE, name, spacectnt, title=name, parent="Spaces")
-        return space
-
-    def createPage(self, space, name, content, order=None, title=None, tagsList=[], category='portal',
-                   parent=None, filename=None, contentIsFilePath=False, pagetype="md"):
-        """
-        Creates a new page.
-
-        @type space: String
-        @param space: The name of the space.
-
-        @type name: String
-        @param name: The name of the page.
-
-        @type content: String
-        @param content: The content of the page. This can also be a file path; in this case you should set contentIsFilePath=True.
-
-        @type order: Integer
-        @param order: Order of the page
-
-        @type title: String
-        @param title: Title of the page
-
-        @type tagsList: List
-        @param tagsList: A list containing all the tags you want to add to the page.
-
-        @type category: String
-        @param category: The category of the page. Default is 'portal'.
-
-        @type parent: String
-        @param parent: If you want this to become a child page, add the name of the parent page to this parameter. Default is None.
-
-        @type contentIsFilePath: Boolean
-        @param contentIsFilePath: If the content you gave is a file path, set this value to True. Default is False.
-
-        @type filename: string
-        @param filename: used by import directory script to store original file path
-        """
-        spacename = space
-        space = self._getSpaceGuid(space)
-        if self.pageExists(space, name):
-            q.errorconditionhandler.raiseError("Page %s already exists."%name)
-        else:
-            page = self.connection.page.new()
-            params = {"name":name, "pagetype": pagetype, "space":space, "category":category,
-                      "title": title, "order": order, "filename":filename,
-                      "content":q.system.fs.fileGetContents(content) if contentIsFilePath else content
-                     }
-            for key in params:
-                if params[key] != None:
-                    setattr(page, key, params[key])
-
-            if not order:
-                page.order = 10000
-
-            tags = set(tagsList)
-            tags.add('space:%s' % space)
-            tags.add('page:%s' % name)
-            page.tags = ' '.join(tags)
-
-            if parent:
-                parent_page = self.getPage(space, parent)
-                page.parent = parent_page.guid
-
-            if spacename == "Imported":
-                #the "Imported" space needs to keep filesystem in sync with database
-                self._syncImportedPageToFile(spacename, page, "create")
-            self.connection.page.save(page)
-            return page
-
-    def createUser(self, name, password, spaces=[], pages=[], tagsList=[]):
-        """
-        Create a new user object.
-
-        @param name:             name of the user
-        @type name:              string
-
-        @param spaces:            list of user spaces
-        @type spaces:             List
-
-        @param pages:            list of user pages
-        @type pages:             List
-
-        @param tagsList:         tags of the page
-        @type tags:              List
-        """
-        if self.userExists(name):
-            q.errorconditionhandler.raiseError("User %s already exists."%name)
-        else:
-            user = self.connection.user.new()
-            params = {"name":name, "password": password, "spaces":spaces, "pages":pages}
-            for key in params:
-                if params[key]:
-                    setattr(user, key, params[key])
-
-            tags = set(tagsList)
-            tags.add('name:%s' % name)
-            user.tags = ' '.join(tags)
-            self.connection.user.save(user)
-            return user
-
-    def updateSpace(self, space, newname=None, tagslist=None, repository=None, repo_username=None, repo_password=None, order=None):
-        space = self.getSpace(space)
-
-        if space.name == ADMINSPACE:
-            raise ValueError("Invalid space")
-        oldname = space.name
-
-        if newname != None and newname != oldname:
-            if self.spaceExists(newname):
-                q.errorconditionhandler.raiseError("Space %s already exists." % newname)
-            space.name = newname
-            q.system.fs.renameDir(self._getDir(oldname), self._getDir(newname))
-
-        if tagslist:
-            space.tags = ' '.join(tagslist)
-
-        if repository:
-            space.repository.url = repository
-
-        if repo_username:
-            space.repository.username = repo_username
-
-        if repo_password:
-            space.repository.password = repo_password
-
-        if order:
-            space.order = order
-
-        self.connection.space.save(space)
-
-        if newname != None and oldname != newname:
-            #rename space page.
-            self.updatePage(ADMINSPACE, oldname, name=newname, content=p.core.codemanagement.api.getSpacePage(newname))
-        return space
-
-    def updatePage(self, old_space, old_name, space=None, name=None, tagsList=None, content=None,
-                   order=None, title=None, parent=None, category=None, pagetype=None, filename=None, contentIsFilePath=False):
-        """
-        Updates an existing page.
-
-        @type old_space: String
-        @param old_space: The name of the space.
-
-        @type old_name: String
-        @param old_name: The name of the page.
-
-        @type space: String
-        @param space: Gives the page a new space.
-
-        @type name: String
-        @param name: Gives the page a new name.
-
-        @type tagsList: List
-        @param tagsList: Appends tags in this list to the current tags of the page.
-
-        @type content: String
-        @param content: The new content of the page. This can also be a file path; in this case you should set contentIsFilePath=True.
-
-        @type order: Integer
-        @param order: Order of the page
-
-        @type title: String
-        @param title: Title of the page
-
-        @type category: String
-        @param category: Gives the page a new category.
-
-        @type parent: String
-        @param parent: Gives the page a new parent.
-
-        @type contentIsFilePath: Boolean
-        @param contentIsFilePath: If the content you gave is a file path, set this value to True. Default is False.
-
-        @type filename: string
-        @param filename: used by import directory script to store original file path
-        """
-        spacename = space if space else old_space
-        old_space = self._getSpaceGuid(old_space)
-
-        page = self.getPage(old_space, old_name)
-
-        if space:
-            space = self._getSpaceGuid(space)
-            page.space = space
-
-        type = None
-
-        params = {"name": name, "pagetype": pagetype, "space":space, "category":category,
-                  "title": title, "order": order, "filename":filename,
-                  "content":q.system.fs.fileGetContents(content) if contentIsFilePath else content
-                  }
-
-        for key in params:
-            if params[key] != None:
-                setattr(page, key, params[key])
-
-        if tagsList:
-            tags = set(page.tags.split(' '))
-            for tag in tagsList:
-                if tag not in tags:
-                    tags.add(tag)
-
-            page_tags = ' '.join(tags)
-            page.tags = page_tags
-
-        if parent:
-            parent_page = self.getPage(old_space, parent)
-            page.parent = parent_page.guid
-
-        if spacename == "Imported":
-            #the "Imported" space needs to keep filesystem in sync with database
-            if name and name != old_name:
-                self._syncImportedPageToFile(spacename, page, "rename", oldname = old_name)
-            else:
-                self._syncImportedPageToFile(spacename, page, "update")
-
-        self.connection.page.save(page)
-        return page
-
-    def updateUser(self, old_user, name="", password="", tagsList=None):
-        """
-        Updates an existing page.
-
-        @type old_user: String
-        @param old_user: The name of the user.
-
-        @type name: String
-        @param name: Gives the user a new name.
-
-        @type tagsList: List
-        @param tagsList: Appends tags in this list to the current tags of the page.
-        """
-
-        user = self.getUser(old_user)
-        if name:
-            user.name = name
-        if password:
-            user.password = password
-
-        if tagsList:
-            tags = user.tags.split(' ')
-            for tag in tagsList:
-                tags.append(tag)
-
-            user_tags = ' '.join(tags)
-            user.tags = user_tags
-
-        self.connection.user.save(user)
-        return user
-
-
-    def findMacroConfig(self, space="", page="", macro="", configId=None, username=None, exact_properties=None):
-        configFilter = self.connection.config.getFilterObject()
-        exact_properties = exact_properties or ()
-        if space:
-            space = self._getSpaceGuid(space)
-            configFilter.add('ui_view_config_list', 'space', space, 'space' in exact_properties)
-            if page:
-                configFilter.add('ui_view_config_list', 'page', self._getPageInfo(space, page)[0]['guid'],
-                    'page' in exact_properties)
-        configFilter.add('ui_view_config_list', 'macro', macro, 'macro' in exact_properties)
-        configFilter.add('ui_view_config_list', 'username', username, 'username' in exact_properties)
-        if configId:
-            configFilter.add('ui_view_config_list', 'configid', configId, 'configid' in exact_properties)
-        return self.connection.config.findAsView(configFilter, 'ui_view_config_list')
-
-    def getMacroConfig(self, space, page, macro, configId=None, username=None):
-        username = username.lower() if username else None
-        configInfo = self.findMacroConfig(space, page, macro, configId, username,
-            exact_properties=("space", "page", "macro", "configid", "username"))
-        if not configInfo:
-            q.errorconditionhandler.raiseError("Config does not exist for /%s/%s/%s/%s for user %s" %
-                (space, page, macro, configId, username))
-        return self.connection.config.get(configInfo[0]['guid'])
-
-    def setMacroConfig(self, space, page, macro, data, configId=None, username=None):
-        username = username.lower() if username else None
-        configInfo = self.findMacroConfig(space, page, macro, configId, username)
-        if not configInfo:
-            config = self.connection.config.new()
-            config.space = self._getSpaceGuid(space)
-            config.page = self._getPageInfo(config.space, page)[0]['guid']
-            config.macro = macro
-            if configId:
-                config.configid = configId
-            if username:
-                config.username = username
-        else:
-            config = self.connection.config.get(configInfo[0]['guid'])
-        config.data = data
-        self.connection.config.save(config)
+        return self.__call("deleteUser", name=name)
+
+    def updateUser(self, name, newname=None, tags=""):
+        return self.__call("updateUser", name=name, newname=newname, tags=tags)
+
+    def listPages(self, space=None, term=None):
+        return self.__call("listPages", space=space, term=term)
+
+    def countPages(self, space=None):
+        return self.__call("countPages", space=space)
+    
+    def categories(self, space=None, term=None):
+        return self.__call("categories", space=space, term=term)
+
+    def search(self, text=None, space=None, category=None, tags=None):
+        return self.__call("search", text=text, space=space, category=category, tags=tags)
+
+    def breadcrumbs(self, space, name):
+        return self.__call("breadcrumbs", space=space, name=name)
+
+    def getSpace(self, space):
+        return self.__call("getSpace", space=space)
+    
+    def getPage(self, space, name):
+        return self.__call("getPage", space=space, name=name)
+    
+    def createPage(self, space, name, content, parent=None, order=None, title=None, tags="", category='portal', pagetype="md"):
+        return self.__call("createPage", space=space, name=name, content=content,
+                           parent=parent, order=order, title=title, tags=tags, category=category, pagetype=pagetype)
+
+    def updatePage(self, space, name, content, newname=None, parent=None, order=None, title=None, tags="", category=None, pagetype=None):
+        return self.__call("updatePage", space=space, name=name, content=content,
+                           newname=newname, parent=parent, order=order, title=title,
+                           tags=tags, category=category, pagetype=pagetype)
+        
+    def deletePage(self, space, name):
+        return self.__call("deletePage", space=space, name=name)
+
+    def importSpace(self, space, filename, cleanImport=True):
+        return self.__call("importSpace", space=space, filename=filename, cleanImport=cleanImport)
+
+    def exportSpace(self, space, filename):
+        return self.__call("exportSpace", space=space, filename=filename)
+
+    def hgPushSpace(self, space, repository, repo_username, repo_password=None):
+        return self.__call("hgPushSpace", space=space, repository=repository,
+                           repo_username=repo_username, repo_password=repo_password)
+
+    def hgPullSpace(self, space, repository, repo_username, repo_password=None, dontSync=False):
+        return self.__call("hgPullSpace", space=space, repository=repository,
+                           repo_username=repo_username, repo_password=repo_password, dontSync=dontSync)
+
+    def macroConfig(self, space, page, macro, configId=None):
+        return self.__call("macroConfig", space=space, page=page, macro=macro, configId=configId)
+
+    def updateMacroConfig(self, space, page, macro, config, configId=None):
+        return self.__call("updateMacroConfig", space=space, page=page, macro=macro, config=config, configId=configId)
+    

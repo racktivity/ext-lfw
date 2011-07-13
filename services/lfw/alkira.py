@@ -575,7 +575,7 @@ class Alkira:
         return breadcrumbs
 
     def breadcrumbs(self, space, name):
-        return self._breadcrumbs(self.alkira.getPage(space, name))
+        return self._breadcrumbs(self.getPage(space, name))
     
     def _createPage(self, space, name, content, order=None, title=None, tagsList=[], category='portal',
                    parent=None, filename=None, contentIsFilePath=False, pagetype="md"):

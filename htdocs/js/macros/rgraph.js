@@ -11,31 +11,72 @@ var render = function(options) {
     var time = new Date().getTime();
     var computed = false;
 
-    var _convertData = function _convertData(data, parent) {
+    var _findParent = function (data, parent, depth) {
+        var d = data.depth;
+        var nodes = (function getChildren(data, d) {
+            var children = data.children,
+                i = 0, nodes = [];
+            if (children) {
+                for (i = 0; i < children.length; i++) {
+                    var child = children[i];
+                    d = child.depth;
+                    if (d < depth) {
+                        $.merge(nodes, getChildren(child, d));
+                    } else {
+                        nodes.push(child);
+                    }
+                }
+            }
+            return nodes;
+        })(data, d);
+        var i;
+        for (i = 0; i < nodes.length; ++i) {
+            var node = nodes[i];
+            if (node.id === parent.id) {
+                return node;
+            }
+        }
+        return undefined;
+    };
+
+    var _convertData = function _convertData(data, parent, depth) {
+        depth = depth ? depth : 0;
+        var new_id = "";
         if (typeof(parent) === 'undefined') {
+            new_id = time + "_0";
+            data.id = new_id;
             parent = {
-                "id": time + "_0",
+                "id": new_id,
                 "name": data.name,
                 "data": {
                     "$type": "star",
                     "$dim": 8,
-                    "depth": data.depth
+                    "depth": data.depth,
+                    "has_children": $.isArray(data.children)
                 }
             };
         }
+        // Find parent in data
+        if (depth > 0) {
+            data = _findParent(data, parent, depth);
+        }
         parent.children = [];
         var children = data.children;
-        $.each(children, function(key, child) {
-            var new_child = {
-                "id": parent.id + "_" + key,
-                "name": child.name,
-                data: { "depth": child.depth }
-            };
-            if ($.isArray(child.children)) {
-                _convertData(child, new_child);
+        if (children) {
+            var i = 0;
+            for (i = 0; i < children.length; i++) {
+                var child = children[i];
+                new_id =  parent.id + "_" + i;
+                child.id = new_id;
+                var new_child = {
+                    "id": new_id,
+                    "name": child.name,
+                    data: { "depth": child.depth, "has_children": ( $.isArray(child.children) &&
+                            child.children.length > 0 ) }
+                };
+                parent.children.push(new_child);
             }
-            parent.children.push(new_child);
-        });
+        }
         return parent;
     };
 
@@ -82,7 +123,7 @@ var render = function(options) {
         }
     };
 
-    var _collapseSubNodes = function(rgraph, node, useAnimation) {
+    var _collapseSubNodes = function _collapseSubNodes(rgraph, node, useAnimation) {
         var subs, sub;
         //check if we have subnodes
         subs = node.getSubnodes([1, 1]);
@@ -93,6 +134,7 @@ var render = function(options) {
             if (sub.data.depth > node.data.depth && !sub.collapsed) {
                 if (sub.getSubnodes([1, 1]).length > 1) { //if we have subnodes then collapse
                     rgraph.op.contract(sub, {type: useAnimation ? "animate" : "replot"});
+                    //sub.collapsed = true;
                 }
             }
         }
@@ -137,21 +179,30 @@ var render = function(options) {
                         //manually fix the subnodes as expand isn't working fully
                         subs = node.getSubnodes(2);
                         var j;
-                        for (j = 0; j < subs.length; ++j) {
+                        for (j=0;j<subs.length;j++) {
                             sub = subs[j];
                             delete sub.ignore;
                             sub.setData("alpha", 1, "end");
                         }
                         rgraph.op.expand(node, { type: "animate" });
-                        return;
+                    } else {
+                        //check if we have subnodes
+                        subs = node.getSubnodes([1, 1]);
+                        if (subs.length === 1) { //we only have 1 "subnode" which is our parent (strangely enough)
+                            var json = _convertData(values.root, node, node.data.depth);
+                            if (json !== undefined) { //append our now data to the current graph
+                                rgraph.op.sum(json, { type: "fade" });
+                            }
+                        } else {
+                            _collapseSubNodes(rgraph, node, true);
+                        }
+
                     }
-                    _collapseSubNodes(rgraph, node, true);
                 }
             },
             onPlaceLabel: function(domElement, node) {
                 var style = domElement.style;
-                //if we are at depth 7 (pdu) then we want a higher depth to show to make it easy to switch to pdus
-                var depth = (rgraph.graph.getClosestNodeToOrigin("current").data.depth === 7 ? 2 : 1);
+                var depth = node.data.has_children ? 1 : 2;
                 if (node._depth <= depth) { //set the right color for the labels
                     style.backgroundColor = _getColor(node);
                     style.color = _getTextColor(node, style.backgroundColor);
@@ -184,7 +235,6 @@ var render = function(options) {
 
     options.addCss({'id': 'rgraphmacro', 'tag': 'style', 'params': '.node { cursor: pointer; padding: 0em 0.3em }'});
 
-    options.addDependency(callBack, ["/static/lfw/js/libs/Jit-2.0.0b/jit.js",
-                                     "/static/lfw/js/libs/Jit-2.0.0b/jit-yc.js"]);
+    options.addDependency(callBack, ["/static/lfw/js/libs/Jit-2.0.0b/jit.js"]);
 };
 register(render);

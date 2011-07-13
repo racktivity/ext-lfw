@@ -38,7 +38,7 @@ class LFWService(object):
         return result
 
     @q.manage.applicationserver.expose_authenticated
-    def spaces(self, term=None):
+    def listSpaces(self, term=None):
         return self.alkira.listSpaces()
 
     @q.manage.applicationserver.expose_authenticated
@@ -54,7 +54,7 @@ class LFWService(object):
         self.alkira.deleteSpace(name)
 
     @q.manage.applicationserver.expose_authenticated
-    def users(self, username=None):
+    def listUsers(self, username=None):
         return self.alkira.listUsers(username)
 
     @q.manage.applicationserver.expose_authenticated
@@ -70,9 +70,13 @@ class LFWService(object):
         self.alkira.updateUser(name, newname, tags.split(' '))
 
     @q.manage.applicationserver.expose_authenticated
-    def pages(self, space=None, term=None):
+    def listPages(self, space=None, term=None):
         return self.alkira.listPages(space)
 
+    @q.manage.applicationserver.expose_authenticated
+    def countPages(self, space=None):
+        return self.alkira.countPages(space=space)
+    
     @q.manage.applicationserver.expose_authenticated
     def categories(self, space=None, term=None):
         return self.alkira.getitems('category', space, term)
@@ -86,7 +90,7 @@ class LFWService(object):
         return self.alkira.breadcrumbs(space, name)
 
     @q.manage.applicationserver.expose_authenticated
-    def page(self, space, name):
+    def getPage(self, space, name):
         if not self.alkira.spaceExists(space) or not self.alkira.pageExists(space, name):
             return {"code": 404,
                     "error": "Page Not Found"}
@@ -156,9 +160,10 @@ class LFWService(object):
         return self.alkira.hgPullSpace(space, repository, repo_username, repo_password=repo_password, dontSync=dontSync)
 
     @q.manage.applicationserver.expose_authenticated
-    def space(self, space):
+    def getSpace(self, space):
         if not self.alkira.spaceExists(space):
-            return {}
+            return {"code": 404,
+                    "error": "Space Not Found"}
 
         space = self.alkira.getSpace(space)
         result = {

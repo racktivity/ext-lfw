@@ -19,7 +19,7 @@ $(function() {
     function clearUserInfo() {
         localStorage.removeItem(OAUTH_TOKEN);
         localStorage.removeItem(USER_NAME);
-    };
+    }
 
     function showLoginDialog(event) {
         if (event) {
@@ -56,36 +56,46 @@ $(function() {
         }
     });
     //Intercept all Ajax requests to add the OAuth header parameters if any
-    $(document).ajaxSend(
-        function(event, xhr, settings)
-        {
-            addAuthenticationHeader(xhr, settings.url);
-        }
-    );
+    $(document).ajaxSend(function(event, xhr, settings) {
+        addAuthenticationHeader(xhr, settings);
+    });
 
     //Add the authentication info to the header of all Ajax request
-    function addAuthenticationHeader(xhr, url) {
+    function addAuthenticationHeader(xhr, settings) {
         if (Auth.getFromLocalStorage(OAUTH_TOKEN) !== null) {
-            var completeUrl = "http://alkira";
-            if(url.charAt(0) == '/')
-            {
-                completeUrl += url;
+            var completeUrl;
+            if (settings.url.charAt(0) === '/') {
+                completeUrl = settings.url;
+            } else {
+                completeUrl = "/" + settings.url;
             }
-            else
-            {
-                completeUrl += "/" + url;
+            //remove the appname from the url
+            if (completeUrl.indexOf("/" + LFW_CONFIG.appname) === 0) {
+                completeUrl = completeUrl.substr(("/" + LFW_CONFIG.appname).length);
             }
-            
+            completeUrl = "http://alkira" + completeUrl;
+
+            var params = OAuth.getParameterMap(settings.data || ""); //convert to object
+            //make sure our params are not in the url already
+            var q = completeUrl.indexOf('?');
+            if (q > 0) {
+                var urlParams = OAuth.getParameterMap(completeUrl.substring(q + 1));
+                var urlParam;
+                for (urlParam in urlParams) {
+                    if (urlParams.hasOwnProperty(urlParam) && params.hasOwnProperty(urlParam)) {
+                        delete params[urlParam];
+                    }
+                }
+            }
+
             var accessor = {
                     consumerSecret: "",
-                    tokenSecret: "",
-                    token:"",
-                    consumerKey:""
+                    tokenSecret: ""
                 },
                 message = {
                     action: completeUrl,
-                    method: "GET",
-                    parameters: {}
+                    method: settings.type,
+                    parameters: params
                 };
             var token = Auth.getFromLocalStorage(OAUTH_TOKEN);
             if (token !== null) {
@@ -108,7 +118,6 @@ $(function() {
             message.parameters.oauth_verifier = "";
             message.parameters.oauth_consumer_key = Auth.getFromLocalStorage(USER_NAME);
             accessor.consumerKey = message.parameters.oauth_consumer_key;
-            message.parameters.oauth_consumer_secret = "";
             OAuth.setTimestampAndNonce(message);
             OAuth.SignatureMethod.sign(message, accessor);
 

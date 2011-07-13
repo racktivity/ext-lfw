@@ -1,6 +1,8 @@
+from alkira import Alkira
+
 def main(q, i, p, params, tags):
 
-    alkira = q.clients.alkira.getClientByApi(p.api)
+    alkira = Alkira(p.api)
     page = alkira.getPageByGUID(params['pageguid'])
     parent = alkira.getPageByGUID(params["parent"]).name if params['parent'] else None
     

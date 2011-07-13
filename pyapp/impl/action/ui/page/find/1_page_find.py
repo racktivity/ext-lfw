@@ -1,5 +1,7 @@
+from alkira import Alkira
+
 def main(q, i, p, params, tags):
-    alkira = q.clients.alkira.getClientByApi(p.api)
+    alkira = Alkira(p.api)
     result = alkira.pageFind(name=params['name'],
                     space=params['space'],
                     category=params['category'],

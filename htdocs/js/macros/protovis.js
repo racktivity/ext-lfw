@@ -1,4 +1,6 @@
 //@metadata wizard=protovis
+//@metadata description=Plots charts
+//@metadata image=img/macros/protovis.png
 
 var render = function(options) {
     var TEMPLATE_NAME = 'plugin.protovis'; // this is only local I think

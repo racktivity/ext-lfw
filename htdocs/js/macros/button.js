@@ -1,3 +1,6 @@
+//@metadata description=Shows clickable button
+//@metadata image=img/macros/button.png
+
 var render = function(options) {
     var $this = $(this);
     var params = $.extend({click: '',
@@ -6,7 +9,7 @@ var render = function(options) {
                            title: '',
                            target: '',
                            icon: ''}, options.params);
-                           
+
     var btn = $("<a>", {href: params.href,
                         title: params.title,
                         target: params.target,
@@ -18,7 +21,7 @@ var render = function(options) {
                 .click(function(){
                     eval(params.click);
                 });
-                
+
     $this.empty();
     $this.append(btn);
 };

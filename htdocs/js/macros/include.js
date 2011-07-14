@@ -1,4 +1,5 @@
 //@metadata wizard=include
+//@metadata ignore=true
 
 var render = function(options) {
 

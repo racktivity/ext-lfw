@@ -1,4 +1,6 @@
 //@metadata wizard=googlemaps
+//@metadata description=Shows Google Maps static map of choice
+//@metadata image=img/macros/googlemaps.png
 
 var render = function(options) {
     var $this = $(this);

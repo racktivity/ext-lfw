@@ -1,4 +1,6 @@
 //@metadata wizard=note
+//@metadata description=Presents a text "note style"
+//@metadata image=img/macros/note.png
 
 var render = function(options) {
     var $this = $(this);

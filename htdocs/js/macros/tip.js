@@ -1,4 +1,6 @@
 //@metadata wizard=tip
+//@metadata description=Presents a text "tip style"
+//@metadata image=img/macros/tip.png
 
 var render = function(options) {
     var $this = $(this);

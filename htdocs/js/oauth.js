@@ -27,7 +27,11 @@ $(function() {
         }
         clearUserInfo();
         showLoginLink();
-        $("#loginDialog").dialog({title: 'Log in', closeOnEscape: false, width: 260, height:200, resizable: false});
+        $("#loginDialog").dialog({title: 'Log in',
+                                  closeOnEscape: false,
+                                  width: 260,
+                                  height:200,
+                                  resizable: false});
     }
 
     $("#loginInfo").find("#login").click(showLoginDialog);
@@ -169,6 +173,7 @@ $(function() {
             dataType: 'jsonp',
             jsonp: '_jsonp',
             url: url,
+            error: $.alerterror,
             success: function(data) {
                 Auth.parseOAuthToken(data, username);
             }
@@ -178,11 +183,12 @@ $(function() {
     $("#loginDialog").find("#login").click(function(event) {
         event.preventDefault();
         if (jQuery.trim( $('#username').val() ) === "" || jQuery.trim( $('#password').val() ) === "") {
-            alert("Invalid username/password combination!");
+            $.alert("Invalid username/password combination!", {title: "Invalid Login"});
             return;
         }
+        $("#loginDialog").find("input").attr("disabled", true);
         makeOAuthRequest($('#username').val(), $('#password').val());
-        $("#loginDialog").dialog('close');
+        
     });
 
     Auth.getFromLocalStorage = function(key) {
@@ -204,10 +210,18 @@ $(function() {
     };
 
     Auth.parseOAuthToken = function(token, username, noreload) {
+        if (token.error) {
+            $.alert(token.message, {title: 'Invalid login'});
+            $("#loginDialog").find("input").attr("disabled", false);
+            return;
+        }
+        
         addToLocalStorage(OAUTH_TOKEN, token);
         showLogoutLink();
         $("#loginInfo #loggeduser").html(username);
         addToLocalStorage(USER_NAME, username);
+        $("#loginDialog").dialog("close")
+                         .find("input").attr("disabled", false);
         if (!noreload) {
             location.reload();
         }

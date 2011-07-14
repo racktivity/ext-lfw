@@ -89,19 +89,31 @@ class RequestHandler(BaseHTTPRequestHandler):
             data.update(self.parseQuery(path.query))
         jsonp = None
         
+        jsonp = data.pop("_jsonp", None)
+        
         if not (data.has_key('user') and data.has_key('password')):
             q.logger.log('user name and/or password not found in the request', 2)
             #self.send_response(401)
-            self.wfile.write("401: user name and/or password not found in the request")
+            if jsonp:
+                msg = {'error': 401,
+                       'message': "user name and/or password not found in the request"}
+                self.wfile.write("%s(%s);" % (jsonp, json.dumps(msg)))
+            else:
+                self.wfile.write("user name and/or password not found in the request")
             self.wfile.close()
             return
-        jsonp = data.pop("_jsonp", None)
+        
         #Authenticate the user using the ECS
         valid, groupguids = self.authenticateUser(data['user'], data['password'])
         if not valid:
             q.logger.log('Invalid user name/password combination', 2)
-            #self.send_response(401)
-            self.wfile.write("401: Invalid user name/password combination")
+            if jsonp:
+                msg = {'error': 401,
+                       'message': "Invalid user name/password combination"}
+                
+                self.wfile.write("%s(%s);" % (jsonp, json.dumps(msg)))
+            else:
+                self.wfile.write("Invalid user name/password combination")
             self.wfile.close()
             return
 

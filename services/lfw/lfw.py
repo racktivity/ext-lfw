@@ -55,10 +55,8 @@ class LFWService(object):
         get space names in a specific order and update the actual spaces to reflect this order
         @spaces: list of spaces in the desired order
         """
-        c=0
-        for space in spaces:
-            c += 1
-            self.alkira.updateSpace(space, order=c)
+        for order, space in enumerate(spaces):
+            self.alkira.updateSpace(space, order=order + 1)
     
     @q.manage.applicationserver.expose_authenticated
     def deleteSpace(self, name):

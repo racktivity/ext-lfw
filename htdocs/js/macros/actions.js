@@ -1,4 +1,6 @@
 //@metadata wizard=actions
+//@metadata description=Server-side tasklet-defined action set
+//@metadata image=img/macros/actions.png
 
 var render = function(options) {
 

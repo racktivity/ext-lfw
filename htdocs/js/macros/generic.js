@@ -1,4 +1,5 @@
 //@metadata wizard=generic
+//@metadata description=Generic widget calling serverside python tasklet
 
 var render = function(options) {
 

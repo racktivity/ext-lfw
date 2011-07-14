@@ -1,3 +1,5 @@
+//@metadata ignore=true
+
 var LFW_DASHBOARD = {
     opts: {},
     instance: null,
@@ -750,16 +752,18 @@ var render = function(options) {
             LFW_DASHBOARD.widgetTypes = data;
 
             // Exclude the dashboard macro itself and create widgetTypesByName
-            var i, indexToRemove = -1;
+            var i, toRemove = [], macro;
             for (i = 0; i < data.length; ++i) {
-                if (data[i].name !== "dashboard") {
-                    LFW_DASHBOARD.widgetTypesByName[data[i].name] = data[i];
+                macro = data[i];
+                if (macro.hasOwnProperty("ignore") && macro.ignore === "true") {
+                    toRemove.push(i);
                 } else {
-                    indexToRemove = i;
+                    LFW_DASHBOARD.widgetTypesByName[macro.name] = macro;
                 }
             }
-            if (indexToRemove !== -1) {
-                LFW_DASHBOARD.widgetTypes.splice(indexToRemove, 1);
+            for (i = 0; i < toRemove.length; ++i) {
+                //do the "- i" to account for the items we deleted
+                LFW_DASHBOARD.widgetTypes.splice(toRemove[i] - i, 1);
             }
 
             // Create the dashboard

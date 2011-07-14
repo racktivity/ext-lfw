@@ -1,4 +1,6 @@
 //@metadata wizard=rgraph
+//@metadata description=Plots graph
+//@metadata image=img/macros/rgraph.png
 
 var render = function(options) {
     var TEMPLATE_NAME = 'plugin.rgraph';

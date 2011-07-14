@@ -1,4 +1,6 @@
 //@metadata wizard=jqplot
+//@metadata description=Plots charts (bars, pie, etc.)
+//@metadata image=img/macros/jqplot.png
 
 var render = function(options) {
     var TEMPLATE_NAME = 'plugin.jqplot';

@@ -1,6 +1,8 @@
+//@metadata ignore=true
+
 var render = function(options) {
 
-    var $this = $(this);    
+    var $this = $(this);
     var body = options.body;
     var src = options.params.src;
     var func = function() {};

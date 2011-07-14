@@ -1,4 +1,5 @@
 //@metadata wizard=toc
+//@metadata ignore=true
 
 var render = function(options) {
     var $this = $(this);

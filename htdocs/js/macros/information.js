@@ -1,4 +1,6 @@
 //@metadata wizard=information
+//@metadata description=Presents a text "information style"
+//@metadata image=img/macros/information.png
 
 var render = function(options) {
     var $this = $(this);

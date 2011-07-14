@@ -1,3 +1,5 @@
+//@metadata ignore=true
+
 var render = function(options) {
     var text = (options.options['text'] || 'Demo') + '!',
         $this = $(this);

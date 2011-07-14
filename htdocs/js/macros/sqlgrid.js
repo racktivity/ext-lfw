@@ -1,4 +1,6 @@
 //@metadata wizard=sqlgrid
+//@metadata description=Show table with data taken from specific datasource
+//@metadata image=img/macros/sqlgrid.png
 
 var render = function(options) {
     var TEMPLATE_NAME = 'plugin.grid.sql';
@@ -116,9 +118,9 @@ var render = function(options) {
         jQuery('#sqlgrid').jqGrid({
             url: 'appserver/rest/ui/portal/generic',
             postData: { tagstring: "",
-                    sqlselect: sqlselect, 
-                    table: body.table, 
-                    schema: body.schema, 
+                    sqlselect: sqlselect,
+                    table: body.table,
+                    schema: body.schema,
                     dbconnection: body.dbconnection,
                     macroname: "sqlgrid"
             },

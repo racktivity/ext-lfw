@@ -454,7 +454,7 @@ class Alkira:
             upper = dir
 
     def _syncPageDelete(self, space, crumbs):
-        if space == IMPORTSPACE and page.name.find("/") > 0:
+        if space == IMPORTSPACE and crumbs[-1]['name'].find("/") > 0:
             return
         _join = q.system.fs.joinPaths
         _isfile = q.system.fs.isFile

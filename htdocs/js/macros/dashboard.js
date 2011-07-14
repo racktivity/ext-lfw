@@ -214,9 +214,7 @@ $(function() {
         if (!$.isEmptyObject(params)) {
             args.params = params;
         }
-
-        JSWizards.launch("http://" + document.domain + "/" + LFW_CONFIG.appname +
-            "/appserver/rest/ui/wizard", "widgets", wizard, $.toJSON(args), update);
+        JSWizards.launch("appserver/rest/ui/wizard", "widgets", wizard, $.toJSON(args), update);
     };
 
     LFW_DASHBOARD.Widget = Widget;
@@ -519,9 +517,7 @@ $(function() {
                         object = $.parseJSON(object);
                         column.addWidget(undefined, object.title, type, undefined, false, object.body, object.params);
                     }
-
-                    JSWizards.launch("http://" + document.domain + "/" + LFW_CONFIG.appname +
-                        "/appserver/rest/ui/wizard", "widgets", wizard, "", add);
+                    JSWizards.launch("appserver/rest/ui/wizard", "widgets", wizard, "", add);
 
                     widgetStore.dialog("close");
                 });

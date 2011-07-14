@@ -1,5 +1,7 @@
 __author__ = "incubaid"
 
+from alkira import Alkira
+
 def main(q, i, p, params, tags):
     macro_tags = params['tags'].tags
 
@@ -9,7 +11,7 @@ def main(q, i, p, params, tags):
     root_page = macro_tags.get('root', page)
 
     appname = p.api.appname
-    alkira_client = q.clients.alkira.getClient('127.0.0.1', appname)
+    alkira_client = Alkira(p.api)
 
     all_pages_info = alkira_client.listPageInfo(space)
     all_pages_info = filter(lambda x: x['name'] != 'pagetree', all_pages_info)

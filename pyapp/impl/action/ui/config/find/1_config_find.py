@@ -1,5 +1,7 @@
+from alkira import Alkira
+
 def main(q, i, p, params, tags):
-    alkira = q.clients.alkira.getClientByApi(p.api)
+    alkira = Alkira(p.api)
     result = alkira.findMacroConfig(space=params['space'],
                     page=params['page'],
                     macro=params['macro'],

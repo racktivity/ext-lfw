@@ -1,12 +1,14 @@
 __author__ = "incubaid"
 
+from alkira import Alkira
+
 def main(q, i, p, params, tags):
     macro_tags = params['tags'].tags
 
     space = macro_tags['space']
     page = macro_tags['page']
     
-    alkira = alkira = q.clients.alkira.getClientByApi(p.api)
+    alkira = Alkira(p.api)
     breadcrumbs = []
     parent = alkira.getPage(space, page)
     while parent:

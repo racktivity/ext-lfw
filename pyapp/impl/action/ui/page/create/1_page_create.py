@@ -1,6 +1,8 @@
+from alkira import Alkira
+
 def main(q, i, p, params, tags):
     q.logger.log('Creating page %s/%s' % (params['space'], params['name']), 1)
-    alkira = q.clients.alkira.getClientByApi(p.api)
+    alkira = Alkira(p.api)
     parent = alkira.getPageByGUID(params["parent"]).name if params['parent'] else None
     alkira.createPage(space=params['space'],
                       name=params['name'],

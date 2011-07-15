@@ -111,7 +111,11 @@ def main(q, i, params, tags):
         params["result"] = helperServer.check_access_token(oauth_request)
     else:
         #An unauthenticated user cannot access the administration space
-        if request._request.uri.find("/appserver/rest/ui/portal/page?space=Admin") > 0:
+        if request._request.uri.find("/appserver/rest/ui/portal/getPage?space=Admin") > 0:
             params["result"] = False
         else:
             params["result"] = True
+
+    #set the http response to 403 when we failed
+    if params["result"] == False:
+        request._request.setResponseCode(403)

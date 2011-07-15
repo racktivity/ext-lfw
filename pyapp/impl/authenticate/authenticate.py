@@ -115,3 +115,7 @@ def main(q, i, params, tags):
             params["result"] = False
         else:
             params["result"] = True
+
+    #set the http response to 403 when we failed
+    if params["result"] == False:
+        request._request.setResponseCode(403)

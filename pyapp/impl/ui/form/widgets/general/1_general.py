@@ -12,9 +12,9 @@ def getJsonResult(api, title, params, body):
         if not param:
             continue
         if "=" in param:
-            key, value = param.split("=")
+            key, value = param.split("=", 1)
         elif ":" in param:
-            key, value = param.split(":")
+            key, value = param.split(":", 1)
         else:
             continue
         paramDict[key.strip()] = value.strip()

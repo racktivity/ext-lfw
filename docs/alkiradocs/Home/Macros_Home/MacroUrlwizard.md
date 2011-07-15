@@ -26,5 +26,5 @@ The _title_ and _name_ parameters are required, all other parameters are optiona
     [[urlwizard/]]
 
 ##Example URLs
-* [wizardpage1]
-* [wizardpage2]
+* [urlwizardPage?title=mywizard&name=customer_create&domain=crm][wizardpage1]
+* [urlwizardPage?title=anotherwizard&name=lead_create&type=button&domain=crm][wizardpage2]

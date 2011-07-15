@@ -804,7 +804,7 @@ data;
                 if (data.pagetype != "md") {
                     content = '[[code]]\n' + content + '[[/code]]';
                 }
-                
+
                 /*
                 if(!content || !content.length || content.length === 0) {
                     context.notFound();
@@ -822,9 +822,9 @@ data;
 
                     //rendered = rendered.html();
                 }
-                
+
                 //For page name that contains /, display its path as header (appname/page.name)
-                if (data.name.indexOf("/") > 0)
+                if (data.name && data.name.indexOf("/") > 0)
                     rendered = "<h4><br>" + LFW_CONFIG.appname + "/" + data.name + "</h4>" + rendered
 
                 console.log('Page rendered: ' + rendered);

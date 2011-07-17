@@ -23,6 +23,7 @@
 }
 
 #sidebar {
+    overflow: auto;
 }
 #content {
     display: inline;

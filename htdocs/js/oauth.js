@@ -159,8 +159,7 @@ $(function() {
 
     //Token generation function
     function makeOAuthRequest(username, password) {
-        var url = LFW_CONFIG.oauthservice;
-        url = url.replace("[HOST]", window.location.hostname);
+        var url = LFW_CONFIG.uris.oauthservice;
 
         var message = {
             action: url,

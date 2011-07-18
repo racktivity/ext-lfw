@@ -32,7 +32,7 @@ var render = function(options) {
         if (headerLevel > previous)
         {
             toc_string += "<ul>";
-            toc_string += addAnchor(document.URL, headerLink, current.html())
+            toc_string += addAnchor(document.location.href, headerLink, current.html())
         }
         else if (headerLevel < previous)
         {
@@ -41,7 +41,7 @@ var render = function(options) {
             {
                 toc_string += "</li></ul>";
             }
-            toc_string += addAnchor(document.URL, headerLink, current.html())
+            toc_string += addAnchor(document.location.href, headerLink, current.html())
         }
         else if (headerLevel == previous)
         {
@@ -53,7 +53,7 @@ var render = function(options) {
             {
                 toc_string += "</li>";
             }
-            toc_string += addAnchor(document.URL, headerLink, current.html())
+            toc_string += addAnchor(document.location.href, headerLink, current.html())
         }
         previous = headerLevel;
     });

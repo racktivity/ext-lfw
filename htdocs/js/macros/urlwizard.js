@@ -18,7 +18,7 @@ var render = function(options) {
 
     var cb = function() {
         var urlVars = getUrlVars();
-        var urlitems = document.URL.split("/")
+        var urlitems = document.location.href.split("/")
         var idx = urlitems.indexOf(document.domain)
 
         var appserver = urlVars.appserver || document.domain;

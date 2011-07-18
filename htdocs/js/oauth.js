@@ -55,10 +55,12 @@ $(function() {
     //Install global error handler so we can show a login box if required but only if we got it from the rest api
     //from the applicationserver
     $(document).ajaxError(function(event, xhr, options) {
-        if (xhr.status === 403 && options.url.indexOf(LFW_CONFIG.appname + "/appserver/rest/") !== -1) {
+        if ((xhr.status === 403 || xhr.status === 401) && options.url.indexOf(LFW_CONFIG.appname + "/appserver/rest/") !== -1) {
+            event.preventDefault();
             showLoginDialog();
         }
     });
+    
     //Intercept all Ajax requests to add the OAuth header parameters if any
     $(document).ajaxSend(function(event, xhr, settings) {
         addAuthenticationHeader(xhr, settings);
@@ -159,8 +161,7 @@ $(function() {
 
     //Token generation function
     function makeOAuthRequest(username, password) {
-        var url = LFW_CONFIG.oauthservice;
-        url = url.replace("[HOST]", window.location.hostname);
+        var url = LFW_CONFIG.uris.oauthservice;
 
         var message = {
             action: url,
@@ -201,11 +202,7 @@ $(function() {
         if (item === null) {
             return null;
         }
-        if (now - item.timestamp > 0) {
-            localStorage.removeItem(key);
-            alert("The Authentication token has expired!");
-            return null;
-        }
+        
         return item.value;
     };
 

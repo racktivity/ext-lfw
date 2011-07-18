@@ -492,26 +492,7 @@ class Alkira:
         """
         self.connection.user.delete(userguid)
 
-    def deletePageByGUID(self, guid):
-        """
-        Delete a page by guid
-
-        @param guid: page guid
-        """
-        raise NotImplemented()
-        self.connection.page.delete(guid)
-
-    def deletePage(self, space, name):
-        """
-        Deletes a page and its chlidren (recursively).
-
-        @type space: String
-        @param space: The name of the space.
-
-        @type name: String
-        @param name: The name of the page.
-        """
-        
+    def _deletePage(self, space, page):
         def deleterecursive(guid):
             filter = self.connection.page.getFilterObject()
             filter.add("ui_view_page_list", "parent", guid, True)
@@ -521,13 +502,31 @@ class Alkira:
             
             self.connection.page.delete(guid)
         
-        page = self.getPage(space, name)
         crumbs = self._breadcrumbs(page)
-        
         deleterecursive(page.guid)
         if space == IMPORTSPACE:
-            self._syncImportedPageToFile(space, name, "delete")
+            self._syncImportedPageToFile(space, page.name, "delete")
         self._syncPageDelete(space, crumbs)
+        
+    def deletePageByGUID(self, guid):
+        """
+        Delete a page by guid
+
+        @param guid: page guid
+        """
+        """
+        Deletes a page and its chlidren (recursively).
+
+        @type guid: GUID
+        @param guid: Page guid
+        """
+        page = self.getPageByGUID(guid)
+        space = self.getSpace(page.space)
+        self._deletePage(space.name, page)
+
+    def deletePage(self, space, name):
+        page = self.getPage(space, name)
+        self._deletePage(space, page)
 
     def createSpace(self, name, tagsList=[], repository="", repo_username="", repo_password="", order=None, createHomePage=True):
         if self.spaceExists(name):

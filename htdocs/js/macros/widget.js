@@ -43,7 +43,7 @@ var render = function(options) {
                      'params': {'rel': 'stylesheet',
                                 'href': 'css/macros/widget.css'}});
     $this.empty();
-    $this.append(body);
+    options.swap(body, undefined, true);
 };
 
 register(render);

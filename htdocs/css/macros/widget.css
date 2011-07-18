@@ -1,0 +1,34 @@
+
+.widget-body {
+    border: 1px solid lightgray;
+    border-radius: 3px;
+    padding: 2px;
+}
+
+.widget-titlebar {
+    background-color: lightgray;
+    border: 1px solid gray;
+    border-radius: 3px;
+    height: 20px;
+    padding-top: 3px;
+    padding-left: 2px;
+}
+
+.widget-title {
+    float: left;
+    font-weight: bold;
+}
+
+.widget-collapse {
+    margin-right: 3px;
+    float: right;
+    cursor: pointer;
+}
+
+.widget-content {
+    overflow: auto;
+    border:1px solid lightgray;
+    border-radius: 3px;
+    margin-top: 2px;
+    padding: 3px;
+}

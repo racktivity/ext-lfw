@@ -6,9 +6,8 @@ def main(q, i, p, params, tags):
     page = alkira.getPageByGUID(params['pageguid'])
     parent = alkira.getPageByGUID(params["parent"]).name if params['parent'] else None
     
-    alkira.updatePage(old_space=page.space,
+    alkira.updatePage(space=page.space,
                       old_name=page.name,
-                      space=params['space'],
                       name=params['name'],
                       content=params['content'],
                       order=params['order'] if params['order'] else 10000,

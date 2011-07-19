@@ -13,6 +13,8 @@ var render = function(options) {
     var horz_unit = data_dict.horz_unit || 40; // should we name this like this?
     var horz_offset = data_dict.horz_offset || 0;
     var vert_unit = data_dict.vert_unit || 80;
+    var label = data_dict.label || "";
+    var labelOffset = label ? 20: 0;
 
     var roundNumber = function (num) {
         var dec = 1;
@@ -58,7 +60,7 @@ var render = function(options) {
             maxY = Math.max.apply(null, _data.maxData),
             yRange = maxY - minY,
             w = width,
-            h1 = height - 45 - 30,
+            h1 = height - 45 - 30 - labelOffset,
             h2 = 30,
             x = pv.Scale.linear(0, _data.longestData.length).range(0, w),
             y = pv.Scale.linear(minY - (yRange * 0.1), maxY + (yRange * 0.1)).range(0, h2);
@@ -83,6 +85,12 @@ var render = function(options) {
             .left(20)
             .bottom(25);
 
+        vis.anchor("center").add(pv.Label)
+            .top(10)
+            .textAlign("center")
+            .font("20px sans-serif")
+            .text(label);
+
         /* Focus Panel */
         var focus = vis.add(pv.Panel).def("init", function(){
             var d1 = x.invert(focusStartRange.x),
@@ -94,7 +102,7 @@ var render = function(options) {
             fx.domain(d1, d2);
             fy.domain(y.domain());
             return dd;
-        }).top(5).height(h1);
+        }).top(5 + labelOffset).height(h1);
 
         // Add X-axis
         focus.add(pv.Rule)

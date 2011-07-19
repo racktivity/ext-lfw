@@ -18,11 +18,6 @@ var render = function(options) {
         colNames = body.columns;
         setColModel();
 
-        if (body.hidetitlebar) { //TODO fix that this is not for the full page
-            options.addCss({"id": "css-" + gridId, "tag": "style", "params":
-                ".ui-jqgrid-view .ui-jqgrid-titlebar { display: none; }"});
-        }
-
         var grid = $("#" + gridId, options.pagecontent);
         grid.jqGrid({
             datatype: "json",
@@ -33,14 +28,11 @@ var render = function(options) {
             sortname: body.sort,
             sortorder: "asc",
             viewrecords: false,
-            caption: body.name || "Grid",
+            caption: (body.hidetitlebar ? "" : body.name || "Grid"),
             width: body.width || 600,
             autowidth: body.autowidth,
             height: body.height || 400
         });
-        /*if (body.hidetitlebar) {
-            $("#" + gridId).parents(".ui-jqgrid-view").find(".ui-jqgrid-titlebar").hide()
-        }*/
         grid.addRowData(0, body.data);
     }
 

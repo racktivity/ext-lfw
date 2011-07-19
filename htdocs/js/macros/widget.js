@@ -1,5 +1,3 @@
-//@metadata description=Shows clickable button
-//@metadata image=img/macros/button.png
 
 var render = function(options) {
     var $this = $(this);
@@ -32,8 +30,6 @@ var render = function(options) {
                         .html(options.renderWiki(options.body))
                         .css('width', params.width)
                         .css('height', params.height);
-
-    //options.swap(options.renderWiki(options.body), "", content);
 
     body.append(titlebar)
         .append(content);

@@ -1,26 +1,34 @@
 
 var render = function(options) {
     var TEMPLATE_NAME = 'plugin.grid.local',
-        body = $.parseJSON(options.body);
-
-    var colNames = [],
-        colModel = [];
+        body = $.parseJSON(options.body),
+        colNames = [],
+        colModel = [],
+        now = (new Date()).getTime(),
+        gridId = "grid-" + now,
+        gridpagerId = "gridpager-" + now;
 
     $.template(TEMPLATE_NAME,
-        "<div><table id='sqlgrid' class='scroll' cellpadding='0' cellspacing='0'></table>" +
-        "<div id='gridpager' class='scroll' style='text-align: center;'></div></div>");
+        "<div><table id='" + gridId + "' class='scroll' cellpadding='0' cellspacing='0'></table>" +
+        (body.page ? "<div id='" + gridpagerId + "' class='scroll' style='text-align: center;' />" : "") +
+        "</div>");
     $.tmpl(TEMPLATE_NAME, {}).appendTo(this);
 
     function createGrid() {
         colNames = body.columns;
         setColModel();
 
-        var grid = $("#sqlgrid", options.pagecontent);
+        if (body.hidetitlebar) { //TODO fix that this is not for the full page
+            options.addCss({"id": "css-" + gridId, "tag": "style", "params":
+                ".ui-jqgrid-view .ui-jqgrid-titlebar { display: none; }"});
+        }
+
+        var grid = $("#" + gridId, options.pagecontent);
         grid.jqGrid({
             datatype: "json",
             colNames: colNames,
             colModel: colModel,
-            pager: (body.page ? "#gridpager" : ""),
+            pager: (body.page ? gridPagerId : ""),
             rowNum: body.pagesize,
             sortname: body.sort,
             sortorder: "asc",
@@ -30,7 +38,9 @@ var render = function(options) {
             autowidth: body.autowidth,
             height: body.height || 400
         });
-
+        /*if (body.hidetitlebar) {
+            $("#" + gridId).parents(".ui-jqgrid-view").find(".ui-jqgrid-titlebar").hide()
+        }*/
         grid.addRowData(0, body.data);
     }
 

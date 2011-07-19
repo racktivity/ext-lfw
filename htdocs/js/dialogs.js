@@ -29,7 +29,7 @@
             message = "<p class='error'> Authorization failed</p>";
         }
         else {
-            message = "Unkown error: " + text;
+            message = "Unkown error: " + text + " - " + exc;
         }
         $.alert(message, options);
     };

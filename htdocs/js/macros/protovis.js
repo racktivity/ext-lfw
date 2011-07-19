@@ -98,7 +98,7 @@ var render = function(options) {
 
         // Add X-axis
         focus.add(pv.Rule)
-            .data(x.ticks())
+            .data(function() { return fx.ticks(); })
             .strokeStyle("#999")
             .left(fx)
             .bottom(0)

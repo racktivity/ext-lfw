@@ -14,14 +14,53 @@ var render = function(options) {
     var horz_offset = data_dict.horz_offset || 0;
     var vert_unit = data_dict.vert_unit || 80;
 
+    var roundNumber = function (num) {
+        var dec = 1;
+        var result = Math.round(num*Math.pow(10,dec))/Math.pow(10,dec);
+        return result;
+    }
+
+    var getData = function() {
+        if (data) {
+            var maxData = data,
+                minData = data,
+                longestData = data,
+                _maxY = 0, _minY = 0;
+
+            if ($.isArray(data[0])) {
+                maxData = data[0];
+                minData = data[0];
+                longestData = data[0];
+                var i = 0, maxY, minY;
+                for (i = 0; i < data.length; i++) {
+                    d = data[i];
+                    _maxY = Math.max.apply(null, d);
+                    _minY = Math.min.apply(null, d);
+                    if (_maxY > Math.max.apply(null, maxData)) {
+                        maxData = d;
+                    }
+                    if (_minY < Math.min.apply(null, minData)) {
+                        minData = d;
+                    }
+                    if (d.length > longestData.length) {
+                        longestData = d;
+                    }
+                }
+            }
+            return {'minData': minData, 'maxData': maxData, 'longestData': longestData};
+        }
+        return undefined;
+    };
+
     var cb = function() {
-        var minY = Math.min.apply(null, data),
-            maxY = Math.max.apply(null, data),
+        var _data = getData();
+        var minY = Math.min.apply(null, _data.minData),
+            maxY = Math.max.apply(null, _data.maxData),
             yRange = maxY - minY,
             w = width,
             h1 = height - 45 - 30,
             h2 = 30,
-            x = pv.Scale.linear(0, data.length).range(0, w),
+            x = pv.Scale.linear(0, _data.longestData.length).range(0, w),
             y = pv.Scale.linear(minY - (yRange * 0.1), maxY + (yRange * 0.1)).range(0, h2);
 
         var focusStartRange = {
@@ -30,6 +69,8 @@ var render = function(options) {
         },
         fx = pv.Scale.linear().range(0, w),
         fy = pv.Scale.linear().range(0, h1);
+
+        var c = pv.Colors.category10(data);
 
         $.template(TEMPLATE_NAME, '<div id=${protovis_id} style="height:${height}px;width:${width}px; "></div>');
         $.tmpl(TEMPLATE_NAME, {protovis_id:protovis_id, height:height, width:width}).appendTo($this);
@@ -70,12 +111,25 @@ var render = function(options) {
             .strokeStyle("#999")
             .bottom(fy)
           .anchor("left").add(pv.Label)
-            .text(fy.tickFormat);
+            .text(function(y) { return roundNumber(y);});
 
-        focus.add(pv.Line)
-            .data(data)
+        var addLine = function(_data) {
+            focus.add(pv.Line)
+            .data(_data)
+            .strokeStyle(function(d) { return c(d);})
             .bottom(function(d) {return fy(d);} )
             .left(function() {return fx(this.index);});
+        };
+
+        if ($.isArray(data)) {
+            var i = 0;
+            for (i = 0; i < data.length; i++) {
+                d = data[i];
+                addLine(d);
+            }
+        } else {
+            addLine(data);
+        }
 
         // Context panel
         var context = vis.add(pv.Panel)
@@ -94,12 +148,25 @@ var render = function(options) {
         /* Y-axis ticks. */
         context.add(pv.Rule).bottom(0);
 
+        var addContextLine = function(_data) {
+            context.add(pv.Line)
+                .data(_data)
+                .strokeStyle(function(d) { return c(d);})
+                .bottom(function(d) {return y(d);} )
+                .left(function() {return x(this.index);})
+                .lineWidth(1);
+        };
+
         // Context area chart.
-        context.add(pv.Line)
-            .data(data)
-            .bottom(function(d) {return y(d);} )
-            .left(function() {return x(this.index);})
-            .lineWidth(1);
+        if ($.isArray(data)) {
+            var i = 0;
+            for (i = 0; i < data.length; i++) {
+                d = data[i];
+                addContextLine(d);
+            }
+        } else {
+            addContextLine(data);
+        }
 
         // The selectable, draggable focus region.
         context.add(pv.Panel)

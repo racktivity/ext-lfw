@@ -73,6 +73,7 @@ code{
 }
 
 #toolbar .ui-button {
+    float: right;
     height: 20px;
 }
 

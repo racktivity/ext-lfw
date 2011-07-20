@@ -1,8 +1,10 @@
 //@metadata ignore=true
 
+$(function() { //global function wrapper
+
+var LFW_DASHBOARDS = [];
+
 var LFW_DASHBOARD = {
-    opts: {},
-    instance: null,
     widgetTypes: [],
     widgetTypesByName: {}
 };
@@ -133,7 +135,7 @@ $(function() {
         // Add the widget
         var data = $.tmpl('plugin.dashboard.widget', object);
         console.log('Widget Rendered: ' + data.html());
-        LFW_DASHBOARD.opts.swap(data, column.jq, true);
+        this.getGlobalOptions().swap(data, column.jq, true);
         this.jq = column.jq.find("#" + this.fullId);
         var that = this;
 
@@ -163,7 +165,7 @@ $(function() {
 
         if (dontSave !== true) {
             this.options.collapsed = !this.options.collapsed;
-            LFW_DASHBOARD.opts.saveConfig();
+            this.getGlobalOptions().saveConfig();
         }
     };
 
@@ -205,10 +207,11 @@ $(function() {
 
             that.jq.find(".portlet-header .title").text(that.options.title);
             var data = $.tmpl('plugin.dashboard.widgetcontent', that.options);
-            LFW_DASHBOARD.opts.swap(data, that.jq.find(".portlet-content"), false, that.jq.find(".portlet-content"));
+            this.getGlobalOptions().swap(data, that.jq.find(".portlet-content"), false,
+                that.jq.find(".portlet-content"));
 
             // Make it persistent
-            LFW_DASHBOARD.opts.saveConfig();
+            this.getGlobalOptions().saveConfig();
         }
 
         var args = { title: this.options.title, body: this.options.config },
@@ -217,6 +220,11 @@ $(function() {
             args.params = params;
         }
         JSWizards.launch("appserver/rest/ui/wizard", "widgets", wizard, $.toJSON(args), update);
+    };
+
+    // Get the global options object
+    Widget.prototype.getGlobalOptions = function() {
+        return this.parent.parent.opts;
     };
 
     LFW_DASHBOARD.Widget = Widget;
@@ -243,7 +251,7 @@ $(function() {
         // Add the column
         var data = $.tmpl('plugin.dashboard.column', object);
         console.log('Column Rendered: ' + data.html());
-        LFW_DASHBOARD.opts.swap(data, dashboard.jq.find(".columns"), true);
+        this.getGlobalOptions().swap(data, dashboard.jq.find(".columns"), true);
         this.jq = dashboard.jq.find(".columns #" + this.fullId);
 
         // Make the widgets moveable
@@ -251,7 +259,7 @@ $(function() {
             handle: ".portlet-header",
             forceHelperSize: true,
             tolerance: "pointer",
-            connectWith: ".column",
+            connectWith: "#" + this.parent.id + " .column",
             update: function(event, ui) {
                 if (!ui.sender) {
                     that.parent._moveWidget(ui.item[0]);
@@ -299,7 +307,7 @@ $(function() {
 
         // Make it persistant
         this._widgets.push(object);
-        LFW_DASHBOARD.opts.saveConfig();
+        this.getGlobalOptions().saveConfig();
     };
 
     // Remove a widget
@@ -312,7 +320,7 @@ $(function() {
             this.widgets.splice(pos, 1);
             this._widgets.splice(pos, 1);
         }
-        LFW_DASHBOARD.opts.saveConfig();
+        this.getGlobalOptions().saveConfig();
     };
 
     // Set the width of the column
@@ -363,6 +371,7 @@ $(function() {
                     index = j;
 
                     tmpWidgets[j].options.order = i;
+                    tmpObjects[j].order = i;
                     break;
                 }
             }
@@ -372,32 +381,39 @@ $(function() {
         }
     };
 
+    // Get the global options object
+    Column.prototype.getGlobalOptions = function() {
+        return this.parent.opts;
+    };
+
     LFW_DASHBOARD.Column = Column;
 });
 
 // Dashboard
 $(function() {
     // The Dashboard class
-    function Dashboard() {
+    function Dashboard(opts) {
+        this.opts = opts;
+
         // Make sure our config is well defined
-        if (!LFW_DASHBOARD.opts.config.columns) {
-            LFW_DASHBOARD.opts.config.columns = [{}];
+        if (!this.opts.config.columns) {
+            this.opts.config.columns = [{}];
         }
-        if (!LFW_DASHBOARD.opts.config.id) {
-            LFW_DASHBOARD.opts.config.id = "dashboard-id";
+        if (!this.opts.config.id) {
+            this.opts.config.id = "dashboard-id-" + new Date().getTime();
         }
-        if (!LFW_DASHBOARD.opts.config.title) {
-            LFW_DASHBOARD.opts.config.title = "Dashboard";
+        if (!this.opts.config.title) {
+            this.opts.config.title = "Dashboard";
         }
 
-        this._columns = LFW_DASHBOARD.opts.config.columns;
-        this.id = LFW_DASHBOARD.opts.config.id;
+        this._columns = this.opts.config.columns;
+        this.id = this.opts.config.id;
         this.columns = [];
 
         // Add the dashboard
-        var data = $.tmpl('plugin.dashboard.main', LFW_DASHBOARD.opts.config);
+        var data = $.tmpl('plugin.dashboard.main', this.opts.config);
         console.log('Dashboard Rendered: ' + data.html());
-        LFW_DASHBOARD.opts.swap($(data).html());
+        this.opts.swap($(data).html());
         this.jq = $("#" + this.id);
 
         // Disable selection of the headers so we are sure we can always drag them
@@ -557,21 +573,21 @@ $(function() {
             columnElem = this.jqOptions.find(".options-columns"),
             that = this;
 
-        titleElem.val(LFW_DASHBOARD.opts.config.title);
+        titleElem.val(this.opts.config.title);
         columnElem.val(this._columns.length);
 
         function cancel() {
             that.jqOptions.dialog("close");
-            titleElem.val(LFW_DASHBOARD.opts.config.title);
+            titleElem.val(that.opts.config.title);
             columnElem.val(that._columns.length);
         }
 
         function ok() {
             that.jqOptions.dialog("close");
 
-            LFW_DASHBOARD.opts.config.title = titleElem.val();
+            that.opts.config.title = titleElem.val();
 
-            that.jq.find(".dashboard-header .title").text(LFW_DASHBOARD.opts.config.title);
+            that.jq.find(".dashboard-header .title").text(that.opts.config.title);
 
             var columnCount = parseInt(columnElem.val(), 10);
             var width, i;
@@ -613,7 +629,7 @@ $(function() {
             }
 
             // Make it persistent
-            LFW_DASHBOARD.opts.saveConfig();
+            that.opts.saveConfig();
         }
 
         // Make the dialog work
@@ -661,15 +677,13 @@ $(function() {
         }
 
         // Persist it
-        LFW_DASHBOARD.opts.saveConfig();
+        this.opts.saveConfig();
     };
 
     LFW_DASHBOARD.Dashboard = Dashboard;
 });
 
 var render = function(options) {
-    LFW_DASHBOARD.opts = options;
-
     // CSS
     options.addCss({'id': 'dashboardmacro', 'tag': 'style', 'params': '.dashboard { margin: 0px; }' +
         '.dashboard-options .options-table .options-textnode { vertical-align: middle; }' +
@@ -706,9 +720,9 @@ var render = function(options) {
     });
 
     // Get dashboard
-    if ($.isEmptyObject(LFW_DASHBOARD.opts.config)) { // Get the default from the body
+    if ($.isEmptyObject(options.config)) { // Get the default from the body
         try {
-            LFW_DASHBOARD.opts.config = $.parseJSON(options.body);
+            options.config = $.parseJSON(options.body);
         } catch (e) {}
     }
 
@@ -747,28 +761,36 @@ var render = function(options) {
 
 
     function create() {
-        // Load the data first
-        $.get("appserver/rest/ui/portal/generic", { tagstring: "", macroname: "macrolist" }, function(data) {
-            LFW_DASHBOARD.widgetTypes = data;
-
-            // Exclude the dashboard macro itself and create widgetTypesByName
-            var i, toRemove = [], macro;
-            for (i = 0; i < data.length; ++i) {
-                macro = data[i];
-                if (macro.hasOwnProperty("ignore") && macro.ignore === "true") {
-                    toRemove.push(i);
-                } else {
-                    LFW_DASHBOARD.widgetTypesByName[macro.name] = macro;
-                }
-            }
-            for (i = 0; i < toRemove.length; ++i) {
-                //do the "- i" to account for the items we deleted
-                LFW_DASHBOARD.widgetTypes.splice(toRemove[i] - i, 1);
-            }
-
+        function createDashboard() {
             // Create the dashboard
-            LFW_DASHBOARD.instance = new LFW_DASHBOARD.Dashboard();
-        });
+            LFW_DASHBOARDS.push(new LFW_DASHBOARD.Dashboard(options));
+        }
+
+        if (!LFW_DASHBOARD.widgetTypes.length) {
+            // Load the data first
+            $.get("appserver/rest/ui/portal/generic", { tagstring: "", macroname: "macrolist" }, function(data) {
+                LFW_DASHBOARD.widgetTypes = data;
+
+                // Exclude the dashboard macro itself and create widgetTypesByName
+                var i, toRemove = [], macro;
+                for (i = 0; i < data.length; ++i) {
+                    macro = data[i];
+                    if (macro.hasOwnProperty("ignore") && macro.ignore === "true") {
+                        toRemove.push(i);
+                    } else {
+                        LFW_DASHBOARD.widgetTypesByName[macro.name] = macro;
+                    }
+                }
+                for (i = 0; i < toRemove.length; ++i) {
+                    //do the "- i" to account for the items we deleted
+                    LFW_DASHBOARD.widgetTypes.splice(toRemove[i] - i, 1);
+                }
+
+                createDashboard();
+            });
+        } else { // We already have the data
+            createDashboard();
+        }
     }
 
     options.addDependency(create, ['/static/jswizards/ext/jquery-ui.min.js', '/static/jswizards/js/jswizards.js',
@@ -785,3 +807,5 @@ var render = function(options) {
 };
 
 register(render);
+
+});

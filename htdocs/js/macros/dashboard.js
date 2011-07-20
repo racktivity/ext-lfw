@@ -135,7 +135,7 @@ $(function() {
         // Add the widget
         var data = $.tmpl('plugin.dashboard.widget', object);
         console.log('Widget Rendered: ' + data.html());
-        this.getGlobalOptions().swap(data, column.jq, true);
+        this.parent.parent.opts.swap(data, column.jq, true);
         this.jq = column.jq.find("#" + this.fullId);
         var that = this;
 
@@ -165,7 +165,7 @@ $(function() {
 
         if (dontSave !== true) {
             this.options.collapsed = !this.options.collapsed;
-            this.getGlobalOptions().saveConfig();
+            this.getDashboard().saveConfig();
         }
     };
 
@@ -207,11 +207,11 @@ $(function() {
 
             that.jq.find(".portlet-header .title").text(that.options.title);
             var data = $.tmpl('plugin.dashboard.widgetcontent', that.options);
-            this.getGlobalOptions().swap(data, that.jq.find(".portlet-content"), false,
+            that.parent.parent.opts.swap(data, that.jq.find(".portlet-content"), false,
                 that.jq.find(".portlet-content"));
 
             // Make it persistent
-            this.getGlobalOptions().saveConfig();
+            that.getDashboard().saveConfig();
         }
 
         var args = { title: this.options.title, body: this.options.config },
@@ -222,9 +222,9 @@ $(function() {
         JSWizards.launch("appserver/rest/ui/wizard", "widgets", wizard, $.toJSON(args), update);
     };
 
-    // Get the global options object
-    Widget.prototype.getGlobalOptions = function() {
-        return this.parent.parent.opts;
+    // Get the dashboard object
+    Widget.prototype.getDashboard = function() {
+        return this.parent.parent;
     };
 
     LFW_DASHBOARD.Widget = Widget;
@@ -251,7 +251,7 @@ $(function() {
         // Add the column
         var data = $.tmpl('plugin.dashboard.column', object);
         console.log('Column Rendered: ' + data.html());
-        this.getGlobalOptions().swap(data, dashboard.jq.find(".columns"), true);
+        this.parent.opts.swap(data, dashboard.jq.find(".columns"), true);
         this.jq = dashboard.jq.find(".columns #" + this.fullId);
 
         // Make the widgets moveable
@@ -307,7 +307,7 @@ $(function() {
 
         // Make it persistant
         this._widgets.push(object);
-        this.getGlobalOptions().saveConfig();
+        this.getDashboard().saveConfig();
     };
 
     // Remove a widget
@@ -320,7 +320,7 @@ $(function() {
             this.widgets.splice(pos, 1);
             this._widgets.splice(pos, 1);
         }
-        this.getGlobalOptions().saveConfig();
+        this.getDashboard().saveConfig();
     };
 
     // Set the width of the column
@@ -381,9 +381,9 @@ $(function() {
         }
     };
 
-    // Get the global options object
-    Column.prototype.getGlobalOptions = function() {
-        return this.parent.opts;
+    // Get the dashboard object
+    Column.prototype.getDashboard = function() {
+        return this.parent;
     };
 
     LFW_DASHBOARD.Column = Column;
@@ -629,7 +629,7 @@ $(function() {
             }
 
             // Make it persistent
-            that.opts.saveConfig();
+            that.saveConfig();
         }
 
         // Make the dialog work
@@ -677,7 +677,14 @@ $(function() {
         }
 
         // Persist it
-        this.opts.saveConfig();
+        this.saveConfig();
+    };
+
+    // Persist the data
+    Dashboard.prototype.saveConfig = function() {
+        if (this.opts.params.config) {
+            this.opts.saveConfig();
+        }
     };
 
     LFW_DASHBOARD.Dashboard = Dashboard;

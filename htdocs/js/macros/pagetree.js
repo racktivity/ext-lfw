@@ -26,8 +26,12 @@ var render = function(options) {
             "themes" : {
                "theme" : "classic",
             },
-            "plugins": ["themes", "json_data"]
-        });
+            "plugins": ["themes", "json_data", "cookies", "ui"]
+        })
+        .bind("select_node.jstree", function (e, data) {
+            var href = data.rslt.obj.children("a").attr("href");
+            document.location.href = href;
+          });
 
     }
 

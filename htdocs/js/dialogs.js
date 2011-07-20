@@ -10,10 +10,10 @@
                        $(this).dialog("close");
                     }}});
     };
-    
+
     $.alerterror = function(xhr, text, exc, options){
         var options = $.extend({title: 'Error'}, options);
-        
+
         var message = "";
         if(xhr.status === 404) {
             message = "Not Found";
@@ -26,18 +26,18 @@
             message = "<p class='error'>" + response.exception + "</p>";
         }
         else if (xhr.responseText.indexOf("Authorization failed") > 0){
-          message = "<p class='error'> Authorization failed</p>";
+            message = "<p class='error'> Authorization failed</p>";
         }
         else {
-            app.error('Unknown error: ' + text, exc);
+            message = "Unkown error: " + text + " - " + exc;
         }
         $.alert(message, options);
     };
-    
+
     $.confirm = function(message, options) {
         var options = $.extend({title: '',
                                 ok: $.noop}, options);
-                                
+
         $("<div>").append($("<p>").text(message))
             .dialog({modal: true,
                     title: options.title,
@@ -50,5 +50,5 @@
                                 }}
                     });
     };
-    
+
 })(jQuery);

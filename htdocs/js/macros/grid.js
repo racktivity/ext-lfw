@@ -1,3 +1,5 @@
+//@metadata description=Show a table with local data taken from the body of the macro
+//@metadata image=img/macros/grid.png
 
 var render = function(options) {
     var TEMPLATE_NAME = 'plugin.grid.local',

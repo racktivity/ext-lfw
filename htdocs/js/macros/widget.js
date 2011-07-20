@@ -1,3 +1,5 @@
+//@metadata description=Show a collapseable block with the given content
+//@metadata image=img/macros/widget.png
 
 var render = function(options) {
     var $this = $(this);

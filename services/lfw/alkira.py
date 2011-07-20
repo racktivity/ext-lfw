@@ -13,11 +13,11 @@ class Alkira:
     def __init__(self, api=None):
         """
         Initialize the alkira library with a certain API
-        
+
         @param api: The application api (in APPSERVER content)
         """
         self.KNOWN_TYPES = ["py", "md", "html", "txt"]
-        
+
         self.connection = api.model.ui
         self.api = api
 
@@ -67,7 +67,7 @@ class Alkira:
         fullName = space
         if page:
             fullName = q.system.fs.joinPaths(space, page)
-            
+
         return q.system.fs.joinPaths(q.dirs.pyAppsDir, self.api.appname, 'portal', 'spaces', fullName)
 
     def _getType(self, pagename):
@@ -91,7 +91,7 @@ class Alkira:
             q.system.fs.renameDir(filePath, new_name)
         except:
             q.system.fs.moveDir(filePath, new_name)
-            
+
     def _syncImportedPageToFile(self, spacename, page, action, oldname = None):
         """
         @param page: its the page object for action "delete" it can be the page's name instead
@@ -143,9 +143,9 @@ class Alkira:
         if space:
             space = self._getSpaceGuid(space)
             where = "where space='%s'" % space
-            
+
         return self.connection.page.query("SELECT count(guid) from ui_page.ui_view_page_list %s;" % where)[0]['count']
-    
+
     def search(self, text=None, space=None, category=None, tags=None):
         # ignore tags for now
 
@@ -178,7 +178,7 @@ class Alkira:
         result = self.connection.page.query(query)
 
         return result
-    
+
     def listSpaces(self):
         """
         Lists all the spaces.
@@ -340,7 +340,7 @@ class Alkira:
         """
         if isinstance(space, self.connection.space._ROOTOBJECTTYPE):
             return space
-        
+
         space = self._getSpaceGuid(space)
         return self.connection.space.get(space)
 
@@ -471,7 +471,7 @@ class Alkira:
                     q.system.fs.removeDirTree(dir)
                 elif _isfile(file):
                     q.system.fs.removeFile(file)
-                    
+
 
     def deleteUser(self, name):
         """
@@ -496,18 +496,18 @@ class Alkira:
         def deleterecursive(guid):
             filter = self.connection.page.getFilterObject()
             filter.add("ui_view_page_list", "parent", guid, True)
-            
+
             for chguid in self.connection.page.find(filter):
                 deleterecursive(chguid)
-            
+
             self.connection.page.delete(guid)
-        
+
         crumbs = self._breadcrumbs(page)
         deleterecursive(page.guid)
         if space == IMPORTSPACE:
             self._syncImportedPageToFile(space, page.name, "delete")
         self._syncPageDelete(space, crumbs)
-        
+
     def deletePageByGUID(self, guid):
         """
         Delete a page by guid
@@ -559,9 +559,9 @@ class Alkira:
         if createHomePage:
             self.createPage(name, "Home", content="", order=10000, title="Home", tagsList=tagsList)
         self.createPage(ADMINSPACE, name, spacectnt, title=name, parent="Spaces")
-        
+
         return space
-    
+
     def _breadcrumbs(self, page):
         breadcrumbs = []
         parent = page
@@ -576,14 +576,14 @@ class Alkira:
 
     def breadcrumbs(self, space, name):
         return self._breadcrumbs(self.getPage(space, name))
-    
+
     def _createPage(self, space, name, content, order=None, title=None, tagsList=[], category='portal',
                    parent=None, filename=None, contentIsFilePath=False, pagetype="md"):
-        
+
         space = self.getSpace(space)
         if self.pageExists(space.guid, name):
             q.errorconditionhandler.raiseError("Page %s already exists."%name)
-        
+
         page = self.connection.page.new()
         params = {"name":name, "pagetype": pagetype, "space":space.guid, "category":category,
                   "title": title, "order": order, "filename":filename,
@@ -606,9 +606,9 @@ class Alkira:
             page.parent = parent_page.guid
 
         self.connection.page.save(page)
-        
+
         return page
-    
+
     def createPage(self, space, name, content, order=None, title=None, tagsList=[], category='portal',
                    parent=None, filename=None, contentIsFilePath=False, pagetype="md"):
         """
@@ -649,13 +649,13 @@ class Alkira:
                          order=order, title=title, tagsList=tagsList, category=category,
                          parent=parent, filename=filename, contentIsFilePath=contentIsFilePath,
                          pagetype=pagetype)
-        
+
         if space.name == IMPORTSPACE:
             #the "Imported" space needs to keep filesystem in sync with database
             self._syncImportedPageToFile(space.name, page, "create")
         else:
             self._syncPageToDisk(space.name, page)
-            
+
     def createUser(self, name, password, spaces=[], pages=[], tagsList=[]):
         """
         Create a new user object.
@@ -719,20 +719,20 @@ class Alkira:
         if newname != None and oldname != newname:
             #rename space page.
             self.updatePage(ADMINSPACE, oldname, name=newname, content=p.core.codemanagement.api.getSpacePage(newname))
-            
+
             #sync file system
             self._moveDir(self._getDir(oldname),
                           self._getDir(newname))
-        
+
         return space
 
     def _updatePage(self, space, old_name, name=None, tagsList=None, content=None,
                    order=None, title=None, parent=None, category=None, pagetype=None, filename=None, contentIsFilePath=False):
-        
+
         space = self.getSpace(space)
         spacename = space.name
         page = self.getPage(space.guid, old_name)
-        
+
         type = None
 
         params = {"name": name, "pagetype": pagetype, "category":category,
@@ -756,11 +756,11 @@ class Alkira:
         if parent:
             parent_page = self.getPage(space, parent)
             page.parent = parent_page.guid
-        
+
         self.connection.page.save(page)
-        
+
         return page
-    
+
     def updatePage(self, space, old_name, name=None, tagsList=None, content=None,
                    order=None, title=None, parent=None, category=None, pagetype=None, filename=None, contentIsFilePath=False):
         """
@@ -802,12 +802,12 @@ class Alkira:
         @type filename: string
         @param filename: used by import directory script to store original file path
         """
-        
+
         space = self.getSpace(space)
         page = self._updatePage(space=space, old_name=old_name, name=name, tagsList=tagsList, content=content,
                          order=order, title=title, parent=parent, category=category,
                          pagetype=pagetype, filename=filename, contentIsFilePath=contentIsFilePath)
-        
+
         if space.name == IMPORTSPACE:
             #the "Imported" space needs to keep filesystem in sync with database
             if name and name != old_name:
@@ -816,7 +816,7 @@ class Alkira:
                 self._syncImportedPageToFile(space.name, page, "update")
         else:
             self._syncPageToDisk(space.name, page, old_name)
-            
+
         return page
 
     def updateUser(self, old_user, name="", password="", tagsList=None):
@@ -877,7 +877,8 @@ class Alkira:
 
     def setMacroConfig(self, space, page, macro, data, configId=None, username=None):
         username = username.lower() if username else None
-        configInfo = self.findMacroConfig(space, page, macro, configId, username)
+        configInfo = self.findMacroConfig(space, page, macro, configId, username,
+            exact_properties=("space", "page", "macro", "configid", "username"))
         if not configInfo:
             config = self.connection.config.new()
             config.space = self._getSpaceGuid(space)
@@ -1008,7 +1009,7 @@ class Alkira:
         if self.countPages(space):
             homepage = self.getPage(space, 'Home')
             cleandir = not bool(homepage.content)
-            
+
         hg = q.clients.mercurial.getclient(repoDir, repoUrl, cleandir=cleandir)
         hg.pullupdate()
 
@@ -1017,17 +1018,17 @@ class Alkira:
             self.syncPortal(space=spaceInfo.name)
 
         return True
-    
+
     def getitems(self, prop, space=None, term=None):
         SQL_PAGES = 'SELECT DISTINCT ui_page.ui_view_page_list.%(prop)s FROM ui_page.ui_view_page_list %(space_criteria)s'
         SQL_PAGES_FILTER = 'SELECT DISTINCT ui_page.ui_view_page_list.%(prop)s FROM ui_page.ui_view_page_list WHERE ui_page.ui_view_page_list.%(prop)s LIKE \'%(term)s%%\'  %(space_criteria)s'
         SQL_PAGE_TAGS = 'SELECT DISTINCT ui_page.ui_view_page_list.%(prop)s FROM ui_page.ui_view_page_list WHERE ui_page.ui_view_page_list.space=\'%(space)s\''
         SQL_PAGE_TAGS_FILTER = 'SELECT DISTINCT ui_page.ui_view_page_list.%(prop)s FROM ui_page.ui_view_page_list WHERE ui_page.ui_view_page_list.space=\'%(space)s\' AND ui_page.ui_view_page_list.%(prop)s LIKE \'%%%(term)s%%\''
-        
+
         if space:
             space = self.getSpace(space)
         t = term.split(', ')[-1] if term else ''
-        
+
         d = {'prop': prop, 'space': space.guid, 'term': t}
         if prop in ('tags',):
             sql = SQL_PAGE_TAGS_FILTER % d if t else SQL_PAGE_TAGS % d
@@ -1042,20 +1043,20 @@ class Alkira:
         qr = self.connection.page.query(sql)
         result = map(lambda _: _[prop], qr)
         return result
-    
+
     def syncPortal(self, path=None, space=None, page=None, cleanup=None):
         def deletePages(space):
                 pages = self.pageFind(space=space)
                 for page in pages:
                     self.connection.page.delete(page)
-        
+
         def pageDuplicate(page):
             page_name = q.system.fs.getBaseName(page)
             if page_name in page_occured:
                 q.errorconditionhandler.raiseError("Another page with the name '%s' already exists on this space. Will NOT create/update the following page (%s)"%(page_name, page))
             else:
                 page_occured.append(page_name)
-    
+
         def filterContent(page_content):
             content_dict = {}
             page_lines = page_content.splitlines()
@@ -1063,23 +1064,23 @@ class Alkira:
                 meta_line = page_lines.pop(0)
                 meta_line = meta_line.replace('@metadata', "")
                 meta_list = meta_line.split('=')
-    
+
                 header = meta_list[0].strip()
                 value = meta_list[1].strip()
-    
+
                 content_dict[header] = value
-    
+
             filtered_content = "\n".join(page_lines)
             content_dict['content'] = filtered_content
-    
+
             return content_dict
-    
+
         def createPage(page_file, parent=None):
             pageDuplicate(page_file)
             name = q.system.fs.getBaseName(page_file).split('.')[0]
             content = q.system.fs.fileGetContents(page_file)
             page_info = self.pageFind(name=name, space=spaceguid, exact_properties=("name", "space"))
-    
+
             if len(page_info) > 1:
                 raise ValueError('Multiple pages found!')
             elif len(page_info) == 1:
@@ -1088,64 +1089,64 @@ class Alkira:
             else:
                 save_page = self._createPage
                 q.console.echo('Creating page: %s'%name, indent=3, withStar=True)
-    
+
             # Setting content and metadata
             page_content_dict = filterContent(content)
             content = page_content_dict.get('content', 'Page is empty.')
             title = page_content_dict.get('title', name)
             order = int(page_content_dict.get('order', '10000'))
-    
+
             # Creating and setting tags
             tags = page_content_dict.get('tagstring', "").split(" ")
             tags = set(tags)
             tags.add('space:%s' % space)
             tags.add('page:%s' % name)
-    
+
             if name == "Home" and spaceobject.name != "Admin":
                 self.updateSpace(spaceobject.name, order=int(page_content_dict.get('spaceorder', '1000')))
-    
+
             for tag in re.sub('((?=[A-Z][a-z])|(?<=[a-z])(?=[A-Z]))', ' ', name).strip().split(' '):
                 tags.add(tag)
-    
+
             save_page(space=space, name=name, content=content, order=order, title=title, tagsList=tags, category='portal', parent=parent)
-    
+
         def alkiraTree(folder_paths, root_parent=None):
             for folder_path in folder_paths:
                 base_name = q.system.fs.getBaseName(folder_path)
                 # Ignore hg dir
                 if base_name == '.hg':
                     continue
-    
+
                 folder_name = base_name.split('.')[0]
                 parent_name = folder_name + '.md'
                 parent_path = q.system.fs.joinPaths(folder_path, parent_name)
-    
+
                 if not q.system.fs.exists(parent_path):
                     q.errorconditionhandler.raiseError('The directory "%s" does not have a page "%s" specified for it.'%(folder_path, parent_name))
-    
+
                 if root_parent:
                     createPage(parent_path, parent=root_parent)
                 else:
                     createPage(parent_path)
-    
+
                 children_files = q.system.fs.listFilesInDir(folder_path, filter='*.md')
                 for child_file in children_files:
                     if child_file != parent_path:
                         createPage(child_file, parent=folder_name)
-    
+
                 sub_folders = q.system.fs.listDirsInDir(folder_path)
                 if sub_folders:
                     alkiraTree(sub_folders, root_parent=folder_name)
-    
+
         md_path = ''
         if not path:
             md_path = q.system.fs.joinPaths(q.dirs.baseDir, 'pyapps', self.api.appname, 'portal', 'spaces')
         else:
             md_path = path
-    
+
         if cleanup:
             deletePages(space)
-    
+
         if space:
             space_dir = q.system.fs.joinPaths(md_path, space)
             if not q.system.fs.exists(space_dir):
@@ -1153,40 +1154,39 @@ class Alkira:
             portal_spaces = [space_dir]
         else:
             portal_spaces = q.system.fs.listDirsInDir(md_path)
-    
+
         #make the first space is the Admin Space
         portal_spaces = sorted(portal_spaces, lambda x,y: -1 if x.endswith("/Admin") else 1)
-    
+
         for folder in portal_spaces:
             space = folder.split(os.sep)[-1]
             spaceguid = None
             if space not in self.listSpaces():
                 #create space
                 self.createSpace(space, createHomePage=False)
-    
+
             spaceobject = self.getSpace(space)
             spaceguid = spaceobject.guid
-    
+
             q.console.echo('Syncing space: %s' % space)
-    
+
             page_occured = []
-    
+
             if page:
                 page_file = q.system.fs.walk(folder, 1, '%s.md' % page)
                 if not page_file:
                     q.errorconditionhandler.raiseError("Could not find %s in space %s" % (page, space))
                 createPage(page_file[0])
                 return
-    
+
             #Special handling for "Imported" space, dont traverse
             if space == IMPORTSPACE:
                 folder_paths = list()
             else:
                 folder_paths = q.system.fs.listDirsInDir(folder)
             main_files = q.system.fs.listFilesInDir(folder, filter='*.md')
-    
+
             for each_file in main_files:
                 createPage(each_file)
-    
+
             alkiraTree(folder_paths)
-        

@@ -377,7 +377,20 @@ data;
 
         var context = this;
         var treePage = '#/' + space + '/pagetree';
-
+        
+        var toggleSidebar = function(visible) {
+            if (visible){
+                $("#sidebar").show(0);
+                $("#content").addClass("span-19");
+                $("#toolbar").addClass("span-20");
+                $("#main").addClass("span-20");
+            } else {
+                $("#sidebar").hide(0);
+                $("#content").removeClass("span-19");
+                $("#toolbar").removeClass("span-20");
+                $("#main").removeClass("span-20");
+            }
+        };
         $.ajax({
             url: pageTreeUri,
             success: function(data) {
@@ -389,12 +402,17 @@ data;
                 console.log('Tree source: ' + content);
                 rendered = renderWiki(content);
                 console.log('Tree rendered: ' + rendered);
-
+                if (rendered !== ""){
+                    toggleSidebar(true);
+                } else {
+                    toggleSidebar(false);
+                }
                 swap(rendered, treePage, '#tree');
             },
             //cache: false,
             dataType: 'json',
             error: function(xhr, text, exc) {
+                toggleSidebar(false);
                 swap("", treePage, '#tree');
             }
         });

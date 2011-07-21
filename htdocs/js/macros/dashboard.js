@@ -260,11 +260,17 @@ $(function() {
             forceHelperSize: true,
             tolerance: "pointer",
             connectWith: "#" + this.parent.id + " .column",
+            sort: function(event, ui) {
+                if ($.browser.mozilla) {
+                    ui.helper.css({'top' : ui.position.top + $(window).scrollTop() + 'px'});
+                }
+            },
             update: function(event, ui) {
                 if (!ui.sender) {
                     that.parent._moveWidget(ui.item[0]);
                 }
             }
+            
         });
 
         // Set width (minus margins and such)
@@ -697,13 +703,13 @@ var render = function(options) {
         '.dashboard-header { margin: 0.3em; padding-bottom: 4px; padding-left: 0.2em; }' +
         '.dashboard-header .ui-icon { float: right; cursor: pointer; }' +
         '.dashboard .columns .column { margin: 0px; float: left; padding: 10px; }' +
-        '.portlet { margin: 0 0 1em 0; position: relative; }' +
+        '.portlet { margin: 0 0 1em 0; }' +
         '.portlet-header { margin: 0.3em; padding-bottom: 4px; padding-left: 0.2em; cursor: move; }' +
         '.portlet-header .icons { float: right; display: none; }' +
         '.portlet-header .icons .ui-icon { float: right; cursor: pointer; }' +
         '.portlet .portlet-menu { position: absolute; z-index: 1000; right: 5px; top: 20px; }' +
         '.portlet .portlet-content { padding: 0.4em; overflow: auto; }' +
-        '.ui-sortable-placeholder { border: 1px dotted black; visibility: visible !important; height: 50px' +
+        '.ui-sortable-placeholder { border: 1px dotted black; visibility: visible !important;' +
             '!important; }' +
         '.ui-sortable-placeholder * { visibility: hidden; }' +
         '#widgetStore { font-size: 1.1em; }' +

@@ -20,7 +20,11 @@ var render = function(options) {
 
     console.log("redered_path : " + renderer_dependency);
 
-    var chart_div = data_dict.chart_div
+    var getID = function(){
+        return Math.round(Math.random() * 1000000000).toString();
+    };
+    
+    var chart_div = getID();
 
     var cb = function(){
 
@@ -54,7 +58,7 @@ var render = function(options) {
     }
 
 
-    $.template(TEMPLATE_NAME, '<div><div id=${chart_div} style="height:${height}px;width:${width}px; "></div></div>');
+    $.template(TEMPLATE_NAME, '<div><div id="${chart_div}" style="height:${height}px;width:${width}px; "></div></div>');
     $.tmpl(TEMPLATE_NAME, {chart_div:chart_div, height:height, width:width}).appendTo($this);
 
     options.addCss({'id': 'jqplot', 'tag': 'link', 'params': {'rel': 'stylesheet', 'href': 'js/libs/jqplot/src/jquery.jqplot.css'}});

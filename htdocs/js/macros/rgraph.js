@@ -6,7 +6,12 @@ var render = function(options) {
     var TEMPLATE_NAME = 'plugin.rgraph';
     var $this = $(this);
     var data_dict = options.body ? $.parseJSON(options.body) : options.params;
-    var chart_div = data_dict.chart_div;
+    
+    var getID = function(){
+        return Math.round(Math.random() * 1000000000).toString();
+    };
+    
+    var chart_div = getID();
     var height = data_dict.height || 300;
     var width = data_dict.width || 280;
     var values = data_dict.values;
@@ -232,7 +237,7 @@ var render = function(options) {
         rgraph.refresh();
     };
 
-    $.template(TEMPLATE_NAME, '<div><div id=${chart_div} style="height:${height}px;width:${width}px; "></div></div>');
+    $.template(TEMPLATE_NAME, '<div><div id="${chart_div}" style="height:${height}px;width:${width}px; "></div></div>');
     $.tmpl(TEMPLATE_NAME, {chart_div:chart_div, height:height, width:width}).appendTo($this);
 
     options.addCss({'id': 'rgraphmacro', 'tag': 'style', 'params': '.node { cursor: pointer; padding: 0em 0.3em }'});

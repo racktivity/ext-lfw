@@ -1,5 +1,5 @@
 //@metadata wizard=sqlgrid
-//@metadata description=Show table with data taken from specific datasource
+//@metadata description=Show a table with data taken from specific datasource
 //@metadata image=img/macros/sqlgrid.png
 
 var render = function(options) {

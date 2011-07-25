@@ -165,36 +165,27 @@ class Alkira:
 
         return self.connection.page.query("SELECT count(guid) from ui_page.ui_view_page_list %s;" % where)[0]['count']
 
-    def search(self, text=None, space=None, category=None, tags=None):
+    def search(self, text=None, tags=None):
         # ignore tags for now
 
-        if not any([text, space, category, tags]):
+        if not any([text, tags]):
             return []
 
-        sql_select = 'page.category, page."name", space.name as space'
-        sql_from = 'ui_page.ui_view_page_list as page join ui_space.ui_view_space_list as space on page.space = space.guid'
+        sql_select = '"index"."name", "index".url'
+        sql_from = 'ui__index.global_index_view as "index"'
         sql_where = ['1=1']
 
         if tags:
-            # MNour - A hackish solution for tags/labels search. @see PYLABS-14.
-            # MNOUR - IMO this should be solved in the REST layer.
             tags = urllib.unquote_plus(tags)
             tags = tags.strip(', ')
-            sql_where.append('page.tags LIKE \'%%%s%%\'' %  tags)
-
-        if space:
-            space = self.alkira.getSpace(space)
-            sql_where.append('page.space = \'%s\'' % space.guid)
-
-        if category:
-            sql_where.append('page.category = \'%s\'' % category)
-
+            sql_where.append('"index".tags LIKE \'%%%s%%\'' %  tags)
+            
         if text:
-            sql_where.append('page.content LIKE \'%%%s%%\'' % text)
+            sql_where.append('"index".content LIKE \'%%%s%%\'' % text)
 
         query = 'SELECT %s FROM %s WHERE %s' % (sql_select, sql_from, ' AND '.join(sql_where))
 
-        result = self.connection.page.query(query)
+        result = self.connection._index.query(query)
 
         return result
 

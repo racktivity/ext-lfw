@@ -675,19 +675,9 @@ data;
     };
 
     // Check wether a token parameter was added to the url, if so use this as an OAuth token
-    var checkToken = function() {
-        if (this.params.hasOwnProperty("token") && Auth.parseOAuthToken) {
-            Auth.parseOAuthToken(this.params.token, (this.params.user ? this.params.user : ""), true);
-
-            // We only want to do this once
-            delete this.params.token;
-            delete this.params.user;
-        }
-    };
+    
 
     this.get('#/:space', function() {
-        checkToken.call(this);
-
         setSpace(this.params['space']);
         setPage(null);
 
@@ -753,8 +743,6 @@ data;
     });
 
     this.get('#/:space/:page', function() {
-        checkToken.call(this);
-
         clearFields();
 
         var space = this.params['space'],
@@ -914,7 +902,25 @@ $(function() {
     if(typeof(LFW_CONFIG) === 'undefined' || !LFW_CONFIG) {
         throw new Error('No LFW_CONFIG defined');
     }
-
+    var getUrlVars = function()
+    {
+        var vars = {};
+        var hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
+        for(var i = 0; i < hashes.length; i++)
+        {
+            hash = hashes[i].split('=');
+            vars[hash[0]] = hash[1];
+        }
+        return vars;
+    };
+    
+    var params = getUrlVars();
+    if (params.token) {
+        if (Auth.parseOAuthToken) {
+            Auth.parseOAuthToken(unescape(params.token), (params.user ? params.user : ""), true);
+        }
+    }
+    
     $("#space").change(function() {
         app.trigger('change-space', {space: $(this).val()});
     });

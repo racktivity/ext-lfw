@@ -55,12 +55,14 @@ $(function() {
     //Install global error handler so we can show a login box if required but only if we got it from the rest api
     //from the applicationserver
     $(document).ajaxError(function(event, xhr, options) {
-        if ((xhr.status === 403 || xhr.status === 401) && options.url.indexOf(LFW_CONFIG.appname + "/appserver/rest/") !== -1) {
+        if ((xhr.status === 403 || xhr.status === 401) &&
+            options.url.indexOf(LFW_CONFIG.appname + "/appserver/rest/") !== -1) {
+
             event.preventDefault();
             showLoginDialog();
         }
     });
-    
+
     //Intercept all Ajax requests to add the OAuth header parameters if any
     $(document).ajaxSend(function(event, xhr, settings) {
         addAuthenticationHeader(xhr, settings);
@@ -171,10 +173,11 @@ $(function() {
         url = url + '?' + OAuth.formEncode(message.parameters);
         jQuery.ajax({
             type: "GET",
-            dataType: 'jsonp',
-            jsonp: '_jsonp',
             url: url,
-            error: $.alerterror,
+            error: function(xhr, text, exc, options) {
+                $("#loginDialog").find("input").attr("disabled", false);
+                $.alerterror(xhr, text, exc, options);
+            },
             success: function(data) {
                 Auth.parseOAuthToken(data, username);
             }
@@ -189,7 +192,7 @@ $(function() {
         }
         $("#loginDialog").find("input").attr("disabled", true);
         makeOAuthRequest($('#username').val(), $('#password').val());
-        
+
     });
 
     Auth.getFromLocalStorage = function(key) {
@@ -202,7 +205,7 @@ $(function() {
         if (item === null) {
             return null;
         }
-        
+
         return item.value;
     };
 
@@ -212,7 +215,7 @@ $(function() {
             $("#loginDialog").find("input").attr("disabled", false);
             return;
         }
-        
+
         addToLocalStorage(OAUTH_TOKEN, token);
         showLogoutLink();
         $("#loginInfo #loggeduser").html(username);

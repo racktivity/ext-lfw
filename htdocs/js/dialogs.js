@@ -11,7 +11,7 @@
                     }}});
     };
 
-    $.alerterror = function(xhr, text, exc, options){
+    $.alerterror = function(xhr, text, exc, options) {
         var options = $.extend({title: 'Error'}, options);
 
         var message = "";

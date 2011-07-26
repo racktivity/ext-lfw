@@ -1,11 +1,18 @@
-import uuid, os, oauth2
+import uuid, oauth2, xmlrpclib
 from pylabs import q, p
 from datetime import datetime, timedelta
 
 class OAuthService(object):
     def __init__(self):
         self.arakoon_client = q.clients.arakoon.getClient(p.api.appname)
-        self.config = q.tools.inifile.open(q.system.fs.joinPaths(q.dirs.pyAppsDir, p.api.appname, "cfg", "oauth.cfg"))
+        config = q.tools.inifile.open(q.system.fs.joinPaths(q.dirs.pyAppsDir, p.api.appname, "cfg", "auth.cfg"))
+        self.config = config.getFileAsDict()
+
+        config = q.tools.inifile.open(q.system.fs.joinPaths(q.dirs.pyAppsDir, p.api.appname, "cfg", \
+            "applicationserver.cfg"))
+        self.xmlrpcUrl = "http://%s:%d/RPC2" % (config.getValue("main", "xmlrpc_ip"), \
+            config.getIntValue("main", "xmlrpc_port"))
+        self.service = None
 
     @q.manage.applicationserver.expose
     def getToken(self, user, password):
@@ -21,19 +28,7 @@ class OAuthService(object):
         @rtype: list
         """
 
-        valid, groupguids = False, ()
-
-        #special handling for the admin user
-        if user.lower() == 'admin':
-            valid = self._checkAdminCredentials(user, password)
-
-        #if not valid:
-            #servicename = self.config['main']['servicename']
-            #backend_service_mod = self._loadBackEndService(servicename)
-            #backend_service = backend_service_mod(self.config[servicename], user, password)
-
-            ##Authenticate the user using the Auth service
-            #valid, groupguids = backend_service.isAuthenticated(user, password), ()
+        valid = xmlrpclib.ServerProxy(self.xmlrpcUrl).ui.auth.verifyUserIdentity(user, password)
 
         if not valid:
             q.logger.log('Invalid user name/password combination', 4)
@@ -44,7 +39,7 @@ class OAuthService(object):
             token = oauth2.Token(str(uuid.uuid4()), str(uuid.uuid4()))
             token.set_verifier('')
 
-            self.saveToArakoon(token, groupguids=groupguids)
+            self.saveToArakoon(token)
 
             q.logger.log('OAuth token generated, and saved to Arakoon cluster', 3)
             return token.to_string()
@@ -52,7 +47,7 @@ class OAuthService(object):
             q.logger.log('Exception while generating token %s' % str(err), 4)
             raise Warning('Exception while generating token %s' % str(err))
 
-    def saveToArakoon(self, token, groupguids=None):
+    def saveToArakoon(self, token):
         """
         Save  the generated OAuth token to the pyapps Arakoon cluster in the form: key='token_$(token_key)', value='token_secret'
         @param token: tokenkey, and tokensecret
@@ -72,30 +67,8 @@ class OAuthService(object):
         else:
             tokenkey = parts[0].split('=')[1]
             tokensecret = parts[1].split('=')[1]
-        validhours = self.config.getFloatValue("oauth", "hoursvalid")
+        validhours = float(self.config["oauth"]["hoursvalid"])
         validuntil = (datetime.now() + timedelta(hours=validhours)).strftime("%s")
         q.logger.log("Saving to Arakoon tokenkey: token_$(%s), tokensecret:%s" % (tokenkey, tokensecret), 3)
-        self.arakoon_client.set(key='token_$(%s)' % tokenkey, value=str({'validuntil': validuntil, \
-            'tokensecret':tokensecret, 'groupguids':groupguids}))
-
-    def _loadBackEndService(self, servicename):
-        plugin = None
-        pluginsdir = os.path.dirname(__file__)
-        if not pluginsdir:
-            pluginsdir = "."
-        candidates = os.listdir(pluginsdir)
-        for candidate in candidates:
-            if candidate == "__init__.py" or not candidate.endswith(".py"):
-                continue
-            modname = os.path.splitext(candidate)[0]
-            if modname != servicename:
-                continue
-            pluginmod = __import__(modname, level=1)
-            if hasattr(pluginmod, 'BACKEND'):
-                plugin = getattr(pluginmod, 'BACKEND')
-        return plugin
-
-    def _checkAdminCredentials(self, adminuser, adminpassword):
-        if adminuser == "admin" and adminpassword == "admin":
-            return True
-        return False
+        self.arakoon_client.set(key='token_$(%s)' % tokenkey, value=str({ 'validuntil': validuntil, \
+            'tokensecret':tokensecret }))

@@ -681,9 +681,15 @@ data;
     $(".protocol-page").live("click", function(e) {
         e.preventDefault();
         var address = $(this).attr("href");
-        var parts = address.split("/", 2);
-        app.trigger("change-page", {space: parts[0],
-                                    title: parts[1]});
+        var pagereg = /^([^\/]+)\/(.+)$/;
+        var m = pagereg.exec(address);
+        if (m){
+            app.trigger("change-page", {space: m[1],
+                                    title: m[2]});
+        } else {
+            console.log("Invalid page resource address");
+        }
+        
     });
     
     //2 - The page resource handler

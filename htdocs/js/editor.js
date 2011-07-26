@@ -69,7 +69,8 @@
 
         var options = $.extend(true, {filetype: 'md',
                                       content: '',
-                                      autocomplete: []}, options);
+                                      autocomplete: [],
+                                      editorbar: true}, options);
 
         var layout = "<div class='editor'>\
     <div id='editorbar'>\
@@ -215,7 +216,9 @@
         return this.each(function(){
             var $this = $(this);
             $this.html(layout);
-
+            if (!options.editorbar) {
+                $this.find("#editorbar").css("display", "none");
+            }
             //initialize codemirror editor
             var editor = CodeMirror.fromTextArea($this.find("textarea")[0],
                 {value: options.content,

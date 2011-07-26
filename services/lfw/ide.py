@@ -22,7 +22,10 @@ class ide(object):
     
     def _hasChildren(self, path):
         return bool(q.system.fs.walk(path, return_folders=1))
-        
+    
+    def _getProjectPath(self, project):
+        return q.system.fs.joinPaths(q.dirs.pyAppsDir, p.api.appname, project.path)
+    
     @q.manage.applicationserver.expose
     def getNode(self, id="."):
         
@@ -41,14 +44,11 @@ class ide(object):
             return results
         
         project, relativepath = self._resolveID(id)
-        
-        projectpath = q.system.fs.joinPaths(q.dirs.pyAppsDir, p.api.appname, project.path)
+        projectpath = self._getProjectPath(project)
         fullpath = q.system.fs.joinPaths(projectpath, relativepath)
         
         for dir in q.system.fs.listDirsInDir(fullpath):
             dirname = q.system.fs.getBaseName(dir)
-#            import rpdb2
-#            rpdb2.start_embedded_debugger("azmy")
             results.append({"state": "closed" if self._hasChildren(dir) else "leaf",
                             "data": dirname,
                             "attr": {"id": self._getID(project, dir)}})
@@ -65,5 +65,12 @@ class ide(object):
     @q.manage.applicationserver.expose
     def getFile(self, id):
         project, relativepath = self._resolveID(id)
-        
+        filepath = q.system.fs.joinPaths(self._getProjectPath(project), relativepath)
+        return q.system.fs.fileGetContents(filepath)
+    
+    @q.manage.applicationserver.expose
+    def setFile(self, id, content=""):
+        project, relativepath = self._resolveID(id)
+        filepath = q.system.fs.joinPaths(self._getProjectPath(project), relativepath)
+        return q.system.fs.writeFile(filepath, content)
 

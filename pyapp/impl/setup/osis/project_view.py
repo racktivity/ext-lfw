@@ -5,24 +5,22 @@ __priority__= 3
 from osis.store.OsisDB import OsisDB
 
 def main(q, i, params, tags):
-    rootobject = 'page'
+    rootobject = 'project'
     domain = "ui"
     appname = params['appname']
     view_name = '%s_view_%s_list' % (domain, rootobject)
     connection = OsisDB().getConnection(appname)
     if not connection.viewExists(domain, rootobject, view_name):
         view = connection.viewCreate(domain, rootobject, view_name)
-        view.setCol('name', q.enumerators.OsisType.STRING, True)
-        view.setCol('space', q.enumerators.OsisType.UUID, True)
-        view.setCol('category', q.enumerators.OsisType.STRING, True)
-        view.setCol('parent', q.enumerators.OsisType.UUID, True)
+        view.setCol('name', q.enumerators.OsisType.STRING, False)
+        view.setCol('path', q.enumerators.OsisType.STRING, False)
         view.setCol('tags', q.enumerators.OsisType.STRING, True)
-        view.setCol('order', q.enumerators.OsisType.INTEGER, True)
-        view.setCol('title', q.enumerators.OsisType.STRING, True)
-        view.setCol('pagetype', q.enumerators.OsisType.STRING, True)
         connection.viewAdd(view)
 
-        indexes = ['name', 'space', 'category', 'parent', 'tags']
+        indexes = ['tags']
         for field in indexes:
             context = {'schema': "%s_%s" % (domain, rootobject), 'view': view_name, 'field': field}
             connection.runQuery("CREATE INDEX %(field)s_%(schema)s_%(view)s ON %(schema)s.%(view)s (%(field)s)" % context)
+
+        context = {'schema': "%s_%s" % (domain, rootobject), 'view': view_name, 'field': 'name'}
+        connection.runQuery("CREATE UNIQUE INDEX %(field)s_%(schema)s_%(view)s ON %(schema)s.%(view)s (%(field)s)" % context)

@@ -676,7 +676,29 @@ data;
 
     // Check wether a token parameter was added to the url, if so use this as an OAuth token
     
-
+    //register search resources handlers
+    //1 - The page resource handler
+    $(".protocol-page").live("click", function(e) {
+        e.preventDefault();
+        var address = $(this).attr("href");
+        var pagereg = /^([^\/]+)\/(.+)$/;
+        var m = pagereg.exec(address);
+        if (m){
+            app.trigger("change-page", {space: m[1],
+                                    title: m[2]});
+        } else {
+            console.log("Invalid page resource address");
+        }
+        
+    });
+    
+    //2 - The page resource handler
+    $(".protocol-ide").live("click", function(e) {
+        e.preventDefault();
+        var address = $(this).attr("href");
+        throw "Not implemented";
+    });
+    
     this.get('#/:space', function() {
         setSpace(this.params['space']);
         setPage(null);
@@ -698,9 +720,7 @@ data;
                });
            }
 
-           var args = {
-               //space: getSpace()
-           };
+           var args = {};
 
            if(type === 'labels') {
                args['tags'] = this.params['q'];
@@ -712,20 +732,25 @@ data;
                throw new Error('Invalid query type');
            }
 
-           $.getJSON(searchUri, /*{
-               'type': type,
-               'space': getSpace(),
-               'q': query
-           },*/
+           $.getJSON(searchUri,
            args,
            function(data) {
                context.title('Search Results');
 
                var templateData = [];
+               var urireg = /^([^:]+):\/\/(.+)$/;
                for(var i = 0, len = data.length; i < len; i++) {
                    var result = data[i];
                    var appName = getAppName();
-                   templateData.push([result.space, result.name, appName]);
+                   var m = urireg.exec(result.url);
+                   if (m){
+                       
+                        templateData.push({name: result.name,
+                                           protocol: m[1],
+                                           address: m[2]});
+                   } else {
+                       console.log("Bad URL for search result (" + result.name + ", " + result.url + ")");
+                   }
                }
 
                swap(
@@ -734,6 +759,7 @@ data;
                        {'results': templateData}
                    )
                );
+               
            });
 
         }
@@ -892,7 +918,7 @@ data;
         this.log('change-page');
         //replace /s with %2f
         data['title'] = data['title'].replace(/\//g, "%2f");
-        this.redirect(buildUri(getSpace(), data['title']));
+        this.redirect(buildUri(data.space ? data.space : getSpace(), data.title));
     });
 });
 

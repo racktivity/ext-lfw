@@ -91,8 +91,8 @@ class LFWService(object):
         return self.alkira.getitems('category', space, term)
 
     @q.manage.applicationserver.expose_authenticated
-    def search(self, text=None, space=None, category=None, tags=None):
-        return self.alkira.search(text=text, space=space, category=category, tags=tags)
+    def search(self, text=None, tags=None):
+        return self.alkira.search(text=text, tags=tags)
 
     @q.manage.applicationserver.expose_authenticated
     def breadcrumbs(self, space, name):

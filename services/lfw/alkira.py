@@ -39,13 +39,32 @@ class Alkira:
                 return spaces[0]['guid']
         elif isinstance(space, self.connection.space._ROOTOBJECTTYPE):
             return space.guid
-
+    
+    def _getProjectGuid(self, project):
+        if isinstance(project, basestring):
+            if q.basetype.guid.check(project):
+                return project
+            else:
+                projects = self._getProjectInfo(project)
+                if not projects:
+                    q.errorconditionhandler.raiseError("Project %s does not exist." % project)
+                return projects[0]['guid']
+        elif isinstance(project, self.connection.project._ROOTOBJECTTYPE):
+            return project.guid
+    
     def _getSpaceInfo(self, name=None):
         filter = self.connection.space.getFilterObject()
         if name:
             filter.add('ui_view_space_list', 'name', name, True)
         space = self.connection.space.findAsView(filter, 'ui_view_space_list')
         return space
+    
+    def _getProjectInfo(self, name=None):
+        filter = self.connection.project.getFilterObject()
+        if name:
+            filter.add('ui_view_project_list', 'name', name, True)
+        project = self.connection.project.findAsView(filter, 'ui_view_project_list')
+        return project
 
     def _getUserInfo(self, name=None):
         filter = self.connection.user.getFilterObject()
@@ -146,46 +165,50 @@ class Alkira:
 
         return self.connection.page.query("SELECT count(guid) from ui_page.ui_view_page_list %s;" % where)[0]['count']
 
-    def search(self, text=None, space=None, category=None, tags=None):
+    def search(self, text=None, tags=None):
         # ignore tags for now
 
-        if not any([text, space, category, tags]):
+        if not any([text, tags]):
             return []
 
-        sql_select = 'page.category, page."name", space.name as space'
-        sql_from = 'ui_page.ui_view_page_list as page join ui_space.ui_view_space_list as space on page.space = space.guid'
+        sql_select = '"index"."name", "index".url'
+        sql_from = 'ui__index.global_index_view as "index"'
         sql_where = ['1=1']
 
         if tags:
-            # MNour - A hackish solution for tags/labels search. @see PYLABS-14.
-            # MNOUR - IMO this should be solved in the REST layer.
             tags = urllib.unquote_plus(tags)
             tags = tags.strip(', ')
-            sql_where.append('page.tags LIKE \'%%%s%%\'' %  tags)
-
-        if space:
-            space = self.alkira.getSpace(space)
-            sql_where.append('page.space = \'%s\'' % space.guid)
-
-        if category:
-            sql_where.append('page.category = \'%s\'' % category)
-
+            sql_where.append('"index".tags LIKE \'%%%s%%\'' %  tags)
+            
         if text:
-            sql_where.append('page.content LIKE \'%%%s%%\'' % text)
+            sql_where.append('"index".content LIKE \'%%%s%%\'' % text)
 
         query = 'SELECT %s FROM %s WHERE %s' % (sql_select, sql_from, ' AND '.join(sql_where))
 
-        result = self.connection.page.query(query)
+        result = self.connection._index.query(query)
 
         return result
 
+    def listProjects(self):
+        """
+        List all projects
+        """
+        return map(lambda item: item["name"],
+                   self.listProjectInfo())
+        
+    def listProjectInfo(self, name=None):
+        """
+        List projects info
+        """
+        return self._getProjectInfo(name)
+    
     def listSpaces(self):
         """
         Lists all the spaces.
         """
         return map(lambda item: item["name"],
                    self.listSpaceInfo())
-
+    
     def listSpaceInfo(self, name=None):
         """
         List all spaces info
@@ -270,6 +293,16 @@ class Alkira:
         @return: True if the space exists, False otherwise
         """
         return bool(self._getSpaceInfo(name))
+    
+    def projectExists(self, name):
+        """
+        Checks whether a project exists or not
+
+        @param name: Project name
+
+        @return: True if the project exists, False otherwise
+        """
+        return bool(self._getProjectInfo(name))
 
     def pageExists(self, space, name):
         """
@@ -332,6 +365,18 @@ class Alkira:
 
         return self.connection.user.find(filterObject)
 
+    def getProject(self, project):
+        """
+        Gets a project object
+
+        @param project: The project name, or guid
+        """
+        if isinstance(project, self.connection.project._ROOTOBJECTTYPE):
+            return project
+
+        guid = self._getProjectGuid(project)
+        return self.connection.project.get(guid)
+    
     def getSpace(self, space):
         """
         Gets a space object
@@ -385,6 +430,15 @@ class Alkira:
 
         return self.connection.page.get(guid)
 
+    def deleteProject(self, project):
+        """
+        Delete a project
+        
+        @param project: Project name of GUID
+        """
+        guid = self._getProjectGuid(project)
+        self.connection.project.delete(guid)
+    
     def deleteSpace(self, space):
         """
         Delete space
@@ -561,6 +615,45 @@ class Alkira:
         self.createPage(ADMINSPACE, name, spacectnt, title=name, parent="Spaces")
 
         return space
+    
+    def createProject(self, name, path, tagsList=[]):
+        """
+        Create a new project
+        
+        @param name: Name of the project
+        @param path: Relative path of the project files (relative from the pyapp location)
+        """
+        if self.projectExists(name):
+            q.errorconditionhandler.raiseError("Project %s already exists." % name)
+
+        project = self.connection.project.new()
+        project.name = name
+        project.path = path
+        project.tags = ' '.join(tagsList)
+
+        self.connection.project.save(project)
+        return project
+    
+    def updateProject(self, project, newname=None, path=None, tagsList=None):
+        """
+        Update project
+        
+        @param project: Project name or guid
+        @param newname: New project name
+        @param path: set project path
+        @param tagsList: New project tags list
+        """
+        project = self.getProject(project)
+        
+        if newname:
+            project.name = newname
+        if path:
+            project.path = path
+        if tagsList != None:
+            project.tags = ' '.join(tagsList)
+
+        self.connection.project.save(project)
+        return project
 
     def _breadcrumbs(self, page):
         breadcrumbs = []

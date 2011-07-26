@@ -1,13 +1,15 @@
 from pylabs import q, p
 from alkira import Alkira
 import os
+import hashlib
+from osis.store.OsisDB import OsisDB
 
-TASKLETS = ('impl/ui/form',
-            'impl/ui/wizard')
-            
+GUIDMAP = [8, 4, 4, 4, 12]
+
 class ide(object):
     def __init__(self):
         self.alkira = Alkira(p.api)
+        self.connection = OsisDB().getConnection(p.api.appname)
         
     def _resolveID(self, id):
         pieces = id.split(os.path.sep)
@@ -25,6 +27,45 @@ class ide(object):
     
     def _getProjectPath(self, project):
         return q.system.fs.joinPaths(q.dirs.pyAppsDir, p.api.appname, project.path)
+    
+    def _IDtoGUID(self, id):
+        md5 = hashlib.md5(id)
+        hash = md5.hexdigest()
+        parts = []
+        li = 0
+        for i in GUIDMAP:
+            part = hash[li:li + i]
+            if len(part) != i:
+                part += "0" * (i - len(part))
+            parts.append(part)
+            li += i
+        
+        return "-".join(parts)
+    
+    
+    def _updateIndex(self, id, content):
+        guid = self._IDtoGUID(id)
+        name = q.system.fs.getBaseName(id)
+        self.connection.viewSave("ui", "_index", "global_index_view", guid, guid, {'name': name,
+                                                                                   'content': content,
+                                                                                   'url': 'ide://%s' % id})
+    def _renameIndex(self, id, newid):
+        url = "ide://%s" % id
+        newurl = "ide://%s" % newid
+        newname = q.system.fs.getBaseName(newid)
+        self.connection.runQuery("""UPDATE ui__index.global_index_view
+            SET url = regexp_replace(url, '^%(url)s(.*)', '%(newurl)s\\\\1')
+            WHERE url LIKE '%(url)s%%'""" % {'url': url,
+                                            'newurl': newurl})
+        
+        self.connection.runQuery("""UPDATE ui__index.global_index_view
+            SET name = '%(name)s'
+            WHERE url = '%(newurl)s'""" % {'name': newname,
+                                            'newurl': newurl})
+    
+    def _deleteIndex(self, id):
+        url = "ide://%s" % id
+        self.connection.runQuery("delete from ui__index.global_index_view where url LIKE '%s%%'" % url)
     
     @q.manage.applicationserver.expose
     def getNode(self, id="."):
@@ -72,7 +113,8 @@ class ide(object):
     def setFile(self, id, content):
         project, relativepath = self._resolveID(id)
         filepath = q.system.fs.joinPaths(self._getProjectPath(project), relativepath)
-        return q.system.fs.writeFile(filepath, content)
+        q.system.fs.writeFile(filepath, content)
+        self._updateIndex(id, content)
     
     @q.manage.applicationserver.expose
     def newFile(self, id):
@@ -98,6 +140,7 @@ class ide(object):
             q.system.fs.removeFile(path)
         elif q.system.fs.isDir(path):
             q.system.fs.removeDirTree(path)
+        self._deleteIndex(id)
             
     @q.manage.applicationserver.expose
     def rename(self, id, name):

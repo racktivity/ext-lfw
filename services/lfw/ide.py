@@ -69,8 +69,47 @@ class ide(object):
         return q.system.fs.fileGetContents(filepath)
     
     @q.manage.applicationserver.expose
-    def setFile(self, id, content=""):
+    def setFile(self, id, content):
         project, relativepath = self._resolveID(id)
         filepath = q.system.fs.joinPaths(self._getProjectPath(project), relativepath)
         return q.system.fs.writeFile(filepath, content)
+    
+    @q.manage.applicationserver.expose
+    def newFile(self, id):
+        project, relativepath = self._resolveID(id)
+        filepath = q.system.fs.joinPaths(self._getProjectPath(project), relativepath)
+        if q.system.fs.exists(filepath):
+            raise RuntimeError("A file with the same name already exists")
+        return q.system.fs.writeFile(filepath, "")
+    
+    @q.manage.applicationserver.expose
+    def newDir(self, id):
+        project, relativepath = self._resolveID(id)
+        dirpath = q.system.fs.joinPaths(self._getProjectPath(project), relativepath)
+        if q.system.fs.exists(dirpath):
+            raise RuntimeError("A file with the same name already exists")
+        return q.system.fs.createDir(dirpath)
+    
+    @q.manage.applicationserver.expose
+    def delete(self, id):
+        project, relativepath = self._resolveID(id)
+        path = q.system.fs.joinPaths(self._getProjectPath(project), relativepath)
+        if q.system.fs.isFile(path):
+            q.system.fs.removeFile(path)
+        elif q.system.fs.isDir(path):
+            q.system.fs.removeDirTree(path)
+            
+    @q.manage.applicationserver.expose
+    def rename(self, id, name):
+        project, relativepath = self._resolveID(id)
+        path = q.system.fs.joinPaths(self._getProjectPath(project), relativepath)
+        newname = q.system.fs.joinPaths(q.system.fs.getDirName(path), name)
+        
+        if q.system.fs.exists(newname):
+            raise RuntimeError("A file with the same name already exists")
+        
+        if q.system.fs.isFile(path):
+            q.system.fs.renameFile(path, newname)
+        elif q.system.fs.isDir(path):
+            q.system.fs.renameDir(path, newname)
 

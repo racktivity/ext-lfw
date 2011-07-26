@@ -50,5 +50,31 @@
                                 }}
                     });
     };
+    
+    $.prompt = function(message, options){
+        var options = $.extend({title: '',
+                                value: '',
+                                pattern: /.*/,
+                                error: "Invalid Input",
+                                ok: $.noop}, options);
+
+        var dialog = $("<div>").append($("<p>").text(message))
+                    .append($("<input id='input' style='width: 100%'>").val(options.value))
+                    .dialog({modal: true,
+                            title: options.title,
+                            buttons: {Ok: function(){
+                                            var input = dialog.find("#input").val();
+                                            if (options.pattern.test(input)) {
+                                                options.ok(input);
+                                                $(this).dialog("close");
+                                            } else {
+                                                $.alert(options.error, {title: "Invalid Input"});
+                                            }
+                                        },
+                                    Cancel: function(){
+                                        $(this).dialog("close");
+                                        }}
+                            });
+    };
 
 })(jQuery);

@@ -145,6 +145,7 @@ class ide(object):
     @q.manage.applicationserver.expose
     def rename(self, id, name):
         project, relativepath = self._resolveID(id)
+        
         path = q.system.fs.joinPaths(self._getProjectPath(project), relativepath)
         newname = q.system.fs.joinPaths(q.system.fs.getDirName(path), name)
         
@@ -155,4 +156,7 @@ class ide(object):
             q.system.fs.renameFile(path, newname)
         elif q.system.fs.isDir(path):
             q.system.fs.renameDir(path, newname)
+        
+        newid = q.system.fs.joinPaths(project.name, q.system.fs.getDirName(id), name)
+        self._renameIndex(id, newid)
 

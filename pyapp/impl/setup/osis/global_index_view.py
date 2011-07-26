@@ -21,4 +21,4 @@ def main(q, i, params, tags):
         indexes = ['content', 'tags']
         for field in indexes:
             context = {'schema': "%s_%s" % (domain, rootobject), 'view': view_name, 'field': field}
-            connection.runQuery("CREATE INDEX %(field)s_%(schema)s_%(view)s ON %(schema)s.%(view)s (%(field)s)" % context)
+            connection.runQuery("CREATE INDEX %(field)s_%(schema)s_%(view)s ON %(schema)s.%(view)s USING hash (%(field)s)" % context)

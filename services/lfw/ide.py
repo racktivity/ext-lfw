@@ -5,6 +5,7 @@ import hashlib
 from osis.store.OsisDB import OsisDB
 
 GUIDMAP = [8, 4, 4, 4, 12]
+EXTENSIONS = [".py", ".html", ".js", ".txt", ""]
 
 class ide(object):
     def __init__(self):
@@ -42,26 +43,24 @@ class ide(object):
         
         return "-".join(parts)
     
+    def _filter(self, file):
+        return os.path.splitext(file)[1] in EXTENSIONS
     
-    def _updateIndex(self, id, content):
+    def _updateFileIndex(self, id, content):
         guid = self._IDtoGUID(id)
         name = q.system.fs.getBaseName(id)
         self.connection.viewSave("ui", "_index", "global_index_view", guid, guid, {'name': name,
                                                                                    'content': content,
                                                                                    'url': 'ide://%s' % id})
-    def _renameIndex(self, id, newid):
-        url = "ide://%s" % id
-        newurl = "ide://%s" % newid
-        newname = q.system.fs.getBaseName(newid)
-        self.connection.runQuery("""UPDATE ui__index.global_index_view
-            SET url = regexp_replace(url, '^%(url)s(.*)', '%(newurl)s\\\\1')
-            WHERE url LIKE '%(url)s%%'""" % {'url': url,
-                                            'newurl': newurl})
+    
+    def _updateDirIndex(self, id):
+        project, relativepath = self._resolveID(id)
+        fullpath = q.system.fs.joinPaths(self._getProjectPath(project), relativepath)
+        for file in q.system.fs.walk(fullpath, 1):
+            if not self._filter(file):
+                continue
+            self._updateFileIndex(self._getID(project, file), q.system.fs.fileGetContents(file))
         
-        self.connection.runQuery("""UPDATE ui__index.global_index_view
-            SET name = '%(name)s'
-            WHERE url = '%(newurl)s'""" % {'name': newname,
-                                            'newurl': newurl})
     
     def _deleteIndex(self, id):
         url = "ide://%s" % id
@@ -88,18 +87,21 @@ class ide(object):
         projectpath = self._getProjectPath(project)
         fullpath = q.system.fs.joinPaths(projectpath, relativepath)
         
-        for dir in q.system.fs.listDirsInDir(fullpath):
-            dirname = q.system.fs.getBaseName(dir)
-            results.append({"state": "closed" if self._hasChildren(dir) else "leaf",
-                            "data": dirname,
-                            "attr": {"id": self._getID(project, dir)}})
-        
-        for file in q.system.fs.listFilesInDir(fullpath, filter="*.py"):
-            filename = q.system.fs.getBaseName(file)
-            results.append({"state": "leaf",
-                            "data": filename,
-                            "attr": {"id": self._getID(project, file),
-                                     "rel": "file"}})
+        if q.system.fs.isDir(fullpath):
+            for dir in q.system.fs.listDirsInDir(fullpath):
+                dirname = q.system.fs.getBaseName(dir)
+                results.append({"state": "closed" if self._hasChildren(dir) else "leaf",
+                                "data": dirname,
+                                "attr": {"id": self._getID(project, dir)}})
+            
+            for file in q.system.fs.listFilesInDir(fullpath, filter="*.py"):
+                filename = q.system.fs.getBaseName(file)
+                if not self._filter(filename):
+                    continue
+                results.append({"state": "leaf",
+                                "data": filename,
+                                "attr": {"id": self._getID(project, file),
+                                         "rel": "file"}})
         
         return results
     
@@ -114,7 +116,7 @@ class ide(object):
         project, relativepath = self._resolveID(id)
         filepath = q.system.fs.joinPaths(self._getProjectPath(project), relativepath)
         q.system.fs.writeFile(filepath, content)
-        self._updateIndex(id, content)
+        self._updateFileIndex(id, content)
     
     @q.manage.applicationserver.expose
     def newFile(self, id):
@@ -148,15 +150,17 @@ class ide(object):
         
         path = q.system.fs.joinPaths(self._getProjectPath(project), relativepath)
         newname = q.system.fs.joinPaths(q.system.fs.getDirName(path), name)
+        newid = self._getID(project, newname)
         
         if q.system.fs.exists(newname):
             raise RuntimeError("A file with the same name already exists")
         
+        self._deleteIndex(id)
         if q.system.fs.isFile(path):
             q.system.fs.renameFile(path, newname)
+            self._updateFileIndex(newid, q.system.fs.fileGetContents(newname))
         elif q.system.fs.isDir(path):
             q.system.fs.renameDir(path, newname)
-        
-        newid = q.system.fs.joinPaths(project.name, q.system.fs.getDirName(id), name)
-        self._renameIndex(id, newid)
+            self._updateDirIndex(newid)
+            
 

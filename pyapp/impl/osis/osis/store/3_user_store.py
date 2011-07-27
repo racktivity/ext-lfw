@@ -1,17 +1,15 @@
 __author__ = 'Incubaid'
 
 def main(q, i, p, params, tags):
-    osis = p.application.getOsisConnection(p.api.appname) 
+    osis = p.application.getOsisConnection(p.api.appname)
     viewname = '%s_view_%s_list' % (params['domain'], params['rootobjecttype'])
     rootobject = params['rootobject']
-    values = {
-        'name': rootobject.name,
-        'password': rootobject.password,
-        'spaces': ','.join(rootobject.spaces),
-        'pages': ','.join(rootobject.pages),
-        'tags': rootobject.tags
-    }
-    osis.viewSave(params['domain'], params['rootobjecttype'], viewname, rootobject.guid, rootobject.version, values)
+    for group in rootobject.groups:
+        values = {
+            'name': rootobject.name,
+            'groupguid': group
+        }
+        osis.viewSave(params['domain'], params['rootobjecttype'], viewname, rootobject.guid, rootobject.version, values)
 
 def match(q, i, params, tags):
-    return params['rootobjecttype'] == 'user' and params['domain'] =='ui'
+    return params['rootobjecttype'] == 'user' and params['domain'] == 'ui'

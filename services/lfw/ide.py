@@ -5,7 +5,7 @@ import hashlib
 from osis.store.OsisDB import OsisDB
 
 GUIDMAP = [8, 4, 4, 4, 12]
-EXTENSIONS = [".py", ".html", ".js", ".txt", ""]
+EXTENSIONS = (".py", ".html", ".js", ".txt", ".md", ".cfg", "")
 
 class ide(object):
     def __init__(self):
@@ -67,6 +67,41 @@ class ide(object):
         self.connection.runQuery("delete from ui__index.global_index_view where url LIKE '%s%%'" % url)
     
     @q.manage.applicationserver.expose
+    def getProjectNode(self, id="."):
+        results = []
+        if not id:
+            raise RuntimeError("Invalid ID")
+        
+        apppath = q.system.fs.joinPaths(q.dirs.pyAppsDir, p.api.appname)
+        closed = lambda x: bool(q.system.fs.listDirsInDir(x))
+        
+        fullpath = q.system.fs.joinPaths(apppath, id)
+        fullpath = os.path.relpath(fullpath)
+        
+        for dir in q.system.fs.listDirsInDir(fullpath):
+            name = q.system.fs.getBaseName(dir)
+            dirid = os.path.relpath(q.system.fs.joinPaths(id, name))
+            results.append({"state": "closed" if closed(dir) else "leaf",
+                            "data": name,
+                            "attr": {"id": dirid}})
+        
+        return results
+    
+    @q.manage.applicationserver.expose
+    def createProject(self, name, path):
+        self.alkira.createProject(name, path)
+        self._updateDirIndex(name)
+    
+    @q.manage.applicationserver.expose
+    def deleteProject(self, name):
+        self.alkira.deleteProject(name)
+        self._deleteIndex(name)
+    
+    @q.manage.applicationserver.expose
+    def getProjects(self):
+        return self.alkira.listProjectInfo()
+    
+    @q.manage.applicationserver.expose
     def getNode(self, id="."):
         
         results = []
@@ -94,7 +129,7 @@ class ide(object):
                                 "data": dirname,
                                 "attr": {"id": self._getID(project, dir)}})
             
-            for file in q.system.fs.listFilesInDir(fullpath, filter="*.py"):
+            for file in q.system.fs.listFilesInDir(fullpath):
                 filename = q.system.fs.getBaseName(file)
                 if not self._filter(filename):
                     continue

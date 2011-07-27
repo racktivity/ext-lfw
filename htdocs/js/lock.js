@@ -1,5 +1,5 @@
 
-$(function($){
+(function($){
     $.fn.lock = function(name, handler){
         return this.each(function(){
             var $this = $(this);

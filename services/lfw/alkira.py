@@ -39,7 +39,7 @@ class Alkira:
                 return spaces[0]['guid']
         elif isinstance(space, self.connection.space._ROOTOBJECTTYPE):
             return space.guid
-    
+
     def _getProjectGuid(self, project):
         if isinstance(project, basestring):
             if q.basetype.guid.check(project):
@@ -51,14 +51,14 @@ class Alkira:
                 return projects[0]['guid']
         elif isinstance(project, self.connection.project._ROOTOBJECTTYPE):
             return project.guid
-    
+
     def _getSpaceInfo(self, name=None):
         filter = self.connection.space.getFilterObject()
         if name:
             filter.add('ui_view_space_list', 'name', name, True)
         space = self.connection.space.findAsView(filter, 'ui_view_space_list')
         return space
-    
+
     def _getProjectInfo(self, name=None):
         filter = self.connection.project.getFilterObject()
         if name:
@@ -67,10 +67,10 @@ class Alkira:
         return project
 
     def _getUserInfo(self, name=None):
-        filter = self.connection.user.getFilterObject()
+        searchfilter = self.connection.user.getFilterObject()
         if name:
-            filter.add('ui_view_user_list', 'name', name, True)
-        user = self.connection.user.findAsView(filter, 'ui_view_user_list')
+            searchfilter.add('ui_view_user_list', 'name', name, True)
+        user = self.connection.user.findAsView(searchfilter, 'ui_view_user_list')
         return user
 
     def _getParentGUIDS(self, guid_list):
@@ -179,7 +179,7 @@ class Alkira:
             tags = urllib.unquote_plus(tags)
             tags = tags.strip(', ')
             sql_where.append('"index".tags LIKE \'%%%s%%\'' %  tags)
-            
+
         if text:
             sql_where.append('"index".content LIKE \'%%%s%%\'' % text)
 
@@ -195,20 +195,20 @@ class Alkira:
         """
         return map(lambda item: item["name"],
                    self.listProjectInfo())
-        
+
     def listProjectInfo(self, name=None):
         """
         List projects info
         """
         return self._getProjectInfo(name)
-    
+
     def listSpaces(self):
         """
         Lists all the spaces.
         """
         return map(lambda item: item["name"],
                    self.listSpaceInfo())
-    
+
     def listSpaceInfo(self, name=None):
         """
         List all spaces info
@@ -293,7 +293,7 @@ class Alkira:
         @return: True if the space exists, False otherwise
         """
         return bool(self._getSpaceInfo(name))
-    
+
     def projectExists(self, name):
         """
         Checks whether a project exists or not
@@ -350,14 +350,14 @@ class Alkira:
 
         return self.connection.page.find(filterObject)
 
-    def userFind(self, name='', tags='', exact_properties=None):
+    def userFind(self, name='', exact_properties=None):
         filterObject = self.connection.user.getFilterObject()
         exact_properties = exact_properties or ()
 
         frame = inspect.currentframe()
         args, _, _, values = inspect.getargvalues(frame)
 
-        properties = ('name', 'tags')
+        properties = ('name')
         for property_name, value in values.iteritems():
             if property_name in properties and not value in (None, ''):
                 exact = property_name in exact_properties
@@ -376,7 +376,7 @@ class Alkira:
 
         guid = self._getProjectGuid(project)
         return self.connection.project.get(guid)
-    
+
     def getSpace(self, space):
         """
         Gets a space object
@@ -433,12 +433,12 @@ class Alkira:
     def deleteProject(self, project):
         """
         Delete a project
-        
+
         @param project: Project name of GUID
         """
         guid = self._getProjectGuid(project)
         self.connection.project.delete(guid)
-    
+
     def deleteSpace(self, space):
         """
         Delete space
@@ -526,16 +526,8 @@ class Alkira:
                 elif _isfile(file):
                     q.system.fs.removeFile(file)
 
-
-    def deleteUser(self, name):
-        """
-        Deletes a user.
-
-        @type name: String
-        @param name: The name of the user.
-        """
-        user = self.getUser(name)
-        self.connection.user.delete(user.guid)
+    def deleteUser(self, userguid):
+        self.connection.user.delete(userguid)
 
     def deleteUserByGUID(self, userguid):
         """
@@ -545,6 +537,33 @@ class Alkira:
         @param userguid: The GUID of the user.
         """
         self.connection.user.delete(userguid)
+
+    def addUserToGroup(self, userguid, groupguid):
+        user = self.connection.user.get(userguid)
+        if groupguid in user.groups:
+            q.errorconditionhandler.raiseError("User is already in that group.")
+
+        user.groups.append(groupguid)
+        self.connection.user.save(user)
+
+    def removeUserFromGroup(self, userguid, groupguid):
+        """
+        Remove a user from a group
+
+        @type userguid: GUID
+        @param userguid: The GUID of the user
+
+        @type groupguid: GUID
+        @param groupguid: The GUID of the group
+        """
+        filter = self.connection.user.getFilterObject()
+        filter.add('ui_view_user_list', 'guid', userguid, True)
+        user = self.connection.user.findAsView(filter, 'ui_view_user_list')
+        if not groupguid in user.groups:
+            q.errorconditionhandler.raiseError("User is not in that group.")
+
+        user.groups.remove(groupguid)
+        self.connection.user.save(user)
 
     def _deletePage(self, space, page):
         def deleterecursive(guid):
@@ -615,11 +634,11 @@ class Alkira:
         self.createPage(ADMINSPACE, name, spacectnt, title=name, parent="Spaces")
 
         return space
-    
+
     def createProject(self, name, path, tagsList=[]):
         """
         Create a new project
-        
+
         @param name: Name of the project
         @param path: Relative path of the project files (relative from the pyapp location)
         """
@@ -633,18 +652,18 @@ class Alkira:
 
         self.connection.project.save(project)
         return project
-    
+
     def updateProject(self, project, newname=None, path=None, tagsList=None):
         """
         Update project
-        
+
         @param project: Project name or guid
         @param newname: New project name
         @param path: set project path
         @param tagsList: New project tags list
         """
         project = self.getProject(project)
-        
+
         if newname:
             project.name = newname
         if path:
@@ -749,34 +768,16 @@ class Alkira:
         else:
             self._syncPageToDisk(space.name, page)
 
-    def createUser(self, name, password, spaces=[], pages=[], tagsList=[]):
-        """
-        Create a new user object.
-
-        @param name:             name of the user
-        @type name:              string
-
-        @param spaces:            list of user spaces
-        @type spaces:             List
-
-        @param pages:            list of user pages
-        @type pages:             List
-
-        @param tagsList:         tags of the page
-        @type tags:              List
-        """
+    def createUser(self, name):
         if self.userExists(name):
             q.errorconditionhandler.raiseError("User %s already exists."%name)
         else:
             user = self.connection.user.new()
-            params = {"name":name, "password": password, "spaces":spaces, "pages":pages}
+            params = {"name":name}
             for key in params:
                 if params[key]:
                     setattr(user, key, params[key])
 
-            tags = set(tagsList)
-            tags.add('name:%s' % name)
-            user.tags = ' '.join(tags)
             self.connection.user.save(user)
             return user
 
@@ -912,37 +913,11 @@ class Alkira:
 
         return page
 
-    def updateUser(self, old_user, name="", password="", tagsList=None):
-        """
-        Updates an existing page.
-
-        @type old_user: String
-        @param old_user: The name of the user.
-
-        @type name: String
-        @param name: Gives the user a new name.
-
-        @type tagsList: List
-        @param tagsList: Appends tags in this list to the current tags of the page.
-        """
-
-        user = self.getUser(old_user)
-        if name:
-            user.name = name
-        if password:
-            user.password = password
-
-        if tagsList:
-            tags = user.tags.split(' ')
-            for tag in tagsList:
-                tags.append(tag)
-
-            user_tags = ' '.join(tags)
-            user.tags = user_tags
-
+    def updateUser(self, userguid, name):
+        user = self.connection.user.get(userguid)
+        user.name = name
         self.connection.user.save(user)
         return user
-
 
     def findMacroConfig(self, space="", page="", macro="", configId=None, username=None, exact_properties=None):
         configFilter = self.connection.config.getFilterObject()
@@ -1283,3 +1258,70 @@ class Alkira:
                 createPage(each_file)
 
             alkiraTree(folder_paths)
+
+    def createGroup(self, name):
+        if self.groupExists(name):
+            q.errorconditionhandler.raiseError("Group %s already exists." % name)
+        else:
+            group = self.connection.group.new()
+            params = {"name":name}
+            for key in params:
+                if params[key]:
+                    setattr(group, key, params[key])
+
+            self.connection.group.save(group)
+            return group
+
+    def groupExists(self, name):
+        return bool(self._getGroupInfo(name))
+
+    def _getGroupInfo(self, name):
+        searchfilter = self.connection.group.getFilterObject()
+        searchfilter.add('ui_view_group_list', 'name', name, True)
+        group = self.connection.group.findAsView(searchfilter, 'ui_view_group_list')
+        return group
+
+    def deleteGroup(self, groupguid):
+        self.connection.group.delete(groupguid)
+
+    def updateGroup(self, groupguid, name):
+        group = self.connection.group.get(groupguid)
+        group.name = name
+        self.connection.group.save(group)
+        return group
+
+    def createRule(self, groupguids, function, context):
+        for group in groupguids:
+            if self.ruleExists(group, function, str(context)):
+                q.errorconditionhandler.raiseError("Rule already exists.")
+
+        rule = self.connection.authoriserule.new()
+        params = {"groupguids": groupguids, "function": function, "context": context}
+        for key in params:
+            if params[key]:
+                setattr(rule, key, params[key])
+
+        self.connection.authoriserule.save(rule)
+        return rule
+
+    def ruleExists(self, groupguid, function, context):
+        return bool(self._getRuleInfo(groupguid, function, context))
+
+    def _getRuleInfo(self, groupguid, function, context):
+        searchfilter = self.connection.authoriserule.getFilterObject()
+        searchfilter.add('ui_view_authoriserule_list', 'groupguid', groupguid, True)
+        searchfilter.add('ui_view_authoriserule_list', 'function', function, True)
+        searchfilter.add('ui_view_authoriserule_list', 'context', context, True)
+        rule = self.connection.authoriserule.findAsView(searchfilter, 'ui_view_authoriserule_list')
+        return rule
+
+    def deleteRule(self, authoriseruleguid):
+        self.connection.authoriserule.delete(authoriseruleguid)
+
+    def updateRule(self, authoriseruleguid, groupguids, function, context):
+        rule = self.connection.authoriserule.get(authoriseruleguid)
+        rule.groupguids = groupguids
+        rule.function = function
+        rule.context = context
+        self.connection.authoriserule.save(rule)
+        return rule

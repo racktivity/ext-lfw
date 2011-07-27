@@ -70,6 +70,7 @@
         var options = $.extend(true, {filetype: 'md',
                                       content: '',
                                       autocomplete: [],
+                                      onchange: $.noop,
                                       editorbar: true}, options);
 
         var layout = "<div class='editor'>\
@@ -228,6 +229,7 @@
                 theme: 'neat',
                 onKeyEvent: function(editor, e) {
                     // Hook into ctrl-space
+                    options.onchange();
                     if (e.keyCode == 32 && (e.ctrlKey || e.metaKey) && !e.altKey) {
                         e.stop();
                         return startComplete.call(editor, $this.find(".editor .body"), e);

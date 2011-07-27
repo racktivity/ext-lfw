@@ -1096,14 +1096,6 @@ $(function(){
                                                                'parent': parent},
                                                         dataType: 'json',
                                                         success: function(data) {
-                                                            //triger sync
-                                                            if (space == 'Imported') {
-                                                                $.ajax({url: 'appserver/rest/ui/editor/exportFile',
-                                                                        data: {'pagename': name},
-                                                                        dataType: 'json',
-                                                                        error: $.alerterror
-                                                                        });
-                                                            }
                                                             app.trigger('change-page', {title: name});
                                                             app.setSpace(space, true);
                                                             dialog.dialog("close");
@@ -1165,15 +1157,6 @@ $(function(){
                                                                    'title': title},
                                                             dataType: 'json',
                                                             success: function(data) {
-                                                                //triger sync
-                                                                if (space == 'Imported') {
-                                                                    $.ajax({url: 'appserver/rest/ui/editor/exportFile',
-                                                                            data: {'pagename': name,
-                                                                                   'oldpagename': pageobj.name},
-                                                                            dataType: 'json',
-                                                                            error: $.alerterror
-                                                                            });
-                                                                }
                                                                 app.trigger('change-page', {title: name});
                                                                 dialog.dialog("close");
                                                             },
@@ -1196,14 +1179,6 @@ $(function(){
                                'name': page},
                         dataType: 'json',
                         success: function(data) {
-                            //triger sync
-                            if (space == 'Imported') {
-                                $.ajax({url: 'appserver/rest/ui/editor/deleteFile',
-                                        data: {'pagename': page},
-                                        dataType: 'json',
-                                        error: $.alerterror
-                                        });
-                            }
                             app.trigger('change-page', {title: DEFAULT_PAGE_NAME});
                             app.setSpace(space, true);
                         },

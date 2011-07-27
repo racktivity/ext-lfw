@@ -697,7 +697,7 @@ data;
     $(".protocol-ide").live("click", function(e) {
         e.preventDefault();
         var address = $(this).attr("href");
-        throw "Not implemented";
+        app.setLocation("#/IDE/Home?id=" + address);
     });
     
     this.get('#/:space', function() {
@@ -720,7 +720,7 @@ data;
                    return s.replace(/\+/g, ' ').trim();
                });
            }
-
+           setPage("");
            var args = {};
 
            if(type === 'labels') {

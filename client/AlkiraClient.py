@@ -6,7 +6,7 @@ import json
 
 class AlkiraClient:
 
-    def getClient(self, hostname, appname, username=None, password=None, port=80):
+    def getClient(self, hostname, appname, port=80):
         """
         Gets a client object.
 
@@ -15,47 +15,45 @@ class AlkiraClient:
 
         @return: A client object.
         """
-        return Client(hostname, appname, username=username, password=password, port=port)
-    
+        return Client(hostname, appname, port=port)
+
 class Client:
-    def __init__(self, hostname, appname, username=None, password=None, port=80):
+    def __init__(self, hostname, appname, port=80):
         """
         Initialize a new Alkira Client with the given (hostname, appname) connection
         but if hostname and appname are not given, the given api is used
 
         @param hostname: The hostname of alikra
         @param appname: The application name
-        @param username: The username  (Not Implemented)
-        @param password: The password (Not Implemented)
         @param port: Alkira Web port
         """
-        
+
         self.__hostname = hostname
         self.__port = port
         self.__appname = appname
-        
+
     @property
     def hostname(self):
         return self.__hostname
-    
+
     @property
     def appname(self):
         return self.__appname
-    
+
     @property
     def port(self):
         return self.__port
-    
+
     def __call(self, method, **args):
         data = {}
         #only pass arguments that has value
         for k, v in args.iteritems():
             if v != None:
-                data[k] = v
-        
+                data[k] = json.dumps(v)
+
         data = urllib.urlencode(data)
         headers = {'Content-Type': "application/x-www-form-urlencoded"}
-        
+
         con = httplib.HTTPConnection(self.hostname, self.port)
         try:
             con.request("POST",'/%(appname)s/appserver/rest/ui/portal/%(method)s' % {'appname': self.appname,
@@ -68,7 +66,7 @@ class Client:
                 raise Exception(body['exception'] if 'exception' in body else res.reason, res.status)
         finally:
             con.close()
-    
+
     def tags(self, space=None, term=None):
         return self.__call('tags', space=space, term=term)
 
@@ -87,21 +85,46 @@ class Client:
     def listUsers(self, username=None):
         return self.__call("listUsers", username=username)
 
-    def createUser(self, name, password, tags=""):
-        return self.__call("createUser", name=name, password=password, tags=tags)
+    def createUser(self, name):
+        return self.__call("createUser", name=name)
 
-    def deleteUser(self, name):
-        return self.__call("deleteUser", name=name)
+    def deleteUser(self, userguid):
+        return self.__call("deleteUser", userguid=userguid)
 
-    def updateUser(self, name, newname=None, tags=""):
-        return self.__call("updateUser", name=name, newname=newname, tags=tags)
+    def updateUser(self, userguid, name):
+        return self.__call("updateUser", userguid=userguid, name=name)
+
+    def addUserToGroup(self, userguid, groupguid):
+        return self.__call("addUserToGroup", userguid=userguid, groupguid=groupguid)
+
+    def removeUserFromGroup(self, userguid, groupguid):
+        return self.__call("removeUserFromGroup", userguid=userguid, groupguid=groupguid)
+
+    def createGroup(self, name):
+        return self.__call("createGroup", name=name)
+
+    def deleteGroup(self, groupguid):
+        return self.__call("deleteGroup", groupguid=groupguid)
+
+    def updateGroup(self, groupguid, name):
+        return self.__call("updateGroup", groupguid=groupguid, name=name)
+
+    def createRule(self, groupguids, function, context):
+        return self.__call("createRule", groupguids=groupguids, function=function, context=context)
+
+    def deleteRule(self, authoriseruleguid):
+        return self.__call("deleteRule", authoriseruleguid=authoriseruleguid)
+
+    def updateRule(self, authoriseruleguid, groupguids, function, context):
+        return self.__call("updateRule", authoriseruleguid=authoriseruleguid, groupguids=groupguids, \
+            function=function, context=context)
 
     def listPages(self, space=None, term=None):
         return self.__call("listPages", space=space, term=term)
 
     def countPages(self, space=None):
         return self.__call("countPages", space=space)
-    
+
     def categories(self, space=None, term=None):
         return self.__call("categories", space=space, term=term)
 
@@ -113,10 +136,10 @@ class Client:
 
     def getSpace(self, space):
         return self.__call("getSpace", space=space)
-    
+
     def getPage(self, space, name):
         return self.__call("getPage", space=space, name=name)
-    
+
     def createPage(self, space, name, content, parent=None, order=None, title=None, tags="", category='portal', pagetype="md"):
         return self.__call("createPage", space=space, name=name, content=content,
                            parent=parent, order=order, title=title, tags=tags, category=category, pagetype=pagetype)
@@ -125,7 +148,7 @@ class Client:
         return self.__call("updatePage", space=space, name=name, content=content,
                            newname=newname, parent=parent, order=order, title=title,
                            tags=tags, category=category, pagetype=pagetype)
-        
+
     def deletePage(self, space, name):
         return self.__call("deletePage", space=space, name=name)
 
@@ -148,4 +171,4 @@ class Client:
 
     def updateMacroConfig(self, space, page, macro, config, configId=None):
         return self.__call("updateMacroConfig", space=space, page=page, macro=macro, config=config, configId=configId)
-    
+

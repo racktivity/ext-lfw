@@ -25,7 +25,7 @@ def main(q, i, p, params, tags):
             arakoon_client.delete(delkey)
 
 def match(q, i, p, params, tags):
-    config = q.tools.inifile.open(q.system.fs.joinPaths(q.dirs.pyAppsDir, p.api.appname, "cfg", "oauth.cfg"))
+    config = q.tools.inifile.open(q.system.fs.joinPaths(q.dirs.pyAppsDir, p.api.appname, "cfg", "auth.cfg"))
     if config.checkParam("oauth", "tokencleanup"):
         return (params['taskletlastexecutiontime']  + (60 * config.getIntValue("oauth", "tokencleanup")) <= time.time())
     else:

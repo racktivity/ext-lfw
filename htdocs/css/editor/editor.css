@@ -4,13 +4,9 @@ div.editor {
 }
 
 div.editor div.body {
-    bottom: 10px;
     margin-bottom: 0;
     display:  block;
-    position: absolute;
-    top: 50px; 
-    left: 10px; 
-    right: 10px;
+    height: 100%;
 }
 
 .completions {

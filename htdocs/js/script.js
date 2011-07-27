@@ -20,7 +20,8 @@
 var DEFAULT_PAGE_NAME = 'Home',
     LABELS_RE = /,\s*/,
     LOCATION_PREFIX = '#/',
-    ADMINSPACE="Admin";
+    ADMINSPACE="Admin",
+    IDE="IDE";
 
 var LFW = {};
 LFW.macros = {};
@@ -326,7 +327,7 @@ data;
             return;
 
         _space = space;
-        if (space == ADMINSPACE){
+        if (space == ADMINSPACE || space == IDE){
             $("#toolbar").css("visibility", "hidden");
         } else {
             $("#toolbar").css("visibility", "visible");

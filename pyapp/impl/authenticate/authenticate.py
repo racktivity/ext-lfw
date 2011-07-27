@@ -41,8 +41,7 @@ class HelperServer(oauth.Server):
         client = self.q.clients.arakoon.getClient(self.p.api.appname)
         validhours = self.config.getFloatValue("oauth", "hoursvalid")
         validuntil = (datetime.now() +timedelta(hours=validhours)).strftime("%s")
-        client.set(key=tokenKey, value=str({'validuntil': validuntil, 'tokensecret': token['tokensecret'], \
-            'groupguids': token['groupguids'] }))
+        client.set(key=tokenKey, value=str({'validuntil': validuntil, 'tokensecret': token['tokensecret'] }))
 
 def _getHeaders(request, q):
     headers = dict()

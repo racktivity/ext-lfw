@@ -19,7 +19,7 @@ class LFWService(object):
         # Initialize API
         self.connection = p.api.model.ui
         self.alkira = Alkira(p.api)
-        
+
         tasklet_path = q.system.fs.joinPaths(q.dirs.pyAppsDir, p.api.appname, 'impl', 'portal')
         self._tasklet_engine = q.taskletengine.get(tasklet_path)
         self._tasklet_engine.addFromPath(os.path.join(q.dirs.baseDir,'lib','python','site-packages','alkira', 'tasklets'))
@@ -48,7 +48,7 @@ class LFWService(object):
     @q.manage.applicationserver.expose
     def updateSpace(self, name, newname=None, tags=""):
         self.alkira.updateSpace(name, newname, tags.split(' '))
-    
+
     @q.manage.applicationserver.expose
     def sortSpaces(self, spaces, tags=""):
         """
@@ -57,7 +57,7 @@ class LFWService(object):
         """
         for order, space in enumerate(spaces):
             self.alkira.updateSpace(space, order=order + 1)
-    
+
     @q.manage.applicationserver.expose_authenticated
     def deleteSpace(self, name):
         self.alkira.deleteSpace(name)
@@ -67,16 +67,48 @@ class LFWService(object):
         return self.alkira.listUsers(username)
 
     @q.manage.applicationserver.expose_authenticated
-    def createUser(self, name, password, tags=""):
-        self.alkira.createUser(name, password, tags.split(' '))
+    def createUser(self, name):
+        self.alkira.createUser(name)
 
     @q.manage.applicationserver.expose_authenticated
     def deleteUser(self, name):
         self.alkira.deleteUser(name)
 
     @q.manage.applicationserver.expose_authenticated
-    def updateUser(self, name, newname=None, tags=""):
-        self.alkira.updateUser(name, newname, tags.split(' '))
+    def updateUser(self, userguid, name):
+        self.alkira.updateUser(userguid, name)
+
+    @q.manage.applicationserver.expose_authenticated
+    def addUserToGroup(self, userguid, groupguid):
+        return self.alkira.addUserToGroup(userguid, groupguid)
+
+    @q.manage.applicationserver.expose_authenticated
+    def removeUserFromGroup(self, userguid, groupguid):
+        return self.alkira.removeUserFromGroup(userguid, groupguid)
+
+    @q.manage.applicationserver.expose_authenticated
+    def createGroup(self, name):
+        self.alkira.createGroup(name)
+
+    @q.manage.applicationserver.expose_authenticated
+    def deleteGroup(self, userguid):
+        self.alkira.deleteGroup(userguid)
+
+    @q.manage.applicationserver.expose_authenticated
+    def updateGroup(self, userguid, name):
+        self.alkira.updateGroup(userguid, name)
+
+    @q.manage.applicationserver.expose_authenticated
+    def createRule(self, groupguids, function, context):
+        self.alkira.createRule(groupguids, function, context)
+
+    @q.manage.applicationserver.expose_authenticated
+    def deleteRule(self, authoriseruleguid):
+        self.alkira.deleteRule(authoriseruleguid)
+
+    @q.manage.applicationserver.expose_authenticated
+    def updateRule(self, authoriseruleguid, groupguids, function, context):
+        self.alkira.updateRule(authoriseruleguid, groupguids, function, context)
 
     @q.manage.applicationserver.expose_authenticated
     def listPages(self, space=None, term=None):
@@ -85,7 +117,7 @@ class LFWService(object):
     @q.manage.applicationserver.expose_authenticated
     def countPages(self, space=None):
         return self.alkira.countPages(space=space)
-    
+
     @q.manage.applicationserver.expose_authenticated
     def categories(self, space=None, term=None):
         return self.alkira.getitems('category', space, term)
@@ -111,7 +143,7 @@ class LFWService(object):
         result['tags'] = page.tags.split(' ') if page.tags else []
 
         return result
-    
+
     @q.manage.applicationserver.expose_authenticated
     def createPage(self, space, name, content, parent=None, order=None, title=None, tags="", category='portal', pagetype="md"):
         if self.alkira.pageExists(space, name):

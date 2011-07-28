@@ -141,11 +141,10 @@ var app = $.sammy(function(app) {
             macroname = name;
 
             var render = function() {
-
                 var options = {
                     'space': getSpace(),
                     'page': getPage(),
-                    'tags': _pageobj.tags,
+                    'tags': (_pageobj ? _pageobj.tags : []),
                     'body': htmlDecode(data),
                     'params': params,
                     'query': getQuery(),
@@ -380,7 +379,7 @@ data;
 
         var context = this;
         var treePage = '#/' + space + '/pagetree';
-        
+
         var toggleSidebar = function(visible) {
             if (visible){
                 $("#sidebar").show(0);
@@ -678,7 +677,7 @@ data;
     };
 
     // Check wether a token parameter was added to the url, if so use this as an OAuth token
-    
+
     //register search resources handlers
     //1 - The page resource handler
     $(".protocol-page").live("click", function(e) {
@@ -692,16 +691,16 @@ data;
         } else {
             console.log("Invalid page resource address");
         }
-        
+
     });
-    
+
     //2 - The page resource handler
     $(".protocol-ide").live("click", function(e) {
         e.preventDefault();
         var address = $(this).attr("href");
         app.setLocation("#/IDE/Home?id=" + address);
     });
-    
+
     this.get('#/:space', function() {
         setSpace(this.params['space']);
         setPage(null);
@@ -747,7 +746,7 @@ data;
                    var appName = getAppName();
                    var m = urireg.exec(result.url);
                    if (m){
-                       
+
                         templateData.push({name: result.name,
                                            protocol: m[1],
                                            address: m[2]});
@@ -762,7 +761,7 @@ data;
                        {'results': templateData}
                    )
                );
-               
+
            });
 
         }
@@ -937,14 +936,14 @@ $(function() {
         }
         return vars;
     };
-    
+
     var params = getUrlVars();
     if (params.token) {
         if (Auth.parseOAuthToken) {
             Auth.parseOAuthToken(unescape(params.token), (params.user ? params.user : ""), true);
         }
     }
-    
+
     $("#space").change(function() {
         app.trigger('change-space', {space: $(this).val()});
     });
@@ -1033,22 +1032,22 @@ $(function(){
         var that = this;
         var body = $("#edit-page-template").tmpl();
         var editor = $("#editorspace", body).editor();
-        
+
         $("#filetype", body).change(function(){
             editor.editor("filetype", $(this).val());
         });
-        
+
         this.save = $.noop;
         this.cancel = $.noop;
-        
+
         $("#save", body).button().click(function(e){
             that.save.call(that, e);
         });
-        
+
         $("#cancel", body).button().click(function(e){
             that.cancel.call(that, e);
         });
-        
+
         this.name = function(name){
             if (name === undefined){
                 return $("#name", body).val();
@@ -1056,7 +1055,7 @@ $(function(){
                 $("#name", body).val(name);
             }
         };
-        
+
         this.title = function(title) {
             if (title === undefined){
                 return $("#title", body).val();
@@ -1064,7 +1063,7 @@ $(function(){
                 $("#title", body).val(title);
             }
         };
-        
+
         this.tags = function(tags) {
             if (tags === undefined){
                 return $("#tags", body).val();
@@ -1072,7 +1071,7 @@ $(function(){
                 $("#tags", body).val(tags);
             }
         };
-        
+
         this.filetype = function(type){
             if (type === undefined){
                 return $("#filetype", body).val();
@@ -1081,41 +1080,41 @@ $(function(){
                 editor.editor("filetype", type);
             }
         };
-        
+
         this.content = function(content){
             return editor.editor("content", content);
         };
-        
+
         this.appendTo = function(dom){
             return body.appendTo(dom);
         };
-        
+
         this.disable = function(attr) {
             $("#" + attr, body).attr("disabled", true);
         };
-        
+
         this.enable = function(attr) {
             $("#" + attr, body).attr("disabled", false);
         };
-        
+
         //initialize editor.
         if(name) {
             this.name(name);
         }
-        
+
         if(title){
             this.title(title);
         }
-        
+
         if(content){
             this.content(content);
         }
-        
+
         if(filetype){
             this.filetype(filetype);
         }
     };
-    
+
     $("#toolbar > #newpage").button({icons: {primary: 'ui-icon-document'}}).click(function(){
         var parent = app.getPage();
         var space = app.getSpace();
@@ -1138,7 +1137,7 @@ $(function(){
                 app.trigger('change-page', {title: parent});
             }
         };
-        
+
         editor.save = function(e){
             var saveurl = LFW_CONFIG['uris']['createPage'];
             var name = $.trim(this.name());
@@ -1149,11 +1148,11 @@ $(function(){
                 $.alert("Name can't be empty", "Invalid Name");
                 return;
             }
-            
+
             if(!title) {
                 title = name;
             }
-            
+
             $.ajax({
                     url: LFW_CONFIG.uris.createPage,
                     type: 'POST',
@@ -1178,7 +1177,7 @@ $(function(){
         var space = app.getSpace();
         var pageobj = app.getPageObj();
         var content = pageobj.content ? pageobj.content : "";
-        
+
         var editor = new Editor(pageobj.name, app.getTitle(), content, pageobj.pagetype);
         if (pageobj.name === "Home"){
             editor.disable("name");
@@ -1197,7 +1196,7 @@ $(function(){
                 app.trigger('change-page', {title: pageobj.name});
             }
         };
-        
+
         editor.save = function(e){
             var saveurl = LFW_CONFIG['uris']['createPage'];
             var name = $.trim(this.name());
@@ -1208,11 +1207,11 @@ $(function(){
                 $.alert("Name can't be empty", "Invalid Name");
                 return;
             }
-            
+
             if(!title) {
                 title = name;
             }
-            
+
             $.ajax({url: LFW_CONFIG.uris.updatePage,
                     type: 'POST',
                     data: {'space': space,

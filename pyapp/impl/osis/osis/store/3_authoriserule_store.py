@@ -7,7 +7,7 @@ def main(q, i, p, params, tags):
     viewname = '%s_view_%s_list' % (params['domain'], params['rootobjecttype'])
     rootobject = params['rootobject']
     values = {
-        'groupguids': string.join(rootobject.groupguids, ";") + ";",
+        'groupguids': string.join(rootobject.groupguids, ";") + ";" if rootobject.groupguids else "",
         'function': rootobject.function,
         'context': str(rootobject.context)
     }

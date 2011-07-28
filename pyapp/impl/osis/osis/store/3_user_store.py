@@ -8,7 +8,7 @@ def main(q, i, p, params, tags):
     rootobject = params['rootobject']
     values = {
         'name': rootobject.name,
-        'groupguids': string.join(rootobject.groups, ";") + ";"
+        'groupguids': string.join(rootobject.groups, ";") + ";" if rootobject.groups else ""
     }
     osis.viewSave(params['domain'], params['rootobjecttype'], viewname, rootobject.guid, rootobject.version, values)
 

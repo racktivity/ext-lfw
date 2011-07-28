@@ -1,6 +1,31 @@
-import uuid, oauth2, xmlrpclib
+import uuid, oauth2, httplib, xmlrpclib
 from pylabs import q, p
 from datetime import datetime, timedelta
+
+class TimeoutHTTPConnection(httplib.HTTPConnection):
+    def connect(self):
+        httplib.HTTPConnection.connect(self)
+        self.sock.settimeout(self.timeout)
+
+class TimeoutHTTP(httplib.HTTP):
+    _connection_class = TimeoutHTTPConnection
+    def set_timeout(self, timeout):
+        self._conn.timeout = timeout
+
+class TimeoutTransport(xmlrpclib.Transport):
+    def __init__(self, timeout=10, *args, **kwargs):
+        xmlrpclib.Transport.__init__(self, *args, **kwargs)
+        self.timeout = timeout
+
+    def make_connection(self, host):
+        conn = TimeoutHTTP(host)
+        conn.set_timeout(self.timeout)
+        return conn
+
+class TimeoutServerProxy(xmlrpclib.ServerProxy):
+    def __init__(self, uri, timeout=10, *args, **kwargs):
+        kwargs['transport'] = TimeoutTransport(timeout=timeout, use_datetime=kwargs.get('use_datetime', 0))
+        xmlrpclib.ServerProxy.__init__(self, uri, *args, **kwargs)
 
 class OAuthService(object):
     def __init__(self):
@@ -12,7 +37,6 @@ class OAuthService(object):
             "applicationserver.cfg"))
         self.xmlrpcUrl = "http://%s:%d/RPC2" % (config.getValue("main", "xmlrpc_ip"), \
             config.getIntValue("main", "xmlrpc_port"))
-        self.service = None
 
     @q.manage.applicationserver.expose
     def getToken(self, user, password):
@@ -28,7 +52,7 @@ class OAuthService(object):
         @rtype: list
         """
 
-        valid = xmlrpclib.ServerProxy(self.xmlrpcUrl).ui.auth.verifyUserIdentity(user, password)
+        valid = TimeoutServerProxy(self.xmlrpcUrl).ui.auth.verifyUserIdentity(user, password)
 
         if not valid:
             q.logger.log('Invalid user name/password combination', 4)

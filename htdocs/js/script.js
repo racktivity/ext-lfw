@@ -326,6 +326,7 @@ data;
         if (space == _space && !force)
             return;
 
+        $(document).lock();
         _space = space;
         if (space == ADMINSPACE || space == IDE){
             $("#toolbar").css("visibility", "hidden");

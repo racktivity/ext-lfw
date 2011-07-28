@@ -10,11 +10,9 @@ div.editor div.body {
 }
 
 .completions {
-    position: absolute;
+    position: fixed;
     z-index: 100000;
     border: 1px solid black;
-    margin-top: 50px;
-    margin-left: 15px;
     #overflow: hidden;
     #-webkit-box-shadow: 2px 3px 5px rgba(0,0,0,.2);
     #-moz-box-shadow: 2px 3px 5px rgba(0,0,0,.2);

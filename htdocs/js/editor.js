@@ -204,9 +204,8 @@
             var offset = body.offset();
 
             var complete = $("<div>", {'class': 'completions'})
-                            .append(list)
-                            .css('left', (coords.x - offset.left) + "px")
-                            .css('top', (coords.yBot - offset.top) + "px");
+                            .append(list).offset({left: coords.x,
+                                                  top: coords.yBot});
 
             body.append(complete);
             

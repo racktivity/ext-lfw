@@ -3,12 +3,24 @@ from alkira import Alkira
 import os
 import hashlib
 from osis.store.OsisDB import OsisDB
+import itertools
 
 GUIDMAP = [8, 4, 4, 4, 12]
 EXTENSIONS = (".py", ".html", ".js", ".txt", ".md", ".cfg", "")
 
+TASKLETS = ['impl/action',
+            'impl/actor',
+            'impl/authenticate',
+            'impl/authorize',
+            'impl/init',
+            'impl/osis',
+            'impl/schedule',
+            'impl/setup',
+            'impl/ui']
+
 class ide(object):
-    def __init__(self):
+    def __init__(self, tasklets=[]):
+        self.tasklets = tasklets
         self.alkira = Alkira(p.api)
         self.connection = OsisDB().getConnection(p.api.appname)
         
@@ -66,6 +78,14 @@ class ide(object):
         url = "ide://%s" % id
         self.connection.runQuery("delete from ui__index.global_index_view where url LIKE '%s%%'" % url)
     
+    def _touchTasklets(self, project, relativepath):
+        fullpath = q.system.fs.joinPaths(self._getProjectPath(project), relativepath)
+        for td in itertools.chain(TASKLETS, self.tasklets):
+            ftd = q.system.fs.joinPaths(q.dirs.pyAppsDir, p.api.appname, td)
+            if fullpath.startswith(ftd):
+                q.system.fs.createEmptyFile(q.system.fs.joinPaths(ftd, "tasklets_updated"))
+                break
+        
     @q.manage.applicationserver.expose
     def getProjectNode(self, id="."):
         results = []
@@ -152,6 +172,7 @@ class ide(object):
         filepath = q.system.fs.joinPaths(self._getProjectPath(project), relativepath)
         q.system.fs.writeFile(filepath, content)
         self._updateFileIndex(id, content)
+        self._touchTasklets(project, relativepath)
     
     @q.manage.applicationserver.expose
     def newFile(self, id):
@@ -178,6 +199,7 @@ class ide(object):
         elif q.system.fs.isDir(path):
             q.system.fs.removeDirTree(path)
         self._deleteIndex(id)
+        self._touchTasklets(project, relativepath)
             
     @q.manage.applicationserver.expose
     def rename(self, id, name):
@@ -197,5 +219,6 @@ class ide(object):
         elif q.system.fs.isDir(path):
             q.system.fs.renameDir(path, newname)
             self._updateDirIndex(newid)
-            
+        
+        self._touchTasklets(project, relativepath)
 

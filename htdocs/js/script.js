@@ -840,14 +840,6 @@ data;
                 if (data.pagetype != "md") {
                     content = '[[code]]\n' + content + '[[/code]]';
                 }
-                
-                //content += "\n\n[[widget:title=Tags]]\n" + data.tags.join(" ") + "\n[[/widget]]\n";
-                /*
-                if(!content || !content.length || content.length === 0) {
-                    context.notFound();
-                    return;
-                }
-                */
 
                 console.log('Page source: ' + content);
                 if(render === true) {

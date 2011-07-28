@@ -250,3 +250,33 @@ button {  width: auto; overflow: visible; }
 #userform form div { width:100%; float:left;}
 #userform form div label { width:40%  !important; float:left;margin-top: 13px;}
 #userform form div input {width:50%  !important; float:left;}
+
+
+div#editorspace {
+    height: 600px;
+}
+
+div.editoractions{
+    margin-top: 10px;
+}
+
+div.editorbar > div {
+
+}
+
+div.editorbar > div > label{
+    width: 100px;
+    display: inline-block;
+}
+
+div.editorbar > div > input{
+    padding: 0px;
+    border: 1px solid lightgray;
+    padding-top: 2px;
+    padding-bottom: 2px;
+    margin: 1px 0px 1px 0px;
+}
+
+div.editorbar > div > select{
+    border: 1px solid lightgray;
+}

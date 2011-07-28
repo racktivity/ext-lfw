@@ -789,13 +789,7 @@ class Alkira:
                 setattr(page, key, params[key])
 
         if tagsList:
-            tags = set(page.tags.split(' '))
-            for tag in tagsList:
-                if tag not in tags:
-                    tags.add(tag)
-
-            page_tags = ' '.join(tags)
-            page.tags = page_tags
+            page.tags = ' '.join(tagsList)
 
         if parent:
             parent_page = self.getPage(space, parent)

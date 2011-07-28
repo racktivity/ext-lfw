@@ -3,7 +3,7 @@ div.editor {
     height: 100%
 }
 
-div.editor div.body {
+div.editor-body {
     margin-bottom: 0;
     display:  block;
     height: 100%;

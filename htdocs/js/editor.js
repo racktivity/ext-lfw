@@ -18,39 +18,30 @@
                 return editor.getValue(text);
             }
         };
-
-        functions.title = function(text) {
-            if (typeof text !== "undefined") {
-                this.each(function(){
-                    $(this).find("#title").val(text);
-                });
-            } else {
-                return this.find("#title").val();
-            }
-        };
-
-        functions.name = function(text) {
-            if (typeof text !== "undefined") {
-                this.each(function(){
-                    $(this).find("#name").val(text);
-                });
-            } else {
-                return this.find("#name").val();
-            }
-        };
-
-        functions.disabled = function(component, value){
-            return this.find("#" + component).attr("disabled", value);
-        };
-
+        
         functions.filetype = function(type){
             if (typeof type !== "undefined"){
-                $(this).find("#filetype").val(type);
-                $(this).find("#filetype").change();
+                var mode = (type ? filetypes[type] : "null");
+                if ($.inArray(mode, CodeMirror.listModes()) == -1) {
+                    console.log("Not supported file type")
+                    mode = "null";
+                }
+                
+                return this.each(function() {
+                    var editor = $(this).data("editor");
+                    editor.setOption("mode", mode);
+                });
             } else {
-                return $(this).find("#filetype").val();
+                var mode = $(this).data("editor").getOption("mode");
+                var t = null;
+                $.each(filetypes, function(k, v){
+                    if (v == mode && !type){
+                        t = k;
+                    }
+                });
+                
+                return t;
             }
-
         };
 
         functions.data = function(key, value) {
@@ -67,27 +58,9 @@
             return functions[options].apply(this, args);
         }
 
-        var options = $.extend(true, {filetype: 'md',
-                                      content: '',
-                                      autocomplete: [],
-                                      onchange: $.noop,
-                                      editorbar: true}, options);
+        
 
-        var layout = "<div class='editor'>\
-    <div id='editorbar'>\
-        <label for='name'>File Name</label>\
-        <input id='name' class='text'>\
-        <select id='filetype'>\
-            <option value='md'>Markup</option>\
-            <option value='py'>Python</option>\
-        </select>\
-        <label for='title'>Page Title: </label>\
-        <input id='title' class='text'>\
-    </div>\
-    <div class='body'>\
-        <textarea></textarea>\
-    </div>\
-</div>";
+        var layout = "<div class='editor-body'><textarea></textarea></div>";
 
         var getCandidates = function(token) {
             var candidates = {};
@@ -212,13 +185,15 @@
             list.focus();
             return true;
         };
-
+        
+        var options = $.extend(true, {filetype: 'md',
+                                      content: '',
+                                      onchange: $.noop}, options);
+        
+        var selection = this;
         return this.each(function(){
             var $this = $(this);
             $this.html(layout);
-            if (!options.editorbar) {
-                $this.find("#editorbar").css("display", "none");
-            }
             //initialize codemirror editor
             var editor = CodeMirror.fromTextArea($this.find("textarea")[0],
                 {value: options.content,
@@ -231,22 +206,13 @@
                     options.onchange();
                     if (e.keyCode == 32 && (e.ctrlKey || e.metaKey) && !e.altKey) {
                         e.stop();
-                        return startComplete.call(editor, $this.find(".editor .body"), e);
+                        return startComplete.call(editor, $this.find(".editor-body"), e);
                     }
                 }});
 
             $this.data("editor", editor);
-
-            //set the correct file type.
-            $this.find("#filetype").change(function() {
-                var type = $(this).val();
-                var mode = (type ? filetypes[type] : "null");
-                if ($.inArray(mode, CodeMirror.listModes()) == -1) {
-                    console.log("Not supported file type")
-                    mode = "null";
-                }
-                editor.setOption("mode", mode);
-            }).val(options.filetype);
+            
+            functions.filetype.call(selection, "filetype", options.filetype);
         });
     };
 })(jQuery);

@@ -165,7 +165,37 @@
   YUI Compressor fix */
   </script>
 
-
+  <script type='text/x-jquery-tmpl' id='edit-page-template'>
+    <div>
+        <div class='editorbar'>
+            <div>
+                <label for='name'>Name:</label>
+                <input id='name' class='text'>
+            </div>
+            <div>
+                <label for='title'>Title: </label>
+                <input id='title' class='text'>
+            </div>
+            <div>
+                <label for='filetype'>Type:</label>
+                <select id='filetype'>
+                    <option value='md'>Markup</option>
+                    <option value='py'>Python</option>
+                </select>
+            </div>
+            <div>
+                <label for='tags'>Tags:</label>
+                <input id='tags' class='text'>
+            </div>
+        </div>
+        <div id='editorspace'>
+        </div>
+        <div class='editoractions'>
+            <button id='save'>Save</button>
+            <button id='cancel'>Cancel</button>
+        </div>
+    </div>
+  </script>
   <!-- Javascript at the bottom for fast page loading -->
 
   <!-- Grab Google CDN's jQuery. fall back to local if necessary -->

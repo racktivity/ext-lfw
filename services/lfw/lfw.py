@@ -6,6 +6,7 @@ import urllib2
 import inspect
 import functools
 import json
+import sys
 from . import Alkira
 
 # @TODO: use sqlalchemy to construct queries - escape values
@@ -25,6 +26,18 @@ class LFWService(object):
         self._tasklet_engine.addFromPath(os.path.join(q.dirs.baseDir,'lib','python','site-packages','alkira', 'tasklets'))
         self.db_config_path = q.system.fs.joinPaths(q.dirs.cfgDir, 'qconfig', 'dbconnections.cfg')
 
+        #
+        # Normally this part isn't needed because we have the Auth service but because we cannot call the service
+        # from inside the authorize tasklet (because this is implemented in the main thread of the appserver).
+        # So we just do the same as the Auth service is doing and then use the backend directly.
+        #
+
+        #load auth backend
+        config = q.tools.inifile.open(q.system.fs.joinPaths(q.dirs.pyAppsDir, p.api.appname, "cfg", "auth.cfg"))
+        sys.path.insert(0, os.path.join(os.path.dirname(__file__), "auth_backend"))
+        backend = __import__(config.getValue("auth", "backend"), level=1)
+        self.authBackend = getattr(backend, "BACKEND")()
+
     @q.manage.applicationserver.expose_authenticated
     def tags(self, space=None, term=None):
         results = self.alkira.getitems('tags', space=space, term=term)
@@ -41,15 +54,15 @@ class LFWService(object):
     def listSpaces(self, term=None):
         return self.alkira.listSpaces()
 
-    @q.manage.applicationserver.expose_authenticated
+    @q.manage.applicationserver.expose_authorized()
     def createSpace(self, name, tags="", order=None):
         self.alkira.createSpace(name, tags.split(' '), order=order)
 
-    @q.manage.applicationserver.expose
+    @q.manage.applicationserver.expose_authorized()
     def updateSpace(self, name, newname=None, tags=""):
         self.alkira.updateSpace(name, newname, tags.split(' '))
 
-    @q.manage.applicationserver.expose
+    @q.manage.applicationserver.expose_authorized()
     def sortSpaces(self, spaces, tags=""):
         """
         get space names in a specific order and update the actual spaces to reflect this order
@@ -58,7 +71,7 @@ class LFWService(object):
         for order, space in enumerate(spaces):
             self.alkira.updateSpace(space, order=order + 1)
 
-    @q.manage.applicationserver.expose_authenticated
+    @q.manage.applicationserver.expose_authorized()
     def deleteSpace(self, name):
         self.alkira.deleteSpace(name)
 
@@ -66,49 +79,49 @@ class LFWService(object):
     def listUsers(self, username=None):
         return self.alkira.listUsers(username)
 
-    @q.manage.applicationserver.expose_authenticated
+    @q.manage.applicationserver.expose_authorized()
     def createUser(self, name):
-        self.alkira.createUser(name)
+        return self.alkira.createUser(name)
 
-    @q.manage.applicationserver.expose_authenticated
+    @q.manage.applicationserver.expose_authorized()
     def deleteUser(self, name):
         self.alkira.deleteUser(name)
 
-    @q.manage.applicationserver.expose_authenticated
+    @q.manage.applicationserver.expose_authorized()
     def updateUser(self, userguid, name):
-        self.alkira.updateUser(userguid, name)
+        return self.alkira.updateUser(userguid, name)
 
-    @q.manage.applicationserver.expose_authenticated
+    @q.manage.applicationserver.expose_authorized()
     def addUserToGroup(self, userguid, groupguid):
         return self.alkira.addUserToGroup(userguid, groupguid)
 
-    @q.manage.applicationserver.expose_authenticated
+    @q.manage.applicationserver.expose_authorized()
     def removeUserFromGroup(self, userguid, groupguid):
         return self.alkira.removeUserFromGroup(userguid, groupguid)
 
-    @q.manage.applicationserver.expose_authenticated
+    @q.manage.applicationserver.expose_authorized()
     def createGroup(self, name):
-        self.alkira.createGroup(name)
+        return self.alkira.createGroup(name)
 
-    @q.manage.applicationserver.expose_authenticated
+    @q.manage.applicationserver.expose_authorized()
     def deleteGroup(self, userguid):
         self.alkira.deleteGroup(userguid)
 
-    @q.manage.applicationserver.expose_authenticated
+    @q.manage.applicationserver.expose_authorized()
     def updateGroup(self, userguid, name):
-        self.alkira.updateGroup(userguid, name)
+        return self.alkira.updateGroup(userguid, name)
 
-    @q.manage.applicationserver.expose_authenticated
+    @q.manage.applicationserver.expose_authorized()
     def createRule(self, groupguids, function, context):
-        self.alkira.createRule(groupguids, function, context)
+        return self.alkira.createRule(groupguids, function, context)
 
-    @q.manage.applicationserver.expose_authenticated
+    @q.manage.applicationserver.expose_authorized()
     def deleteRule(self, authoriseruleguid):
         self.alkira.deleteRule(authoriseruleguid)
 
-    @q.manage.applicationserver.expose_authenticated
+    @q.manage.applicationserver.expose_authorized()
     def updateRule(self, authoriseruleguid, groupguids, function, context):
-        self.alkira.updateRule(authoriseruleguid, groupguids, function, context)
+        return self.alkira.updateRule(authoriseruleguid, groupguids, function, context)
 
     @q.manage.applicationserver.expose_authenticated
     def listPages(self, space=None, term=None):
@@ -144,13 +157,13 @@ class LFWService(object):
 
         return result
 
-    @q.manage.applicationserver.expose_authenticated
+    @q.manage.applicationserver.expose_authorized()
     def createPage(self, space, name, content, parent=None, order=None, title=None, tags="", category='portal', pagetype="md"):
         if self.alkira.pageExists(space, name):
             raise ValueError("A page with the same name already exists")
         self.alkira.createPage(space=space, name=name, content=content, parent=parent, order=order, title=title, tagsList=tags.split(" "), category=category, pagetype=pagetype)
 
-    @q.manage.applicationserver.expose_authenticated
+    @q.manage.applicationserver.expose_authorized()
     def updatePage(self, space, name, content, newname=None, parent=None, order=None, title=None, tags="", category=None, pagetype=None):
         if not self.alkira.pageExists(space, name):
             raise ValueError("Page '%s' doesn't exists" % name)
@@ -162,7 +175,7 @@ class LFWService(object):
         self.alkira.updatePage(space, old_name=name, name=newname,
                                content=content, parent=parent, order=order, title=title, tagsList=tags.split(" "), category=category, pagetype=pagetype)
 
-    @q.manage.applicationserver.expose_authenticated
+    @q.manage.applicationserver.expose_authorized()
     def deletePage(self, space, name):
         self.alkira.deletePage(space, name)
 
@@ -184,19 +197,19 @@ class LFWService(object):
 
         return result
 
-    @q.manage.applicationserver.expose_authenticated
+    @q.manage.applicationserver.expose_authorized()
     def importSpace(self, space, filename, cleanImport=True):
         return self.alkira.importSpace(space, filename, cleanImport=cleanImport)
 
-    @q.manage.applicationserver.expose_authenticated
+    @q.manage.applicationserver.expose_authorized()
     def exportSpace(self, space, filename):
         return self.alkira.exportSpace(space, filename)
 
-    @q.manage.applicationserver.expose_authenticated
+    @q.manage.applicationserver.expose_authorized()
     def hgPushSpace(self, space, repository, repo_username, repo_password=None):
         return self.alkira.hgPushSpace(space, repository, repo_username, repo_password=repo_password)
 
-    @q.manage.applicationserver.expose_authenticated
+    @q.manage.applicationserver.expose_authorized()
     def hgPullSpace(self, space, repository, repo_username, repo_password=None, dontSync=False):
         return self.alkira.hgPullSpace(space, repository, repo_username, repo_password=repo_password, dontSync=dontSync)
 

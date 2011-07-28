@@ -12,7 +12,7 @@ def main(q, i, params, tags):
     connection = OsisDB().getConnection(appname)
     if not connection.viewExists(domain, rootobject, view_name):
         view = connection.viewCreate(domain, rootobject, view_name)
-        view.setCol('groupguids', q.enumerators.OsisType.UUID, True)
+        view.setCol('groupguids', q.enumerators.OsisType.STRING, True)
         view.setCol('function', q.enumerators.OsisType.STRING, True)
         view.setCol('context', q.enumerators.OsisType.STRING, True)
         connection.viewAdd(view)

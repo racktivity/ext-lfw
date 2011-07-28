@@ -13,7 +13,7 @@ def main(q, i, params, tags):
     if not connection.viewExists(domain, rootobject, view_name):
         view = connection.viewCreate(domain, rootobject, view_name)
         view.setCol('name', q.enumerators.OsisType.STRING, True)
-        view.setCol('groupguids', q.enumerators.OsisType.UUID, True)
+        view.setCol('groupguids', q.enumerators.OsisType.STRING, True)
         connection.viewAdd(view)
 
         indexes = ['name']

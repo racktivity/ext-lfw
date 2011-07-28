@@ -1,8 +1,9 @@
-import ldap
+import ldap, authbackend
 from pylabs import q, p
 
-class LDAPAuthService:
+class LDAPAuthBackend(authbackend.AuthBackend):
     def __init__(self):
+        super(LDAPAuthBackend, self).__init__()
         config = q.tools.inifile.open(q.system.fs.joinPaths(q.dirs.pyAppsDir, p.api.appname, "cfg", "auth_ldap.cfg"))
         self.config = config.getFileAsDict()
         self.hostname = self.config["LDAP"]["hostname"]
@@ -17,4 +18,4 @@ class LDAPAuthService:
         except:
             return False
 
-BACKEND = LDAPAuthService
+BACKEND = LDAPAuthBackend

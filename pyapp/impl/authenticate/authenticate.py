@@ -39,7 +39,7 @@ class HelperServer(oauth.Server):
 
     def renewToken(self, tokenKey, token):
         client = self.q.clients.arakoon.getClient(self.p.api.appname)
-        validhours = self.config.getFloatValue("oauth", "hoursvalid")
+        validhours = float(self.config["oauth"]["hoursvalid"])
         validuntil = (datetime.now() +timedelta(hours=validhours)).strftime("%s")
         client.set(key=tokenKey, value=str({'validuntil': validuntil, 'tokensecret': token['tokensecret'] }))
 
@@ -65,7 +65,7 @@ def main(q, i, p, params, tags):
     request = params["request"]
     headers = _getHeaders(request, q)
     if headers.has_key('Authorization') and headers['Authorization'].find('OAuth realm="alkira"') >= 0:
-        config = q.tools.inifile.open(q.system.fs.joinPaths(q.dirs.pyAppsDir, p.api.appname, "cfg", "auth.cfg"))
+        config = params["authcfg"]
         helperServer = HelperServer(q, p, config)
         oAuthHeaders = _getAuthHeaders(headers, q)
         tokenkey = oAuthHeaders['oauth_token']
@@ -87,7 +87,7 @@ def main(q, i, p, params, tags):
                 params["result"] = False
             else:
                 #check if we need to renew
-                validhours = config.getFloatValue("oauth", "hoursvalid")
+                validhours = float(config["oauth"]["hoursvalid"])
                 renewaltime = validuntil - \
                     timedelta(hours=validhours * 0.75).seconds
                 if now > renewaltime:
@@ -110,6 +110,9 @@ def main(q, i, p, params, tags):
                 oauth_request = oauth.Request.from_request(request._request.method, http_url, headers=headers,
                     parameters=parameters)
                 params["result"] = helperServer.check_access_token(oauth_request, http_url)
+
+                #set the username so this can be used in the authorize tasklet
+                request.username = oAuthHeaders['oauth_consumer_key']
     else:
         #An unauthenticated user cannot access the administration space
         if request._request.uri.find("/appserver/rest/ui/portal/getPage?space=Admin") > 0:

@@ -61,11 +61,18 @@ def _getAuthHeaders(headers, q):
     q.logger.log("OAUTH HEADERS "+ str(oAuthHeaders), 5)
     return oAuthHeaders
 
+def _getConfig(q, p):
+    return q.tools.inifile.open(q.system.fs.joinPaths(q.dirs.pyAppsDir, p.api.appname, "cfg", \
+        "auth.cfg")).getFileAsDict()
+
+config = None
+
 def main(q, i, p, params, tags):
     request = params["request"]
     headers = _getHeaders(request, q)
     if headers.has_key('Authorization') and headers['Authorization'].find('OAuth realm="alkira"') >= 0:
-        config = params["authcfg"]
+        if not config:
+            config = _getConfig(q, p)
         helperServer = HelperServer(q, p, config)
         oAuthHeaders = _getAuthHeaders(headers, q)
         tokenkey = oAuthHeaders['oauth_token']

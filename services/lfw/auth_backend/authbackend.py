@@ -1,4 +1,5 @@
 from osis.store.OsisDB import OsisDB
+from pylabs import p
 
 class AuthBackend(object):
     def __init__(self):
@@ -34,6 +35,3 @@ class AuthBackend(object):
 
     def isAuthorised(self, groups, functionname, context):
         raise NotImplementedError()
-
-
-

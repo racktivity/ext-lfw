@@ -214,7 +214,6 @@ class Alkira:
         List all spaces info
         """
         spaces = self._getSpaceInfo(name)
-
         def byOrder(x, y):
             #Always put the admin space last
             if x["name"] == ADMINSPACE:
@@ -779,7 +778,7 @@ class Alkira:
                     setattr(user, key, params[key])
 
             self.connection.user.save(user)
-            return user
+            return user.guid
 
     def updateSpace(self, space, newname=None, tagslist=None, repository=None, repo_username=None, repo_password=None, order=None):
         space = self.getSpace(space)
@@ -917,7 +916,7 @@ class Alkira:
         user = self.connection.user.get(userguid)
         user.name = name
         self.connection.user.save(user)
-        return user
+        return user.guid
 
     def findMacroConfig(self, space="", page="", macro="", configId=None, username=None, exact_properties=None):
         configFilter = self.connection.config.getFilterObject()
@@ -1259,6 +1258,13 @@ class Alkira:
 
             alkiraTree(folder_paths)
 
+    def getUserGroups(self, name):
+        searchfilter = self.connection.user.getFilterObject()
+        searchfilter.add('ui_view_user_list', 'name', name, True)
+        user = self.connection.user.findAsView(searchfilter, 'ui_view_user_list')
+        if user:
+            return user.groups
+
     def createGroup(self, name):
         if self.groupExists(name):
             q.errorconditionhandler.raiseError("Group %s already exists." % name)
@@ -1270,7 +1276,7 @@ class Alkira:
                     setattr(group, key, params[key])
 
             self.connection.group.save(group)
-            return group
+            return group.guid
 
     def groupExists(self, name):
         return bool(self._getGroupInfo(name))
@@ -1288,7 +1294,7 @@ class Alkira:
         group = self.connection.group.get(groupguid)
         group.name = name
         self.connection.group.save(group)
-        return group
+        return group.guid
 
     def createRule(self, groupguids, function, context):
         for group in groupguids:
@@ -1302,14 +1308,14 @@ class Alkira:
                 setattr(rule, key, params[key])
 
         self.connection.authoriserule.save(rule)
-        return rule
+        return rule.guid
 
     def ruleExists(self, groupguid, function, context):
         return bool(self._getRuleInfo(groupguid, function, context))
 
     def _getRuleInfo(self, groupguid, function, context):
         searchfilter = self.connection.authoriserule.getFilterObject()
-        searchfilter.add('ui_view_authoriserule_list', 'groupguid', groupguid, True)
+        searchfilter.add('ui_view_authoriserule_list', 'groupguids', groupguid + ";", True)
         searchfilter.add('ui_view_authoriserule_list', 'function', function, True)
         searchfilter.add('ui_view_authoriserule_list', 'context', context, True)
         rule = self.connection.authoriserule.findAsView(searchfilter, 'ui_view_authoriserule_list')
@@ -1324,4 +1330,4 @@ class Alkira:
         rule.function = function
         rule.context = context
         self.connection.authoriserule.save(rule)
-        return rule
+        return rule.guid

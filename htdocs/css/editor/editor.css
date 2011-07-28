@@ -3,18 +3,14 @@ div.editor {
     height: 100%
 }
 
-div.editor div.body {
-    bottom: 10px;
+div.editor-body {
     margin-bottom: 0;
     display:  block;
-    position: absolute;
-    top: 50px; 
-    left: 10px; 
-    right: 10px;
+    height: 100%;
 }
 
 .completions {
-    position: absolute;
+    position: fixed;
     z-index: 100000;
     border: 1px solid black;
     #overflow: hidden;

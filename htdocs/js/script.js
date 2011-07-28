@@ -20,7 +20,8 @@
 var DEFAULT_PAGE_NAME = 'Home',
     LABELS_RE = /,\s*/,
     LOCATION_PREFIX = '#/',
-    ADMINSPACE="Admin";
+    ADMINSPACE="Admin",
+    IDE="IDE";
 
 var LFW = {};
 LFW.macros = {};
@@ -144,6 +145,7 @@ var app = $.sammy(function(app) {
                 var options = {
                     'space': getSpace(),
                     'page': getPage(),
+                    'tags': _pageobj.tags,
                     'body': htmlDecode(data),
                     'params': params,
                     'query': getQuery(),
@@ -325,8 +327,9 @@ data;
         if (space == _space && !force)
             return;
 
+        $(document).lock();
         _space = space;
-        if (space == ADMINSPACE){
+        if (space == ADMINSPACE || space == IDE){
             $("#toolbar").css("visibility", "hidden");
         } else {
             $("#toolbar").css("visibility", "visible");
@@ -696,7 +699,7 @@ data;
     $(".protocol-ide").live("click", function(e) {
         e.preventDefault();
         var address = $(this).attr("href");
-        throw "Not implemented";
+        app.setLocation("#/IDE/Home?id=" + address);
     });
     
     this.get('#/:space', function() {
@@ -719,7 +722,7 @@ data;
                    return s.replace(/\+/g, ' ').trim();
                });
            }
-
+           setPage("");
            var args = {};
 
            if(type === 'labels') {
@@ -830,19 +833,14 @@ data;
                 context.title(data['title']);
 
                 var content = data['content'];
-
+                if (content == null){
+                    content = "";
+                }
                 setTitle(data['title']);
 
                 if (data.pagetype != "md") {
                     content = '[[code]]\n' + content + '[[/code]]';
                 }
-
-                /*
-                if(!content || !content.length || content.length === 0) {
-                    context.notFound();
-                    return;
-                }
-                */
 
                 console.log('Page source: ' + content);
                 if(render === true) {
@@ -1031,16 +1029,93 @@ $(function() {
 
 $(function(){
     //build editor buttons and dialog
-    var dialog = $("<div>")
-                .editor()
-                .dialog({autoOpen: false,
-                        modal: true,
-                        width: '80%',
-                        height: $(document).height() - 50,
-                        title: "Page Editor",
-                        closeOnEscape: false
-                        });
-
+    var Editor = function(name, title, content, filetype) {
+        var that = this;
+        var body = $("#edit-page-template").tmpl();
+        var editor = $("#editorspace", body).editor();
+        
+        $("#filetype", body).change(function(){
+            editor.editor("filetype", $(this).val());
+        });
+        
+        this.save = $.noop;
+        this.cancel = $.noop;
+        
+        $("#save", body).button().click(function(e){
+            that.save.call(that, e);
+        });
+        
+        $("#cancel", body).button().click(function(e){
+            that.cancel.call(that, e);
+        });
+        
+        this.name = function(name){
+            if (name === undefined){
+                return $("#name", body).val();
+            } else {
+                $("#name", body).val(name);
+            }
+        };
+        
+        this.title = function(title) {
+            if (title === undefined){
+                return $("#title", body).val();
+            } else {
+                $("#title", body).val(title);
+            }
+        };
+        
+        this.tags = function(tags) {
+            if (tags === undefined){
+                return $("#tags", body).val();
+            } else {
+                $("#tags", body).val(tags);
+            }
+        };
+        
+        this.filetype = function(type){
+            if (type === undefined){
+                return $("#filetype", body).val();
+            } else {
+                $("#filetype", body).val(type);
+                editor.editor("filetype", type);
+            }
+        };
+        
+        this.content = function(content){
+            return editor.editor("content", content);
+        };
+        
+        this.appendTo = function(dom){
+            return body.appendTo(dom);
+        };
+        
+        this.disable = function(attr) {
+            $("#" + attr, body).attr("disabled", true);
+        };
+        
+        this.enable = function(attr) {
+            $("#" + attr, body).attr("disabled", false);
+        };
+        
+        //initialize editor.
+        if(name) {
+            this.name(name);
+        }
+        
+        if(title){
+            this.title(title);
+        }
+        
+        if(content){
+            this.content(content);
+        }
+        
+        if(filetype){
+            this.filetype(filetype);
+        }
+    };
+    
     $("#toolbar > #newpage").button({icons: {primary: 'ui-icon-document'}}).click(function(){
         var parent = app.getPage();
         var space = app.getSpace();
@@ -1051,159 +1126,122 @@ $(function(){
             defaultname = parent.substr(0, idx + 1) + 'untitled'
         }
 
-        dialog.editor("name", defaultname);
-        dialog.editor("title", "");
-        dialog.editor("content", "");
-        dialog.editor("filetype", "md");
+        var editor = new Editor(defaultname, "", "", "md");
+        editor.appendTo($("#main").empty());
+        editor.cancel = function(e){
+            if ("" != this.content()) {
+                $.confirm("There are some unsaved changes, are you sure you want to close the editor", {title: 'Unsaved Changes',
+                    ok: function(){
+                        app.trigger('change-page', {title: parent});
+                    }});
+            } else {
+                app.trigger('change-page', {title: parent});
+            }
+        };
+        
+        editor.save = function(e){
+            var saveurl = LFW_CONFIG['uris']['createPage'];
+            var name = $.trim(this.name());
+            var title = $.trim(this.title());
+            var filetype = this.filetype();
 
-        dialog.editor("disabled", "name", false);
-        dialog.editor("disabled", "title", false);
-        dialog.dialog("option", "buttons", {Close: function() {
-                                                $dialog = $(this);
-                                                if ("" != $dialog.editor("content")) {
-                                                    $.confirm("There are some unsaved changes, are you sure you want to close the editor", {title: 'Unsaved Changes',
-                                                        ok: function(){
-                                                            $dialog.dialog("close");
-                                                        }});
-                                                } else {
-                                                    $dialog.dialog("close");
-                                                }
-                                            },
-                                            Save: function() {
-                                                var saveurl = LFW_CONFIG['uris']['createPage'];
-                                                var name = $.trim(dialog.editor("name"));
-                                                var title = $.trim(dialog.editor("title"));
-                                                var filetype = dialog.editor('filetype');
-
-                                                if (!name) {
-                                                    $.alert("Name can't be empty", "Invalid Name");
-                                                    return;
-                                                }
-                                                if(!title){
-                                                    title = name;
-                                                }
-
-                                                var content = dialog.editor("content");
-
-                                                $.ajax({
-                                                        url: saveurl,
-                                                        type: 'POST',
-                                                        data: {'space': space,
-                                                               'name': name,
-                                                               'pagetype': filetype,
-                                                               'content': content,
-                                                               'title': title,
-                                                               'parent': parent},
-                                                        dataType: 'json',
-                                                        success: function(data) {
-                                                            //triger sync
-                                                            if (space == 'Imported') {
-                                                                $.ajax({url: 'appserver/rest/ui/editor/exportFile',
-                                                                        data: {'pagename': name},
-                                                                        dataType: 'json',
-                                                                        error: $.alerterror
-                                                                        });
-                                                            }
-                                                            app.trigger('change-page', {title: name});
-                                                            app.setSpace(space, true);
-                                                            dialog.dialog("close");
-                                                        },
-                                                        error: $.alerterror
-                                                    });
-                                            }});
-        dialog.dialog("open");
+            if (!name) {
+                $.alert("Name can't be empty", "Invalid Name");
+                return;
+            }
+            
+            if(!title) {
+                title = name;
+            }
+            
+            $.ajax({
+                    url: LFW_CONFIG.uris.createPage,
+                    type: 'POST',
+                    data: {'space': space,
+                           'name': name,
+                           'pagetype': filetype,
+                           'content': this.content(),
+                           'tags': this.tags(),
+                           'title': title,
+                           'parent': parent},
+                    dataType: 'json',
+                    success: function(data) {
+                        app.trigger('change-page', {title: name});
+                        app.setSpace(space, true);
+                    },
+                    error: $.alerterror
+                });
+        };
     });
 
     $("#toolbar > #editpage").button({icons: {primary: 'ui-icon-gear'}}).click(function(){
         var space = app.getSpace();
         var pageobj = app.getPageObj();
-        var content = pageobj.content;
-
-        dialog.editor("title", app.getTitle());
-        dialog.editor("name", pageobj.name);
+        var content = pageobj.content ? pageobj.content : "";
+        
+        var editor = new Editor(pageobj.name, app.getTitle(), content, pageobj.pagetype);
         if (pageobj.name === "Home"){
-            dialog.editor("disabled", "name", true);
-            dialog.editor("disabled", "title", true);
-        } else {
-            dialog.editor("disabled", "name", false);
-            dialog.editor("disabled", "title", false);
+            editor.disable("name");
+            editor.disable("title");
+            editor.disable("filetype");
         }
-        dialog.editor("content", content === null ? "" : content);
-        dialog.editor("filetype", pageobj.pagetype);
-        dialog.dialog("option", "buttons", {Close: function() {
-                                                $dialog = $(this);
-                                                if (content != $dialog.editor("content")) {
-                                                    $.confirm("There are some unsaved changes, are you sure you want to close the editor", {title: 'Unsaved Changes',
-                                                        ok: function(){
-                                                            $dialog.dialog("close");
-                                                        }});
-                                                } else {
-                                                    $dialog.dialog("close");
-                                                }
-                                            },
-                                            Save: function() {
-                                                    var saveurl = LFW_CONFIG['uris']['updatePage'];
+        editor.tags($.trim(pageobj.tags.join(" ")));
+        editor.appendTo($("#main").empty());
+        editor.cancel = function(e){
+            if (content != this.content()) {
+                $.confirm("There are some unsaved changes, are you sure you want to close the editor", {title: 'Unsaved Changes',
+                    ok: function(){
+                        app.trigger('change-page', {title: pageobj.name});
+                    }});
+            } else {
+                app.trigger('change-page', {title: pageobj.name});
+            }
+        };
+        
+        editor.save = function(e){
+            var saveurl = LFW_CONFIG['uris']['createPage'];
+            var name = $.trim(this.name());
+            var title = $.trim(this.title());
+            var filetype = this.filetype();
 
-                                                    //append ext if needed.
-                                                    var filetype = dialog.editor('filetype');
-                                                    var name = $.trim(dialog.editor("name"));
-                                                    var title = $.trim(dialog.editor("title"));
-                                                    if (!name){
-                                                        $.alert("Page name can't be empty", "Invalid Name");
-                                                    }
-                                                    if (!title){
-                                                        title = name;
-                                                    }
-
-                                                    $.ajax({url: saveurl,
-                                                            type: 'POST',
-                                                            data: {'space': space,
-                                                                   'name': pageobj.name,
-                                                                   'newname': name,
-                                                                   'pagetype': filetype,
-                                                                   'content': dialog.editor("content"),
-                                                                   'title': title},
-                                                            dataType: 'json',
-                                                            success: function(data) {
-                                                                //triger sync
-                                                                if (space == 'Imported') {
-                                                                    $.ajax({url: 'appserver/rest/ui/editor/exportFile',
-                                                                            data: {'pagename': name,
-                                                                                   'oldpagename': pageobj.name},
-                                                                            dataType: 'json',
-                                                                            error: $.alerterror
-                                                                            });
-                                                                }
-                                                                app.trigger('change-page', {title: name});
-                                                                dialog.dialog("close");
-                                                            },
-                                                            error: $.alerterror
-                                                        });
-
-                                                }});
-        dialog.dialog("open");
+            if (!name) {
+                $.alert("Name can't be empty", "Invalid Name");
+                return;
+            }
+            
+            if(!title) {
+                title = name;
+            }
+            
+            $.ajax({url: LFW_CONFIG.uris.updatePage,
+                    type: 'POST',
+                    data: {'space': space,
+                           'name': pageobj.name,
+                           'newname': name,
+                           'pagetype': filetype,
+                           'content': this.content(),
+                           'tags': this.tags(),
+                           'title': title},
+                    dataType: 'json',
+                    success: function(data) {
+                        app.trigger('change-page', {title: name});
+                    },
+                    error: $.alerterror
+                });
+        };
     });
 
     $("#deletepage").button({icons: {primary: 'ui-icon-close'}}).click(function(){
         $.confirm("Are you sure you want to delete this page?", {title: "Delete Page",
             ok: function() {
-                var deleteurl = LFW_CONFIG['uris']['deletePage'];
                 var page = app.getPage();
                 var space = app.getSpace();
                 $.ajax({
-                        url: deleteurl,
+                        url: LFW_CONFIG.uris.deletePage,
                         data: {'space': space,
                                'name': page},
                         dataType: 'json',
                         success: function(data) {
-                            //triger sync
-                            if (space == 'Imported') {
-                                $.ajax({url: 'appserver/rest/ui/editor/deleteFile',
-                                        data: {'pagename': page},
-                                        dataType: 'json',
-                                        error: $.alerterror
-                                        });
-                            }
                             app.trigger('change-page', {title: DEFAULT_PAGE_NAME});
                             app.setSpace(space, true);
                         },

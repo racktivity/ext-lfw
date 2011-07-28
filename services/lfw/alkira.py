@@ -7,7 +7,7 @@ import re
 import functools
 
 ADMINSPACE = "Admin"
-IMPORTSPACE = "Imported"
+IDESPACE = "IDE"
 
 class Alkira:
     def __init__(self, api=None):
@@ -110,43 +110,6 @@ class Alkira:
             q.system.fs.renameDir(filePath, new_name)
         except:
             q.system.fs.moveDir(filePath, new_name)
-
-    def _syncImportedPageToFile(self, spacename, page, action, oldname = None):
-        """
-        @param page: its the page object for action "delete" it can be the page's name instead
-        @param action: "create", "update", "delete", "rename"
-        @param newname: if action is "rename", newname is the new page's name/path
-        Please note that "rename" action ALSO saves the file's content in the new location
-        """
-        if isinstance(page, str):
-            if action != "delete":
-                raise ValueError("Page object required for action %s"%action)
-            pagename = page
-        else:
-            pagename = page.name
-
-        #This function only save pages if its name contain its relative path
-
-        if pagename.find("/") < 1:
-            if action == "rename":
-                raise ValueError("Invalid name for an imported page %s, name should be projectname/path/to/file.ext"%pagename)
-            else:
-                return False
-        #get space path
-        path = q.system.fs.joinPaths(q.dirs.pyAppsDir , self.api.appname, "portal", "spaces", spacename)
-        filename = q.system.fs.joinPaths(path, pagename)
-        if action in ("create", "update"):
-            q.system.fs.writeFile(filename, page.content or "")
-        elif action == "delete":
-            if q.system.fs.exists(filename):
-                q.system.fs.removeFile(filename)
-        elif action == "rename":
-            oldfilename = q.system.fs.joinPaths(path, oldname)
-            #delete the old file
-            if q.system.fs.exists(oldfilename):
-                q.system.fs.removeFile(oldfilename)
-            #save the new file
-            q.system.fs.writeFile(filename, page.content or "")
 
     def listPages(self, space=None):
         """
@@ -446,7 +409,7 @@ class Alkira:
 
         @note: Deleting a space will delete all the pages in that space.
         """
-        if space in (ADMINSPACE, IMPORTSPACE):
+        if space in (ADMINSPACE, IDESPACE):
             raise ValueError("%s space is not deletable" % space)
 
         space = self.getSpace(space)
@@ -454,8 +417,6 @@ class Alkira:
         pages = self.listPageInfo(space)
 
         for page in pages:
-            if space == IMPORTSPACE:
-                self._syncImportedPageToFile(space, page['name'], "delete")
             self.connection.page.delete(page['guid'])
 
         self.connection.space.delete(space.guid)
@@ -463,8 +424,6 @@ class Alkira:
         q.system.fs.removeDirTree(self._getDir(space.name))
 
     def _syncPageToDisk(self, space, page, oldpagename=None):
-        if space == IMPORTSPACE and page.name.find("/") > 0:
-            return
         crumbs = self._breadcrumbs(page)
         _join = q.system.fs.joinPaths
         _isfile = q.system.fs.isFile
@@ -507,8 +466,6 @@ class Alkira:
             upper = dir
 
     def _syncPageDelete(self, space, crumbs):
-        if space == IMPORTSPACE and crumbs[-1]['name'].find("/") > 0:
-            return
         _join = q.system.fs.joinPaths
         _isfile = q.system.fs.isFile
         _isdir = q.system.fs.isDir
@@ -576,8 +533,6 @@ class Alkira:
 
         crumbs = self._breadcrumbs(page)
         deleterecursive(page.guid)
-        if space == IMPORTSPACE:
-            self._syncImportedPageToFile(space, page.name, "delete")
         self._syncPageDelete(space, crumbs)
 
     def deletePageByGUID(self, guid):
@@ -761,11 +716,7 @@ class Alkira:
                          parent=parent, filename=filename, contentIsFilePath=contentIsFilePath,
                          pagetype=pagetype)
 
-        if space.name == IMPORTSPACE:
-            #the "Imported" space needs to keep filesystem in sync with database
-            self._syncImportedPageToFile(space.name, page, "create")
-        else:
-            self._syncPageToDisk(space.name, page)
+        self._syncPageToDisk(space.name, page)
 
     def createUser(self, name):
         if self.userExists(name):
@@ -838,13 +789,7 @@ class Alkira:
                 setattr(page, key, params[key])
 
         if tagsList:
-            tags = set(page.tags.split(' '))
-            for tag in tagsList:
-                if tag not in tags:
-                    tags.add(tag)
-
-            page_tags = ' '.join(tags)
-            page.tags = page_tags
+            page.tags = ' '.join(tagsList)
 
         if parent:
             parent_page = self.getPage(space, parent)
@@ -901,14 +846,8 @@ class Alkira:
                          order=order, title=title, parent=parent, category=category,
                          pagetype=pagetype, filename=filename, contentIsFilePath=contentIsFilePath)
 
-        if space.name == IMPORTSPACE:
-            #the "Imported" space needs to keep filesystem in sync with database
-            if name and name != old_name:
-                self._syncImportedPageToFile(space.name, page, "rename", oldname = old_name)
-            else:
-                self._syncImportedPageToFile(space.name, page, "update")
-        else:
-            self._syncPageToDisk(space.name, page, old_name)
+        
+        self._syncPageToDisk(space.name, page, old_name)
 
         return page
 
@@ -1246,11 +1185,7 @@ class Alkira:
                 createPage(page_file[0])
                 return
 
-            #Special handling for "Imported" space, dont traverse
-            if space == IMPORTSPACE:
-                folder_paths = list()
-            else:
-                folder_paths = q.system.fs.listDirsInDir(folder)
+            folder_paths = q.system.fs.listDirsInDir(folder)
             main_files = q.system.fs.listFilesInDir(folder, filter='*.md')
 
             for each_file in main_files:

@@ -1239,6 +1239,6 @@ class Alkira:
         self.assignRule([pageEditorsGuid], "updatePage", {})
 
         developersGuid = self.createGroup("Developers")
-        allRules = filter(lambda r: r not in ("ide.createProject", "ide.deleteProject"), allRules)
+        allRules = filter(lambda r: r["name"] not in ("ide.createProject", "ide.deleteProject"), allRules)
         for rule in allRules:
             self.assignRule([developersGuid], rule["name"], {})

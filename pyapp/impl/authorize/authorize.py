@@ -32,8 +32,14 @@ class TimeoutServerProxy(xmlrpclib.ServerProxy):
 
 def main(q, i, p, params, tags):
     request = params["request"]
+
     if not request.username:
-        params["result"] = True
+        config = q.tools.inifile.open(q.system.fs.joinPaths(q.dirs.pyAppsDir, p.api.appname, "cfg", \
+            "auth.cfg")).getFileAsDict()
+        if int(config["auth"]["insecure"]):
+            params["result"] = True
+        else:
+            params["result"] = False
     else:
         q.logger.log("Checking authorization for user %s" % request.username, 3)
 
@@ -42,10 +48,12 @@ def main(q, i, p, params, tags):
 
         conn = OsisDB().getConnection(p.api.appname)
         searchfilter = conn.getFilterObject()
-        user = conn.objectsFindAsView("ui", "user", searchfilter, "ui_view_user_list")
+        searchfilter.add("ui_view_user_list", "login", request.username, True)
+        users = conn.objectsFindAsView("ui", "user", searchfilter, "ui_view_user_list")
 
-        if user:
-            groups = user[0]["groupguids"].split(";")
+        if users and len(users) == 1:
+            user = users[0]
+            groups = filter(None, user["groupguids"].split(";"))
 
             #
             # Normally this part isn't needed because we have the Auth service but because we cannot call the service
@@ -55,7 +63,14 @@ def main(q, i, p, params, tags):
             #
 
             authBackend = params["authbackend"]
-            params["result"] = authBackend.isAuthorised(groups, params["methodname"], params["kwargs"])
+
+            # we only parse the name in kwargs
+            context = {}
+            if "space" in params["kwargs"]:
+                context["name"] = params["kwargs"]["space"]
+            elif "name" in params["kwargs"]:
+                context["name"] = params["kwargs"]["name"]
+            params["result"] = authBackend.isAuthorised(groups, params["methodname"], context)
 
     #set the http response to 405 when we failed
     if params["result"] == False:

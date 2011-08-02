@@ -55,6 +55,17 @@ $(function() {
     //Install global error handler so we can show a login box if required but only if we got it from the rest api
     //from the applicationserver
     $(document).ajaxError(function(event, xhr, options) {
+        //workaround until the appserver can return custom return values again
+        if (xhr.status === 500 &&
+            options.url.indexOf(LFW_CONFIG.appname + "/appserver/rest/") !== -1) {
+
+            if (xhr.responseText.indexOf("Authorization failed") > 0) {
+                xhr.status = 405;
+            } else if (xhr.responseText.indexOf("Authentication failed") > 0) {
+                xhr.status = 403;
+            }
+        }
+
         if ((xhr.status === 403 || xhr.status === 401) &&
             options.url.indexOf(LFW_CONFIG.appname + "/appserver/rest/") !== -1) {
 

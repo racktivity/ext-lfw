@@ -60,6 +60,9 @@ $(function() {
 
             event.preventDefault();
             showLoginDialog();
+        } else if (xhr.status === 405) {
+            event.preventDefault();
+            $.alerterror(xhr);
         }
     });
 

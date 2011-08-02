@@ -31,18 +31,6 @@ class ide(object):
         self.alkira = Alkira(p.api)
         self.connection = OsisDB().getConnection(p.api.appname)
 
-        #
-        # Normally this part isn't needed because we have the Auth service but because we cannot call the service
-        # from inside the authorize tasklet (because this is implemented in the main thread of the appserver).
-        # So we just do the same as the Auth service is doing and then use the backend directly.
-        #
-
-        #load auth backend
-        config = q.tools.inifile.open(q.system.fs.joinPaths(q.dirs.pyAppsDir, p.api.appname, "cfg", "auth.cfg"))
-        sys.path.insert(0, os.path.join(os.path.dirname(__file__), "auth_backend"))
-        backend = __import__(config.getValue("auth", "backend"), level=1)
-        self.authBackend = getattr(backend, "BACKEND")()
-
     def checkAuthentication(self, request, domain, service, methodname, args, kwargs):
         q.logger.log("HEADERS from ide.checkAuthentication %s" % str(request._request.requestHeaders))
         tags = ('authenticate',)
@@ -68,16 +56,6 @@ class ide(object):
         params['args'] = args
         params['kwargs'] = kwargs
         params['result'] = True
-
-        #
-        # Normally this part isn't needed because we have the Auth service but because we cannot call the service
-        # from inside the authorize tasklet (because this is implemented in the main thread of the appserver).
-        # So we just do the same as the Auth service is doing and then use the backend directly.
-        #
-        tags += ('authbackend', )
-        params['authbackend'] = self.authBackend
-
-
         self._authorize.execute(params, tags=tags)
         return params.get('result', False)
 

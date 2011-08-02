@@ -27,18 +27,6 @@ class LFWService(object):
         self._tasklet_engine.addFromPath(os.path.join(q.dirs.baseDir,'lib','python','site-packages','alkira', 'tasklets'))
         self.db_config_path = q.system.fs.joinPaths(q.dirs.cfgDir, 'qconfig', 'dbconnections.cfg')
 
-        #
-        # Normally this part isn't needed because we have the Auth service but because we cannot call the service
-        # from inside the authorize tasklet (because this is implemented in the main thread of the appserver).
-        # So we just do the same as the Auth service is doing and then use the backend directly.
-        #
-
-        #load auth backend
-        config = q.tools.inifile.open(q.system.fs.joinPaths(q.dirs.pyAppsDir, p.api.appname, "cfg", "auth.cfg"))
-        sys.path.insert(0, os.path.join(os.path.dirname(__file__), "auth_backend"))
-        backend = __import__(config.getValue("auth", "backend"), level=1)
-        self.authBackend = getattr(backend, "BACKEND")()
-
     @q.manage.applicationserver.expose_authenticated
     def tags(self, space=None, term=None):
         results = self.alkira.getitems('tags', space=space, term=term)

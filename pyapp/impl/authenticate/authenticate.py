@@ -66,7 +66,6 @@ def main(q, i, p, params, tags):
     headers = _getHeaders(request, q)
     config = q.tools.inifile.open(q.system.fs.joinPaths(q.dirs.pyAppsDir, p.api.appname, "cfg", \
         "auth.cfg")).getFileAsDict()
-    q.logger.log("TEST %s" % config["auth"]["insecure"])
     if headers.has_key('Authorization') and headers['Authorization'].find('OAuth realm="alkira"') >= 0:
         helperServer = HelperServer(q, p, config)
         oAuthHeaders = _getAuthHeaders(headers, q)

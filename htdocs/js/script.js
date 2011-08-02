@@ -45,7 +45,7 @@ $.fillSpacesList = function(options) {
         var spaces = $('#space');
         spaces.empty();
         for(var i = 0; i < data.length; i++) {
-            if (Auth.getFromLocalStorage("username") == null && data[i] == ADMINSPACE) {
+            if (Auth.getFromLocalStorage("username") == null && (data[i] == ADMINSPACE || data[i] == IDE)) {
                 continue;
             }
             $('<option>')

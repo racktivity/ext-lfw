@@ -16,38 +16,46 @@ class AuthService(ActionService):
     def verifyUserIdentity(self, login, password):
         return self.backend.verifyUserIdentity(login, password)
 
-    @q.manage.applicationserver.expose_authenticated
+    @q.manage.applicationserver.expose_authorized()
     def createUsergroup(self, usergroupinfo):
         return self.backend.createUsergroup(usergroupinfo)
 
-    @q.manage.applicationserver.expose_authenticated
+    @q.manage.applicationserver.expose_authorized()
     def deleteUsergroup(self, usergroupid):
         return self.backend.deleteUsergroup(usergroupid)
 
-    @q.manage.applicationserver.expose_authenticated
+    @q.manage.applicationserver.expose_authorized()
     def createUser(self, userinfo):
         return self.backend.createUser(userinfo)
 
-    @q.manage.applicationserver.expose_authenticated
+    @q.manage.applicationserver.expose_authorized()
+    def deleteUser(self, userid):
+        return self.backend.deleteUser(userid)
+
+    @q.manage.applicationserver.expose_authorized()
+    def updateUser(self, userid, userinfo):
+        return self.backend.updateUser(userid, userinfo)
+
+    @q.manage.applicationserver.expose_authorized()
     def addUserToGroup(self, userid, usergroupid):
         return self.backend.addUserToGroup(userid, usergroupid)
 
-    @q.manage.applicationserver.expose_authenticated
+    @q.manage.applicationserver.expose_authorized()
     def deleteUserFromGroup(self, userid, usergroupid):
-        return self.backend.deleteUserFromGroup(groups, userid, usergroupid)
+        return self.backend.deleteUserFromGroup(userid, usergroupid)
 
-    @q.manage.applicationserver.expose_authenticated
+    @q.manage.applicationserver.expose_authorized()
     def authorise(self, groups, functionname, context):
         return self.backend.authorise(groups, functionname, context)
 
-    @q.manage.applicationserver.expose_authenticated
+    @q.manage.applicationserver.expose_authorized()
     def unAuthorise(self, groups,  functionname, context):
         return self.backend.unAuthorise(groups, functionname, context)
 
-    @q.manage.applicationserver.expose_authenticated
+    @q.manage.applicationserver.expose_authorized()
     def listAuthorisation(self, groups=None, functionname=None, context=None):
         return self.backend.listAuthorisation(groups, functionname, context)
 
-    @q.manage.applicationserver.expose_authenticated
+    @q.manage.applicationserver.expose_authorized()
     def isAuthorised(self, groups, functionname, context):
         return self.backend.isAuthorised(groups, functionname, context)

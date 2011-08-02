@@ -25,7 +25,6 @@ The Line chart is an example with explanation of the JqPlot Line Chart
         {"width" : 400,
          "height" : 400,
          "chart_data" : [[[1, 3], [3, 5], [5, 7], [7, 9], [9, 11], [11, 13]]],
-         "chart_div" : "line_div",
         }
     [[/jqplot]]
     
@@ -38,6 +37,5 @@ If you want to create a macro with a more complicated line chart please see [How
 {"width" : 400,
  "height" : 400,
  "chart_data" : [[[1, 3], [3, 5], [5, 7], [7, 9], [9, 11], [11, 13]]],
- "chart_div" : "line_div"
 }
 [[/jqplot]]

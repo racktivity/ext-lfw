@@ -510,15 +510,6 @@ class Alkira:
             self.createPage(name, "Home", content="", order=10000, title="Home", tagsList=tagsList)
         self.createPage(ADMINSPACE, name, spacectnt, title=name, parent="Spaces")
 
-        #create groups for the space
-        #TODO don't hardcode the function names!
-        creatorsGuid = self.createGroup("Page Creators for " + name)
-        self.assignRule([creatorsGuid], "createPage", {"name": name})
-        self.assignRule([creatorsGuid], "updatePage", {"name": name})
-        self.assignRule([creatorsGuid], "deletePage", {"name": name})
-        editorsGuid = self.createGroup("Page Editors for " + name)
-        self.assignRule([editorsGuid], "updatePage", {"name": name})
-
         return space
 
     def createProject(self, name, path, tagsList=[]):

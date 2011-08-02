@@ -3,9 +3,9 @@ class authoriserule:
     Authoriserule object actions
     """
 
-    def create(self, groupguids, function, context, jobguid="", executionparams=None):
+    def assign(self, groupguids, function, context, jobguid="", executionparams=None):
         """
-        Create a new authoriserule object.
+        Assign a new authoriserule object.
 
         @param groupguids:       list of the group
         @type groupguids:        list of guids
@@ -82,15 +82,21 @@ class authoriserule:
         @warning:                Only usable using the python client.
         """
 
-    def delete(self, authoriseruleguid, jobguid="",executionparams=None):
+    def revoke(self, groupguids, function, context, jobguid="",executionparams=None):
         """
-        Delete the group object with the guid specified.
+        Revoke the authoriserule objects who match the given parameters.
 
         @security: administrator
         @execution_method = sync
 
-        @param authoriseruleguid:        guid of the authoriserule object
-        @type authoriseruleguid:         guid
+        @param groupguids:       list of the group
+        @type groupguids:        list of guids
+
+        @param function:         name of the function the authorise rule is about
+        @type function:          string
+
+        @param context:          context of the authorise rule
+        @type context:           dict of strings
 
         @param jobguid:                  guid of the job if available else empty string
         @type jobguid:                   guid
@@ -103,32 +109,3 @@ class authoriserule:
 
         @raise e:                        In case an error occurred, exception is raised
         """
-
-    def update(self, authoriseruleguid, groupguids=list(), function="", context=dict(), executionparams=dict()):
-        """
-        Update a group object name.
-
-        @param authoriseruleguid:        guid of the authoriserule object
-        @type authoriseruleguid:         guid
-
-        @param groupguids:               list of the group
-        @type groupguids:                list of guids
-
-        @param function:                 name of the function the authorise rule is about
-        @type function:                  string
-
-        @param context:                  context of the authorise rule
-        @type context:                   dict of strings
-
-        @param jobguid:                  guid of the job if available else empty string
-        @type jobguid:                   guid
-
-        @param executionparams:          dictionary of job specific params e.g. userErrormsg, maxduration ...
-        @type executionparams:           dictionary
-
-        @return:                         dictionary with user object guid as result and jobguid: {'result': guid, 'jobguid': guid}
-        @rtype:                          dictionary
-
-        @raise e:                        In case an error occurred, exception is raised
-        """
-

@@ -61,18 +61,13 @@ def _getAuthHeaders(headers, q):
     q.logger.log("OAUTH HEADERS "+ str(oAuthHeaders), 5)
     return oAuthHeaders
 
-def _getConfig(q, p):
-    if not _getConfig.config:
-        _getConfig.config = q.tools.inifile.open(q.system.fs.joinPaths(q.dirs.pyAppsDir, p.api.appname, "cfg", \
-            "auth.cfg")).getFileAsDict()
-    return _getConfig.config
-_getConfig.config = None
-
 def main(q, i, p, params, tags):
     request = params["request"]
     headers = _getHeaders(request, q)
+    config = q.tools.inifile.open(q.system.fs.joinPaths(q.dirs.pyAppsDir, p.api.appname, "cfg", \
+        "auth.cfg")).getFileAsDict()
+    q.logger.log("TEST %s" % config["auth"]["insecure"])
     if headers.has_key('Authorization') and headers['Authorization'].find('OAuth realm="alkira"') >= 0:
-        config = _getConfig(q, p)
         helperServer = HelperServer(q, p, config)
         oAuthHeaders = _getAuthHeaders(headers, q)
         tokenkey = oAuthHeaders['oauth_token']
@@ -120,9 +115,13 @@ def main(q, i, p, params, tags):
 
                 #set the username so this can be used in the authorize tasklet
                 request.username = oAuthHeaders['oauth_consumer_key']
+    elif not int(config["auth"]["insecure"]):
+        params["result"] = False
     else:
         #An unauthenticated user cannot access the administration space
-        if request._request.uri.find("/appserver/rest/ui/portal/getPage?space=Admin") > 0:
+        if request._request.uri.find("/appserver/rest/ui/portal/getPage?space=Admin") > 0 or \
+            request._request.uri.find("/appserver/rest/ui/portal/getPage?space=IDE") > 0:
+
             params["result"] = False
         else:
             params["result"] = True

@@ -82,17 +82,20 @@ class Client:
     def deleteSpace(self, name):
         return self.__call("deleteSpace", name=name)
 
-    def listUsers(self, username=None):
-        return self.__call("listUsers", username=username)
+    def listUsers(self, login=None):
+        return self.__call("listUsers", login=login)
 
-    def createUser(self, name):
-        return self.__call("createUser", name=name)
+    def getUserInfo(self, login):
+        return self.__call("getUserInfo", login=login)
+
+    def createUser(self, login, name=None, password=None):
+        return self.__call("createUser", login=login, password=password, name=name)
 
     def deleteUser(self, userguid):
         return self.__call("deleteUser", userguid=userguid)
 
-    def updateUser(self, userguid, name):
-        return self.__call("updateUser", userguid=userguid, name=name)
+    def updateUser(self, userguid, name=None, password=None):
+        return self.__call("updateUser", userguid=userguid, name=name, password=password)
 
     def addUserToGroup(self, userguid, groupguid):
         return self.__call("addUserToGroup", userguid=userguid, groupguid=groupguid)
@@ -106,18 +109,20 @@ class Client:
     def deleteGroup(self, groupguid):
         return self.__call("deleteGroup", groupguid=groupguid)
 
+    def listGroups(self, name=None):
+        return self.__call("listGroups", name=name)
+
+    def getGroupInfo(self, name):
+        return self.__call("getGroupInfo", name=name)
+
     def updateGroup(self, groupguid, name):
         return self.__call("updateGroup", groupguid=groupguid, name=name)
 
-    def createRule(self, groupguids, function, context):
-        return self.__call("createRule", groupguids=groupguids, function=function, context=context)
+    def assignRule(self, groupguids, function, context):
+        return self.__call("assignRule", groupguids=groupguids, function=function, context=context)
 
-    def deleteRule(self, authoriseruleguid):
-        return self.__call("deleteRule", authoriseruleguid=authoriseruleguid)
-
-    def updateRule(self, authoriseruleguid, groupguids, function, context):
-        return self.__call("updateRule", authoriseruleguid=authoriseruleguid, groupguids=groupguids, \
-            function=function, context=context)
+    def revokeRule(self, groupguids, function, context):
+        return self.__call("revokeRule", groupguids=groupguids, function=function, context=context)
 
     def listPages(self, space=None, term=None):
         return self.__call("listPages", space=space, term=term)

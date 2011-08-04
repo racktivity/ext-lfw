@@ -9,7 +9,7 @@ def main(q, i, p, params, tags):
                       content=params['content'],
                       order=params['order'] if params['order'] else 10000,
                       title=params['title'] if params['title'] else params['name'],
-                      tagsList=params.get('tags', '').split(" ") if params['tags'] else None,
+                      tagsList=params.get('tags', '').split(" ") if params['tags'] else [],
                       category=params['category'],
                       parent=parent)
                       

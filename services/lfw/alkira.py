@@ -5,6 +5,7 @@ import urllib
 import inspect
 import re
 import functools
+import xmlrpclib
 
 ADMINSPACE = "Admin"
 IDESPACE = "IDE"
@@ -20,6 +21,11 @@ class Alkira:
 
         self.connection = api.model.ui
         self.api = api
+
+        config = q.tools.inifile.open(q.system.fs.joinPaths(q.dirs.pyAppsDir, api.appname, "cfg", \
+            "applicationserver.cfg"))
+        self.authurl = "http://%s:%d/RPC2" % \
+            (config.getValue("main", "xmlrpc_ip"), config.getIntValue("main", "xmlrpc_port"))
 
     def _getPageInfo(self, space, name):
         page_filter = self.connection.page.getFilterObject()
@@ -65,13 +71,6 @@ class Alkira:
             filter.add('ui_view_project_list', 'name', name, True)
         project = self.connection.project.findAsView(filter, 'ui_view_project_list')
         return project
-
-    def _getUserInfo(self, name=None):
-        searchfilter = self.connection.user.getFilterObject()
-        if name:
-            searchfilter.add('ui_view_user_list', 'name', name, True)
-        user = self.connection.user.findAsView(searchfilter, 'ui_view_user_list')
-        return user
 
     def _getParentGUIDS(self, guid_list):
         parent_list = []
@@ -211,18 +210,6 @@ class Alkira:
 
         return self.connection.page.findAsView(filter, 'ui_view_page_list')
 
-    def listUsers(self, name=None):
-        return map(lambda item: item["name"],
-                   self.listUserInfo(name))
-
-    def listUserInfo(self, name=None):
-        """
-        Lists all the users
-
-        @param space: The name of the user.
-        """
-        return self._getUserInfo(name)
-
     def listChildPages(self, space, name = None):
         """
         Lists child pages of page "name"
@@ -283,17 +270,6 @@ class Alkira:
             return True
         else:
             return False
-
-    def userExists(self, name):
-        """
-        Checks whether a user exists or not.
-
-        @type name: String
-        @param name: The name of the user
-
-        @return: True if the user exists, False otherwise.
-        """
-        return bool(self._getUserInfo(name))
 
     def pageFind(self, name='', space='', category='', parent='', tags='', order=None, title='', exact_properties=None):
         filterObject = self.connection.page.getFilterObject()
@@ -368,20 +344,6 @@ class Alkira:
         if not page_info:
             q.errorconditionhandler.raiseError("Page %s does not exist." % name)
         return self.connection.page.get(page_info[0]['guid'])
-
-    def getUser(self, name):
-        """
-        Gets a user object.
-
-        @type name: String
-        @param name: The name of the user.
-
-        @return: User object.
-        """
-        user_info = self._getUserInfo(name)
-        if not user_info:
-            q.errorconditionhandler.raiseError("User %s does not exist." % name)
-        return self.connection.user.get(user_info[0]['guid'])
 
     def getPageByGUID(self, guid):
         """
@@ -481,45 +443,6 @@ class Alkira:
                     q.system.fs.removeDirTree(dir)
                 elif _isfile(file):
                     q.system.fs.removeFile(file)
-
-    def deleteUser(self, userguid):
-        self.connection.user.delete(userguid)
-
-    def deleteUserByGUID(self, userguid):
-        """
-        Deletes a user using its GUID
-
-        @type userguid: GUID
-        @param userguid: The GUID of the user.
-        """
-        self.connection.user.delete(userguid)
-
-    def addUserToGroup(self, userguid, groupguid):
-        user = self.connection.user.get(userguid)
-        if groupguid in user.groups:
-            q.errorconditionhandler.raiseError("User is already in that group.")
-
-        user.groups.append(groupguid)
-        self.connection.user.save(user)
-
-    def removeUserFromGroup(self, userguid, groupguid):
-        """
-        Remove a user from a group
-
-        @type userguid: GUID
-        @param userguid: The GUID of the user
-
-        @type groupguid: GUID
-        @param groupguid: The GUID of the group
-        """
-        filter = self.connection.user.getFilterObject()
-        filter.add('ui_view_user_list', 'guid', userguid, True)
-        user = self.connection.user.findAsView(filter, 'ui_view_user_list')
-        if not groupguid in user.groups:
-            q.errorconditionhandler.raiseError("User is not in that group.")
-
-        user.groups.remove(groupguid)
-        self.connection.user.save(user)
 
     def _deletePage(self, space, page):
         def deleterecursive(guid):
@@ -718,19 +641,6 @@ class Alkira:
 
         self._syncPageToDisk(space.name, page)
 
-    def createUser(self, name):
-        if self.userExists(name):
-            q.errorconditionhandler.raiseError("User %s already exists."%name)
-        else:
-            user = self.connection.user.new()
-            params = {"name":name}
-            for key in params:
-                if params[key]:
-                    setattr(user, key, params[key])
-
-            self.connection.user.save(user)
-            return user.guid
-
     def updateSpace(self, space, newname=None, tagslist=None, repository=None, repo_username=None, repo_password=None, order=None):
         space = self.getSpace(space)
 
@@ -846,16 +756,10 @@ class Alkira:
                          order=order, title=title, parent=parent, category=category,
                          pagetype=pagetype, filename=filename, contentIsFilePath=contentIsFilePath)
 
-        
+
         self._syncPageToDisk(space.name, page, old_name)
 
         return page
-
-    def updateUser(self, userguid, name):
-        user = self.connection.user.get(userguid)
-        user.name = name
-        self.connection.user.save(user)
-        return user.guid
 
     def findMacroConfig(self, space="", page="", macro="", configId=None, username=None, exact_properties=None):
         configFilter = self.connection.config.getFilterObject()
@@ -1052,9 +956,9 @@ class Alkira:
 
     def syncPortal(self, path=None, space=None, page=None, cleanup=None):
         def deletePages(space):
-                pages = self.pageFind(space=space)
-                for page in pages:
-                    self.connection.page.delete(page)
+            pages = self.pageFind(space=space)
+            for page in pages:
+                self.connection.page.delete(page)
 
         def pageDuplicate(page):
             page_name = q.system.fs.getBaseName(page)
@@ -1193,6 +1097,53 @@ class Alkira:
 
             alkiraTree(folder_paths)
 
+    def _getUserInfo(self, login=None):
+        searchfilter = self.connection.user.getFilterObject()
+        if login:
+            searchfilter.add('ui_view_user_list', 'login', login, True)
+        user = self.connection.user.findAsView(searchfilter, 'ui_view_user_list')
+        return user
+
+    def listUsers(self, login=None):
+        return map(lambda item: item["login"], self.listUserInfo(login))
+
+    def listUserInfo(self, login=None):
+        return self._getUserInfo(login)
+
+    def listUsersInfo(self):
+        usersInfo = []
+        users = self._getUserInfo()
+        for user in users:
+            usersInfo.append({"name": user["name"], "guid": user["guid"], \
+                "groups": filter(None, user["groupguids"].split(";"))})
+        return usersInfo
+
+    def createUser(self, login, name=None, password=None):
+        userInfo = {"login": login, "name": name if name else login}
+        if password:
+            userInfo["password"] = password
+        return xmlrpclib.ServerProxy(self.authurl).ui.auth.createUser(userInfo)
+
+    def updateUser(self, userguid, name=None, password=None):
+        userinfo = {}
+        if name:
+            userinfo["name"] = name
+        if password:
+            userinfo["password"] = password
+
+        if userinfo:
+            return xmlrpclib.ServerProxy(self.authurl).ui.auth.updateUser(userguid, userinfo)
+        return False
+
+    def deleteUser(self, userguid):
+        return xmlrpclib.ServerProxy(self.authurl).ui.auth.deleteUser(userguid)
+
+    def getUser(self, name):
+        user_info = self._getUserInfo(name)
+        if not user_info:
+            q.errorconditionhandler.raiseError("User %s does not exist." % name)
+        return self.connection.user.get(user_info[0]['guid'])
+
     def getUserGroups(self, name):
         searchfilter = self.connection.user.getFilterObject()
         searchfilter.add('ui_view_user_list', 'name', name, True)
@@ -1200,30 +1151,25 @@ class Alkira:
         if user:
             return user.groups
 
+    def addUserToGroup(self, userguid, groupguid):
+        return xmlrpclib.ServerProxy(self.authurl).ui.auth.addUserToGroup(userguid, groupguid)
+
+    def removeUserFromGroup(self, userguid, groupguid):
+        return xmlrpclib.ServerProxy(self.authurl).ui.auth.deleteUserFromGroup(userguid, groupguid)
+
     def createGroup(self, name):
-        if self.groupExists(name):
-            q.errorconditionhandler.raiseError("Group %s already exists." % name)
-        else:
-            group = self.connection.group.new()
-            params = {"name":name}
-            for key in params:
-                if params[key]:
-                    setattr(group, key, params[key])
+        groupInfo = {"name": name}
+        return xmlrpclib.ServerProxy(self.authurl).ui.auth.createUsergroup(groupInfo)
 
-            self.connection.group.save(group)
-            return group.guid
-
-    def groupExists(self, name):
-        return bool(self._getGroupInfo(name))
-
-    def _getGroupInfo(self, name):
+    def _getGroupInfo(self, name=None):
         searchfilter = self.connection.group.getFilterObject()
-        searchfilter.add('ui_view_group_list', 'name', name, True)
+        if name:
+            searchfilter.add('ui_view_group_list', 'name', name, True)
         group = self.connection.group.findAsView(searchfilter, 'ui_view_group_list')
         return group
 
     def deleteGroup(self, groupguid):
-        self.connection.group.delete(groupguid)
+        return xmlrpclib.ServerProxy(self.authurl).ui.auth.deleteUsergroup(groupguid)
 
     def updateGroup(self, groupguid, name):
         group = self.connection.group.get(groupguid)
@@ -1231,38 +1177,68 @@ class Alkira:
         self.connection.group.save(group)
         return group.guid
 
-    def createRule(self, groupguids, function, context):
-        for group in groupguids:
-            if self.ruleExists(group, function, str(context)):
-                q.errorconditionhandler.raiseError("Rule already exists.")
+    def listGroupsInfo(self):
+        groupsInfo = []
+        groups = self._getGroupInfo()
+        for group in groups:
+            groupsInfo.append({"name": group["name"], "guid": group["guid"]})
+        return groupsInfo
 
-        rule = self.connection.authoriserule.new()
-        params = {"groupguids": groupguids, "function": function, "context": context}
-        for key in params:
-            if params[key]:
-                setattr(rule, key, params[key])
+    def listGroups(self, name):
+        return map(lambda item: item["name"], self._getGroupInfo(name))
 
-        self.connection.authoriserule.save(rule)
-        return rule.guid
+    def assignRule(self, groupguids, function, context):
+        return xmlrpclib.ServerProxy(self.authurl).ui.auth.authorise(groupguids, function, context)
 
-    def ruleExists(self, groupguid, function, context):
-        return bool(self._getRuleInfo(groupguid, function, context))
-
-    def _getRuleInfo(self, groupguid, function, context):
+    def _getRuleInfo(self, groupguid=None, function=None, context=None):
         searchfilter = self.connection.authoriserule.getFilterObject()
-        searchfilter.add('ui_view_authoriserule_list', 'groupguids', groupguid + ";", True)
-        searchfilter.add('ui_view_authoriserule_list', 'function', function, True)
-        searchfilter.add('ui_view_authoriserule_list', 'context', context, True)
+        if groupguid:
+            searchfilter.add('ui_view_authoriserule_list', 'groupguids', ";" + groupguid + ";", False)
+        if function:
+            searchfilter.add('ui_view_authoriserule_list', 'function', function, True)
+        if context:
+            searchfilter.add('ui_view_authoriserule_list', 'context', context, True)
         rule = self.connection.authoriserule.findAsView(searchfilter, 'ui_view_authoriserule_list')
         return rule
 
-    def deleteRule(self, authoriseruleguid):
-        self.connection.authoriserule.delete(authoriseruleguid)
+    def revokeRule(self, groupguids, function, context):
+        return xmlrpclib.ServerProxy(self.authurl).ui.auth.unAuthorise(groupguids, function, context)
 
-    def updateRule(self, authoriseruleguid, groupguids, function, context):
-        rule = self.connection.authoriserule.get(authoriseruleguid)
-        rule.groupguids = groupguids
-        rule.function = function
-        rule.context = context
-        self.connection.authoriserule.save(rule)
-        return rule.guid
+    def listRulesInfo(self):
+        rulesInfo = []
+        rules = self._getRuleInfo()
+        for rule in rules:
+            rulesInfo.append({"name": rule["guid"], "guid": rule["guid"], \
+                "groups": filter(None, rule["groupguids"].split(";")), \
+                "function": rule["function"], "context": rule["context"]})
+        return rulesInfo
+
+    def createDefaultRules(self):
+        try:
+            adminGuid = self.createUser("admin", "Admin User", "admin")
+        except:
+            return
+        adminsGuid = self.createGroup("Admins")
+        self.addUserToGroup(adminGuid, adminsGuid)
+
+        from lfw import LFWService
+        allRules = LFWService.getAuthorizedFunctions()
+        for rule in allRules:
+            self.assignRule([adminsGuid], rule["name"], {})
+        from ide import ide
+        allRules = ide.getAuthorizedFunctions()
+        for rule in allRules:
+            self.assignRule([adminsGuid], rule["name"], {})
+
+        pageCreatorsGuid = self.createGroup("Page Creators")
+        self.assignRule([pageCreatorsGuid], "createPage", {})
+        self.assignRule([pageCreatorsGuid], "updatePage", {})
+        self.assignRule([pageCreatorsGuid], "deletePage", {})
+
+        pageEditorsGuid = self.createGroup("Page Editors")
+        self.assignRule([pageEditorsGuid], "updatePage", {})
+
+        developersGuid = self.createGroup("Developers")
+        allRules = filter(lambda r: r["name"] not in ("ide.createProject", "ide.deleteProject"), allRules)
+        for rule in allRules:
+            self.assignRule([developersGuid], rule["name"], {})

@@ -1,6 +1,3 @@
-__author__ = "racktivity"
-__tags__ = 'macro', 'generic'
-
 def main(q, i, params, tags):
 
     t = params.get('tags')

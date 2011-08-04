@@ -3,12 +3,18 @@ class user:
     User object actions
     """
 
-    def create(self, name, jobguid="", executionparams=None):
+    def create(self, login, name=None, password=None, jobguid="", executionparams=None):
         """
         Create a new user object.
 
+        @param login:            login of the user
+        @type login:             string
+
         @param name:             name of the user
         @type name:              string
+
+        @param password:         password of the user
+        @type password:          string
 
         @param jobguid:          guid of the job if available else empty string
         @type jobguid:           guid
@@ -22,7 +28,7 @@ class user:
         @raise e:                In case an error occurred, exception is raised
         """
 
-    def find(self, name="", jobguid="", executionparams=None):
+    def find(self, login="", name="", jobguid="", executionparams=None):
         """
         Returns a list of user objects which met the find criteria.
 
@@ -92,7 +98,7 @@ class user:
         @raise e:                        In case an error occurred, exception is raised
         """
 
-    def update(self, userguid, name="", jobguid="", executionparams=dict()):
+    def update(self, userguid, name="", password=None, jobguid="", executionparams=dict()):
         """
         Update a user object name.
 
@@ -101,6 +107,9 @@ class user:
 
         @param name:             name of the user
         @type name:              string
+
+        @param password:         password of the user
+        @type password:          string
 
         @param jobguid:          guid of the job if available else empty string
         @type jobguid:           guid

@@ -26,7 +26,6 @@ The Pie Chart is an example with explanation of the JqPlot Pie Chart.
         {"width" : 400,
          "height" : 400,
          "chart_data" : [[[1, 2],[2, 4],[3, 6],[4, 8]]],
-         "chart_div" : "pie_div",
          "renderer" :"$.jqplot.PieRenderer"
         }
     [[/jqplot]]
@@ -41,7 +40,6 @@ If you want to create a macro with a more complicated bar chart please see [How 
 {"width" : 400,
  "height" : 400,
  "chart_data" : [[[1, 2],[2, 4],[3, 6],[4, 8]]],
- "chart_div" : "pie_div",
  "renderer" :"$.jqplot.PieRenderer"
 }
 [[/jqplot]]

@@ -27,7 +27,6 @@ The Block chart is an example with explanation of the JqPlot Block Chart
         {"width" : 400,
          "height" : 400,
          "chart_data" : [[[1, 2, "red"],[2, 4, "blue"],[3, 6, "blach"],[4, 8,"green"]]],
-         "chart_div" : "block_div",
          "renderer" :"$.jqplot.BlockRenderer"
         }
     [[/jqplot]]
@@ -41,7 +40,6 @@ If you want to create a macro with a more complicated block chart please see [Ho
 {"width" : 400,
  "height" : 400,
  "chart_data" : [[[1, 2, "red"],[2, 4, "blue"],[3, 6, "blach"],[4, 8,"green"]]],
- "chart_div" : "block_div",
  "renderer" :"$.jqplot.BlockRenderer"
 }
 [[/jqplot]]

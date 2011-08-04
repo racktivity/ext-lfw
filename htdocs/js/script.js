@@ -61,7 +61,7 @@ $.fillSpacesList = function(options) {
 var app = $.sammy(function(app) {
     this.use('Title');
     this.use('Mustache');
-
+    var $app = this;
     var _appName = null;
     var _space = null,
         _page = null,
@@ -150,7 +150,7 @@ var app = $.sammy(function(app) {
                     'query': getQuery(),
                     'pagecontent': elem,
                     'config': {},
-
+                    'app' : $app,
                     'addDependency': function(callback, dependencies, ordered){
                         addDependency(callback, dependencies, ordered, $this, name);
                     },
@@ -919,7 +919,6 @@ data;
     });
 });
 
-$.lfw = app;
 
 $(function() {
     if(typeof(LFW_CONFIG) === 'undefined' || !LFW_CONFIG) {

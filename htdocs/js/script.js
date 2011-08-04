@@ -920,7 +920,7 @@ data;
     });
 });
 
-
+$.lfw = app;
 
 $(function() {
     if(typeof(LFW_CONFIG) === 'undefined' || !LFW_CONFIG) {

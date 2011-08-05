@@ -5,7 +5,10 @@ import urllib
 import inspect
 import re
 import functools
-import xmlrpclib
+import httplib
+import oauth2
+import json
+import ast
 
 ADMINSPACE = "Admin"
 IDESPACE = "IDE"
@@ -22,10 +25,53 @@ class Alkira:
         self.connection = api.model.ui
         self.api = api
 
-        config = q.tools.inifile.open(q.system.fs.joinPaths(q.dirs.pyAppsDir, api.appname, "cfg", \
-            "applicationserver.cfg"))
-        self.authurl = "http://%s:%d/RPC2" % \
-            (config.getValue("main", "xmlrpc_ip"), config.getIntValue("main", "xmlrpc_port"))
+    def _callAuthService(self, method, oauthInfo, **args):
+        data = {}
+        #only pass arguments that has value
+        for k, v in args.iteritems():
+            if v != None:
+                data[k] = json.dumps(v)
+
+        headers = {'Content-Type': "application/x-www-form-urlencoded"}
+
+        url = '/%(appname)s/appserver/rest/ui/auth/%(method)s' % {'appname': self.api.appname, 'method': method}
+
+        httpMethod = "POST"
+
+        if oauthInfo and "token" in oauthInfo and "username" in oauthInfo:
+            arakoon = q.clients.arakoon.getClient(self.api.appname)
+            if arakoon.exists(key=oauthInfo["token"]):
+                tokenAttributes = arakoon.get(oauthInfo["token"])
+                if tokenAttributes:
+                    tokenAttributes = ast.literal_eval(tokenAttributes)
+                if tokenAttributes:
+                    #remove the appname from the call ass the appserver doesn't get this in his request
+                    oauthUrl = url[len("/%s" % self.api.appname):]
+
+                    consumer = oauth2.Consumer(oauthInfo["username"], "")
+                    token = oauth2.Token(oauthInfo["token"], tokenAttributes["tokensecret"])
+                    req = oauth2.Request.from_consumer_and_token(consumer, token, http_method=httpMethod,
+                        http_url="http://alkira%s" % oauthUrl, parameters=data)
+                    req.sign_request(oauth2.SignatureMethod_HMAC_SHA1(), consumer, token)
+                    oauthHeaders = req.to_header(realm="alkira")
+                    headers.update(oauthHeaders)
+
+        data = urllib.urlencode(data)
+        con = httplib.HTTPConnection("localhost", 80)
+        try:
+            con.request(httpMethod, url, body=data, headers=headers)
+            res = con.getresponse()
+            result = res.read()
+            try:
+                body = json.loads(result)
+            except ValueError:
+                body = result
+            if res.status == 200:
+                return body
+            else:
+                raise Exception(body['exception'] if 'exception' in body else res.reason, res.status)
+        finally:
+            con.close()
 
     def _getPageInfo(self, space, name):
         page_filter = self.connection.page.getFilterObject()
@@ -1118,13 +1164,13 @@ class Alkira:
                 "groups": filter(None, user["groupguids"].split(";"))})
         return usersInfo
 
-    def createUser(self, login, name=None, password=None):
+    def createUser(self, login, name=None, password=None, oauthInfo=None):
         userInfo = {"login": login, "name": name if name else login}
         if password:
             userInfo["password"] = password
-        return xmlrpclib.ServerProxy(self.authurl).ui.auth.createUser(userInfo)
+        return self._callAuthService("createUser", oauthInfo, userinfo=userInfo)
 
-    def updateUser(self, userguid, name=None, password=None):
+    def updateUser(self, userguid, name=None, password=None, oauthInfo=None):
         userinfo = {}
         if name:
             userinfo["name"] = name
@@ -1132,11 +1178,11 @@ class Alkira:
             userinfo["password"] = password
 
         if userinfo:
-            return xmlrpclib.ServerProxy(self.authurl).ui.auth.updateUser(userguid, userinfo)
+            return self._callAuthService("updateUser", oauthInfo, userid=userguid, userinfo=userinfo)
         return False
 
-    def deleteUser(self, userguid):
-        return xmlrpclib.ServerProxy(self.authurl).ui.auth.deleteUser(userguid)
+    def deleteUser(self, userguid, oauthInfo=None):
+        return self._callAuthService("deleteUser", oauthInfo, userid=userguid)
 
     def getUser(self, name):
         user_info = self._getUserInfo(name)
@@ -1151,15 +1197,15 @@ class Alkira:
         if user:
             return user.groups
 
-    def addUserToGroup(self, userguid, groupguid):
-        return xmlrpclib.ServerProxy(self.authurl).ui.auth.addUserToGroup(userguid, groupguid)
+    def addUserToGroup(self, userguid, groupguid, oauthInfo=None):
+        return self._callAuthService("addUserToGroup", oauthInfo, userid=userguid, usergroupid=groupguid)
 
-    def removeUserFromGroup(self, userguid, groupguid):
-        return xmlrpclib.ServerProxy(self.authurl).ui.auth.deleteUserFromGroup(userguid, groupguid)
+    def removeUserFromGroup(self, userguid, groupguid, oauthInfo=None):
+        return self._callAuthService("deleteUserFromGroup", oauthInfo, userid=userguid, usergroupid=groupguid)
 
-    def createGroup(self, name):
+    def createGroup(self, name, oauthInfo=None):
         groupInfo = {"name": name}
-        return xmlrpclib.ServerProxy(self.authurl).ui.auth.createUsergroup(groupInfo)
+        return self._callAuthService("createUsergroup", oauthInfo, usergroupinfo=groupInfo)
 
     def _getGroupInfo(self, name=None):
         searchfilter = self.connection.group.getFilterObject()
@@ -1168,8 +1214,8 @@ class Alkira:
         group = self.connection.group.findAsView(searchfilter, 'ui_view_group_list')
         return group
 
-    def deleteGroup(self, groupguid):
-        return xmlrpclib.ServerProxy(self.authurl).ui.auth.deleteUsergroup(groupguid)
+    def deleteGroup(self, groupguid, oauthInfo=None):
+        return self._callAuthService("deleteUsergroup", oauthInfo, usergroupid=groupguid)
 
     def updateGroup(self, groupguid, name):
         group = self.connection.group.get(groupguid)
@@ -1187,8 +1233,8 @@ class Alkira:
     def listGroups(self, name):
         return map(lambda item: item["name"], self._getGroupInfo(name))
 
-    def assignRule(self, groupguids, function, context):
-        return xmlrpclib.ServerProxy(self.authurl).ui.auth.authorise(groupguids, function, context)
+    def assignRule(self, groupguids, function, context, oauthInfo=None):
+        return self._callAuthService("authorise", oauthInfo, groups=groupguids, functionname=function, context=context)
 
     def _getRuleInfo(self, groupguid=None, function=None, context=None):
         searchfilter = self.connection.authoriserule.getFilterObject()
@@ -1201,8 +1247,9 @@ class Alkira:
         rule = self.connection.authoriserule.findAsView(searchfilter, 'ui_view_authoriserule_list')
         return rule
 
-    def revokeRule(self, groupguids, function, context):
-        return xmlrpclib.ServerProxy(self.authurl).ui.auth.unAuthorise(groupguids, function, context)
+    def revokeRule(self, groupguids, function, context, oauthInfo=None):
+        return self._callAuthService("unAuthorise", oauthInfo, groups=groupguids, functionname=function, \
+            context=context)
 
     def listRulesInfo(self):
         rulesInfo = []
@@ -1218,27 +1265,50 @@ class Alkira:
             adminGuid = self.createUser("admin", "Admin User", "admin")
         except:
             return
-        adminsGuid = self.createGroup("Admins")
+
+        import sys
+        sys.path.insert(0, os.path.join(os.path.dirname(__file__), "auth_backend"))
+        authbackend = __import__("authbackend", level=1)
+
+        adminsGuid = self._getGroupInfo(getattr(authbackend, "ADMIN_GROUP"))[0]["guid"]
         self.addUserToGroup(adminGuid, adminsGuid)
 
-        from lfw import LFWService
-        allRules = LFWService.getAuthorizedFunctions()
-        for rule in allRules:
-            self.assignRule([adminsGuid], rule["name"], {})
-        from ide import ide
-        allRules = ide.getAuthorizedFunctions()
-        for rule in allRules:
-            self.assignRule([adminsGuid], rule["name"], {})
-
+        publicGroupGuid = self._getGroupInfo(getattr(authbackend, "PUBLIC_GROUP"))[0]["guid"]
         pageCreatorsGuid = self.createGroup("Page Creators")
-        self.assignRule([pageCreatorsGuid], "createPage", {})
-        self.assignRule([pageCreatorsGuid], "updatePage", {})
-        self.assignRule([pageCreatorsGuid], "deletePage", {})
-
         pageEditorsGuid = self.createGroup("Page Editors")
-        self.assignRule([pageEditorsGuid], "updatePage", {})
-
         developersGuid = self.createGroup("Developers")
-        allRules = filter(lambda r: r["name"] not in ("ide.createProject", "ide.deleteProject"), allRules)
-        for rule in allRules:
-            self.assignRule([developersGuid], rule["name"], {})
+
+        def assignRuleTryCatch(groups, function, context):
+            try:
+                self.assignRule(groups, function, context)
+            except:
+                pass
+
+        def assignRules(rules):
+            for rule in rules:
+                if not "defaultGroups" in rule:
+                    continue
+                if not "authorizeRule" in rule:
+                    continue
+
+                if "admin" in rule["defaultGroups"]:
+                    assignRuleTryCatch([adminsGuid], rule["authorizeRule"], {})
+                if "public" in rule["defaultGroups"]:
+                    assignRuleTryCatch([publicGroupGuid], rule["authorizeRule"], {})
+                if "creator" in rule["defaultGroups"]:
+                    assignRuleTryCatch([pageCreatorsGuid], rule["authorizeRule"], {})
+                if "editor" in rule["defaultGroups"]:
+                    assignRuleTryCatch([pageEditorsGuid], rule["authorizeRule"], {})
+                if "developer" in rule["defaultGroups"]:
+                    assignRuleTryCatch([developersGuid], rule["authorizeRule"], {})
+
+
+        from lfw import LFWService
+        assignRules(LFWService.getAuthorizedFunctions())
+
+        from authservice import AuthService
+        assignRules(AuthService.getAuthorizedFunctions())
+
+        from ide import ide
+        assignRules(ide.getAuthorizedFunctions())
+

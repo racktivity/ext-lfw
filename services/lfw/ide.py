@@ -31,6 +31,19 @@ class ide(object):
         self.alkira = Alkira(p.api)
         self.connection = OsisDB().getConnection(p.api.appname)
 
+    @staticmethod
+    def getAuthorizedFunctions():
+        functions = []
+
+        for funcName in dir(ide): # loop over functions of our class
+            funcObj = getattr(ide, funcName)
+            if getattr(funcObj, "APPLICATIONSERVER_EXPOSE_AUTHORIZED", False):
+                #needs authorization
+                if hasattr(funcObj, "auth_categories"):
+                    functions.append(getattr(funcObj, "auth_categories"))
+
+        return functions
+
     def checkAuthentication(self, request, domain, service, methodname, args, kwargs):
         q.logger.log("HEADERS from ide.checkAuthentication %s" % str(request._request.requestHeaders))
         tags = ('authenticate',)
@@ -38,7 +51,7 @@ class ide(object):
         params['request'] = request
         params['domain'] = domain
         params['service'] = service
-        params['methodname'] = "ide." + methodname
+        params['methodname'] = methodname
         params['args'] = args
         params['kwargs'] = kwargs
         params['result'] = True
@@ -52,7 +65,7 @@ class ide(object):
         params['request'] = request
         params['domain'] = domain
         params['service'] = service
-        params['methodname'] = "ide." + methodname
+        params['methodname'] = methodname
         params['args'] = args
         params['kwargs'] = kwargs
         params['result'] = True
@@ -121,7 +134,7 @@ class ide(object):
                 q.system.fs.createEmptyFile(q.system.fs.joinPaths(ftd, "tasklets_updated"))
                 break
 
-    @q.manage.applicationserver.expose_authorized(context={})
+    @q.manage.applicationserver.expose_authorized(defaultGroups=["admin", "developer"], authorizeParams={}, authorizeRule="use project")
     def getProjectNode(self, id="."):
         results = []
         if not id:
@@ -142,21 +155,21 @@ class ide(object):
 
         return results
 
-    @q.manage.applicationserver.expose_authorized(context={})
+    @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={}, authorizeRule="create project")
     def createProject(self, name, path):
         self.alkira.createProject(name, path)
         self._updateDirIndex(name)
 
-    @q.manage.applicationserver.expose_authorized(context={})
+    @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={}, authorizeRule="delete project")
     def deleteProject(self, name):
         self.alkira.deleteProject(name)
         self._deleteIndex(name)
 
-    @q.manage.applicationserver.expose_authorized(context={})
+    @q.manage.applicationserver.expose_authorized(defaultGroups=["admin", "developer"], authorizeParams={}, authorizeRule="use project")
     def getProjects(self):
         return self.alkira.listProjectInfo()
 
-    @q.manage.applicationserver.expose_authorized(context={})
+    @q.manage.applicationserver.expose_authorized(defaultGroups=["admin", "developer"], authorizeParams={}, authorizeRule="use project")
     def getNode(self, id="."):
 
         results = []
@@ -195,13 +208,13 @@ class ide(object):
 
         return results
 
-    @q.manage.applicationserver.expose_authorized(context={})
+    @q.manage.applicationserver.expose_authorized(defaultGroups=["admin", "developer"], authorizeParams={}, authorizeRule="use project")
     def getFile(self, id):
         project, relativepath = self._resolveID(id)
         filepath = q.system.fs.joinPaths(self._getProjectPath(project), relativepath)
         return q.system.fs.fileGetContents(filepath)
 
-    @q.manage.applicationserver.expose_authorized(context={})
+    @q.manage.applicationserver.expose_authorized(defaultGroups=["admin", "developer"], authorizeParams={}, authorizeRule="use project")
     def setFile(self, id, content):
         project, relativepath = self._resolveID(id)
         filepath = q.system.fs.joinPaths(self._getProjectPath(project), relativepath)
@@ -209,7 +222,7 @@ class ide(object):
         self._updateFileIndex(id, content)
         self._touchTasklets(project, relativepath)
 
-    @q.manage.applicationserver.expose_authorized(context={})
+    @q.manage.applicationserver.expose_authorized(defaultGroups=["admin", "developer"], authorizeParams={}, authorizeRule="use project")
     def newFile(self, id):
         project, relativepath = self._resolveID(id)
         filepath = q.system.fs.joinPaths(self._getProjectPath(project), relativepath)
@@ -217,7 +230,7 @@ class ide(object):
             raise RuntimeError("A file with the same name already exists")
         return q.system.fs.writeFile(filepath, "")
 
-    @q.manage.applicationserver.expose_authorized(context={})
+    @q.manage.applicationserver.expose_authorized(defaultGroups=["admin", "developer"], authorizeParams={}, authorizeRule="use project")
     def newDir(self, id):
         project, relativepath = self._resolveID(id)
         dirpath = q.system.fs.joinPaths(self._getProjectPath(project), relativepath)
@@ -225,7 +238,7 @@ class ide(object):
             raise RuntimeError("A file with the same name already exists")
         return q.system.fs.createDir(dirpath)
 
-    @q.manage.applicationserver.expose_authorized(context={})
+    @q.manage.applicationserver.expose_authorized(defaultGroups=["admin", "developer"], authorizeParams={}, authorizeRule="use project")
     def delete(self, id):
         project, relativepath = self._resolveID(id)
         path = q.system.fs.joinPaths(self._getProjectPath(project), relativepath)
@@ -236,7 +249,7 @@ class ide(object):
         self._deleteIndex(id)
         self._touchTasklets(project, relativepath)
 
-    @q.manage.applicationserver.expose_authorized(context={})
+    @q.manage.applicationserver.expose_authorized(defaultGroups=["admin", "developer"], authorizeParams={}, authorizeRule="use project")
     def rename(self, id, name):
         project, relativepath = self._resolveID(id)
 
@@ -256,20 +269,3 @@ class ide(object):
             self._updateDirIndex(newid)
 
         self._touchTasklets(project, relativepath)
-
-    @staticmethod
-    def getAuthorizedFunctions():
-        functions = []
-
-        for funcName in dir(ide): # loop over functions of our class
-            funcObj = getattr(ide, funcName)
-            if getattr(funcObj, "APPLICATIONSERVER_EXPOSE_AUTHORIZED", False):
-                #needs authorization
-                if hasattr(funcObj, "auth_categories"):
-                    categories = getattr(funcObj, "auth_categories")
-                    if "context" in categories:
-                        functions.append({ "name": "ide." + funcName, "context": categories["context"] })
-                    else:
-                        functions.append({ "name": "ide." + funcName })
-
-        return functions

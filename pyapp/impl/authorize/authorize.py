@@ -44,41 +44,72 @@ def getAppserverConfig(q, p):
     return getAppserverConfig.config
 getAppserverConfig.config = None
 
+def isLocalRequest(request):
+    clientIp = None
+    for header in request._request.requestHeaders.getAllRawHeaders():
+        if header[0] == "X-Forwarded-For":
+            clientIp = header[1][0]
+
+    if not clientIp:
+        clientIp = request._request.getClientIP()
+    return clientIp == "localhost" or clientIp == "127.0.0.1"
+
+def isAdminOrIdeSpace(params):
+    authInfo = params["criteria"]
+    kwargs = params["kwargs"]
+    if "authorizeRule" in authInfo and authInfo["authorizeRule"] == "view page" and \
+        "space" in kwargs and (kwargs["space"] == "Admin" or kwargs["space"] == "IDE"):
+
+        return True
+    return False
+
 def main(q, i, p, params, tags):
     request = params["request"]
 
-    config = getConfig(q, p)
-
     if not request.username:
-        if int(config["auth"]["insecure"]):
+        params["result"] = False
+    else:
+        q.logger.log("Checking authorization for user %s with params %s" % (request.username, str(params)), 3)
+
+        config = getConfig(q, p)
+        if request.username == "anonymous" and isAdminOrIdeSpace(params):
+            #An unauthenticated user cannot access the ADMIN or IDE space
+            q.logger.log("An unauthenticated user cannot access the ADMIN or IDE space", 3)
+            params["result"] = False
+        elif request.username == "anonymous" and isLocalRequest(request) and int(config["auth"]["insecure"]):
+            q.logger.log("Allowing authorization for local request", 3)
             params["result"] = True
         else:
+            #default unauthorized
             params["result"] = False
-    else:
-        q.logger.log("Checking authorization for user %s" % request.username, 3)
 
-        #default unauthorized
-        params["result"] = False
+            conn = OsisDB().getConnection(p.api.appname)
+            searchfilter = conn.getFilterObject()
+            searchfilter.add("ui_view_user_list", "login", request.username, True)
+            users = conn.objectsFindAsView("ui", "user", searchfilter, "ui_view_user_list")
 
-        conn = OsisDB().getConnection(p.api.appname)
-        searchfilter = conn.getFilterObject()
-        searchfilter.add("ui_view_user_list", "login", request.username, True)
-        users = conn.objectsFindAsView("ui", "user", searchfilter, "ui_view_user_list")
+            if users and len(users) == 1:
+                user = users[0]
+                groups = filter(None, user["groupguids"].split(";"))
 
-        if users and len(users) == 1:
-            user = users[0]
-            groups = filter(None, user["groupguids"].split(";"))
+                appconfig = getAppserverConfig(q, p)
+                appserverUrl = "http://%s:%d/RPC2" % (appconfig["main"]["xmlrpc_ip"], int(appconfig["main"]["xmlrpc_port"]))
 
-            appconfig = getAppserverConfig(q, p)
-            authurl = "http://%s:%d/RPC2" % (appconfig["main"]["xmlrpc_ip"], int(appconfig["main"]["xmlrpc_port"]))
+                # we only parse the name in kwargs
+                context = {}
+                authInfo = params["criteria"]
+                if "authorizeParams" in authInfo:
+                    for key, value in authInfo["authorizeParams"].iteritems():
+                        if value in params["kwargs"]:
+                            context[key] = params["kwargs"][value]
 
-            # we only parse the name in kwargs
-            context = {}
-            if "space" in params["kwargs"]:
-                context["name"] = params["kwargs"]["space"]
-            elif "name" in params["kwargs"]:
-                context["name"] = params["kwargs"]["name"]
-            params["result"] = TimeoutServerProxy(authurl, 2).ui.auth.isAuthorised(groups, params["methodname"], context)
+                funcName = None
+                if "authorizeRule" in authInfo:
+                    funcName = authInfo["authorizeRule"]
+
+                if funcName:
+                    appserver = TimeoutServerProxy(appserverUrl, 2)
+                    params["result"] = appserver.ui.auth.isAuthorised(groups, funcName, context)
 
     #set the http response to 405 when we failed
     if params["result"] == False:

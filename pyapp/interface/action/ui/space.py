@@ -7,6 +7,8 @@ class space:
         """
         Create a new space object.
 
+        @authorize =
+
         @param name:             name of the space
         @type name:              string
 
@@ -40,6 +42,8 @@ class space:
     def find(self, name="", tags="", repository="", exact_properties=None, order=None, jobguid="", executionparams=None):
         """
         Returns a list of space objects which met the find criteria.
+
+        @authorize =
 
         @execution_method = sync
         @security administrators
@@ -80,6 +84,8 @@ class space:
         """
         Gets the rootobject.
 
+        @authorize =
+
         @execution_method = sync
 
         @param rootobjectguid:   guid of the job rootobject
@@ -100,6 +106,8 @@ class space:
     def delete(self, spaceguid, jobguid="",executionparams=None):
         """
         Delete the space object with the guid specified.
+
+        @authorize =
 
         @security: administrator
 
@@ -123,6 +131,8 @@ class space:
     def update(self, spaceguid, name, tags="", repository="", repo_username="", repo_password="", order=None, jobguid="", executionparams=dict()):
         """
         Create a new space object.
+
+        @authorize =
 
         @param spaceguid:         guid of the space object
         @type spaceguid:          guid

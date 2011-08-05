@@ -7,6 +7,8 @@ class config:
         """
         Create a new page object.
 
+        @authorize =
+
         @param space:            space of the macro
         @type space:             guid
 
@@ -40,6 +42,8 @@ class config:
     def find(self, space="", page="", macro="", configid="", username="", exact_properties=None, jobguid="", executionparams=None):
         """
         Returns a list of config objects which met the find criteria.
+
+        @authorize =
 
         @execution_method = sync
         @security administrators
@@ -86,6 +90,8 @@ class config:
         """
         Gets the rootobject.
 
+        @authorize =
+
         @execution_method = sync
 
         @param rootobjectguid:   guid of the job rootobject
@@ -106,6 +112,8 @@ class config:
     def delete(self, configguid, jobguid="",executionparams=None):
         """
         Delete the config object with the guid specified.
+
+        @authorize =
 
         @security: administrator
 
@@ -129,6 +137,8 @@ class config:
     def update(self, configguid, data, jobguid="", executionparams=dict()):
         """
         Update a given config object.
+
+        @authorize =
 
         @param configguid:       guid of the config object
         @type configguid:        guid

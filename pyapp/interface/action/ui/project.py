@@ -7,15 +7,17 @@ class project:
         """
         Create a new project object.
 
+        @authorize =
+
         @param name:             name of the project
         @type name:              string
 
         @param path:             path of the project files
         @type path:              string
-        
+
         @param tags:             tags of the project
         @type tags:              string
-        
+
         @param jobguid:          guid of the job if available else empty string
         @type jobguid:           guid
 
@@ -31,6 +33,8 @@ class project:
     def find(self, name="", tags="", exact_properties=None, jobguid="", executionparams=None):
         """
         Returns a list of project objects which met the find criteria.
+
+        @authorize =
 
         @execution_method = sync
         @security administrators
@@ -65,6 +69,8 @@ class project:
         """
         Gets the rootobject.
 
+        @authorize =
+
         @execution_method = sync
 
         @param rootobjectguid:   guid of the job rootobject
@@ -85,6 +91,8 @@ class project:
     def delete(self, projectguid, jobguid="",executionparams=None):
         """
         Delete the project object with the guid specified.
+
+        @authorize =
 
         @security: administrator
 
@@ -109,12 +117,14 @@ class project:
         """
         Create a new project object.
 
+        @authorize =
+
         @param projectguid:         guid of the project object
         @type projectguid:          guid
 
         @param name:             name of the project
         @type name:              string
-        
+
         @param path:             path of the project
         @type path:              string
 

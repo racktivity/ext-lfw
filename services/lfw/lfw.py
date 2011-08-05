@@ -64,7 +64,7 @@ class LFWService(object):
             if "oauth_consumer_key" in oAuthHeaders:
                 return oAuthHeaders['oauth_consumer_key']
 
-        return None
+        return "anonymous"
 
     def getTokenAndUsername(self, request):
         token = None
@@ -165,6 +165,10 @@ class LFWService(object):
     @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={}, authorizeRule="get group info")
     def getGroupInfo(self, name):
         return self.alkira._getGroupInfo(name)
+
+    @q.manage.applicationserver.expose_authorized(defaultGroups=["public"], authorizeParams={}, authorizeRule="get own groups")
+    def getMyGroups(self, applicationserver_request=""):
+        return self.alkira.getUserGroups(self.getUsername(applicationserver_request))
 
     @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={}, authorizeRule="update group")
     def updateGroup(self, groupguid, name):

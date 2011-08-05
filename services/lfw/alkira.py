@@ -1192,10 +1192,10 @@ class Alkira:
 
     def getUserGroups(self, name):
         searchfilter = self.connection.user.getFilterObject()
-        searchfilter.add('ui_view_user_list', 'name', name, True)
+        searchfilter.add('ui_view_user_list', 'login', name, True)
         user = self.connection.user.findAsView(searchfilter, 'ui_view_user_list')
-        if user:
-            return user.groups
+        if user and len(user) == 1:
+            return filter(None, user[0]["groupguids"].split(";"))
 
     def addUserToGroup(self, userguid, groupguid, oauthInfo=None):
         return self._callAuthService("addUserToGroup", oauthInfo, userid=userguid, usergroupid=groupguid)

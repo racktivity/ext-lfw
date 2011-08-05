@@ -39,7 +39,7 @@ var Utils = {
 };
 
 $.fillSpacesList = function(options) {
-    var options = $.extend({success: $.noop}, options);
+    var opts = $.extend({success: $.noop}, options);
 
     $.getJSON(LFW_CONFIG['uris']['listSpaces'], function(data) {
         var spaces = $('#space');
@@ -54,7 +54,7 @@ $.fillSpacesList = function(options) {
                 .appendTo(spaces);
         }
 
-        options.success();
+        opts.success();
     });
 };
 
@@ -676,6 +676,27 @@ data;
         }
     };
 
+    var checkToolbarAuthorization = function() {
+        function checkAuth(btnName, fncName, groups) {
+            var authInfo = { groups: $.toJSON(groups), functionname: fncName, context: $.toJSON({ space: getSpace() }) };
+            $.post(LFW_CONFIG.uris.checkAuthorization, authInfo, function(authorized) {
+                if (authorized) {
+                    $(btnName, "#toolbar").button("option", "disabled", false);
+                }
+            });
+        }
+
+        $.post(LFW_CONFIG.uris.myGroups, {}, function(groups) {
+            if (getPage() !== "Home") {
+                checkAuth("#deletepage", "delete page", groups);
+            } else { //disable deleting of Home page.
+                $("#deletepage", "#toolbar").button("option", "disabled", true);
+            }
+            checkAuth("#editpage", "update page", groups);
+            checkAuth("#newpage", "create page", groups);
+        });
+    };
+
     // Check wether a token parameter was added to the url, if so use this as an OAuth token
 
     //register search resources handlers
@@ -821,12 +842,7 @@ data;
                         return;
                     }
                 } else {
-                    $("#toolbar > button").button("option", "disabled", false);
-                }
-
-                if (page == "Home") {
-                    //disable deleting of Home page.
-                    $("#toolbar > #deletepage").button("option", "disabled", true);
+                    checkToolbarAuthorization();
                 }
 
                 context.title(data['title']);

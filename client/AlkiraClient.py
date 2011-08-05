@@ -3,9 +3,9 @@ from pylabs import q, p
 import urllib
 import httplib
 import json
+import oauth2
 
 class AlkiraClient:
-
     def getClient(self, hostname, appname, port=80):
         """
         Gets a client object.
@@ -31,6 +31,8 @@ class Client:
         self.__hostname = hostname
         self.__port = port
         self.__appname = appname
+        self.__consumer = None
+        self.__token = None
 
     @property
     def hostname(self):
@@ -51,19 +53,50 @@ class Client:
             if v != None:
                 data[k] = json.dumps(v)
 
-        data = urllib.urlencode(data)
         headers = {'Content-Type': "application/x-www-form-urlencoded"}
 
+        url = '/%(appname)s/appserver/rest/ui/portal/%(method)s' % {'appname': self.appname, 'method': method}
+
+        httpMethod = "POST"
+
+        if self.__consumer and self.__token:
+            #remove the appname from the call ass the appserver doesn't get this in his request
+            oauthUrl = url[len("/%s" % self.appname):]
+
+            req = oauth2.Request.from_consumer_and_token(self.__consumer, self.__token, http_method=httpMethod,
+                http_url="http://alkira%s" % oauthUrl, parameters=data)
+            req.sign_request(oauth2.SignatureMethod_HMAC_SHA1(), self.__consumer, self.__token)
+            oauthHeaders = req.to_header(realm="alkira")
+            headers.update(oauthHeaders)
+
+        data = urllib.urlencode(data)
         con = httplib.HTTPConnection(self.hostname, self.port)
         try:
-            con.request("POST",'/%(appname)s/appserver/rest/ui/portal/%(method)s' % {'appname': self.appname,
-                                                                                            'method': method}, body=data, headers=headers)
+            con.request(httpMethod, url, body=data, headers=headers)
             res = con.getresponse()
             body = json.loads(res.read())
             if res.status == 200:
                 return body
             else:
                 raise Exception(body['exception'] if 'exception' in body else res.reason, res.status)
+        finally:
+            con.close()
+
+    def login(self, login, password):
+        self.__consumer = oauth2.Consumer(login, "")
+        con = httplib.HTTPConnection(self.hostname, self.port)
+        try:
+            con.request("GET", "/%(appname)s/appserver/rest/ui/oauth/getToken?user=%(user)s&password=%(password)s" %
+                { "appname": self.appname, "user": login, "password": password })
+            res = con.getresponse()
+            token = res.read()
+            #remove first and last " from the token
+            token = token[1:-1]
+            parts = token.split("&")
+            if parts[0].split("=")[0] == "oauth_token":
+                self.__token = oauth2.Token("token_$(%s)" % parts[0].split("=")[1], parts[1].split("=")[1])
+            else:
+                self.__token = oauth2.Token("token_$(%s)" % parts[1].split("=")[1], parts[0].split("=")[1])
         finally:
             con.close()
 

@@ -7,6 +7,8 @@ class user:
         """
         Create a new user object.
 
+        @authorize =
+
         @param login:            login of the user
         @type login:             string
 
@@ -34,6 +36,7 @@ class user:
 
         @execution_method = sync
         @security administrators
+        @authorize =
 
         @param name:                   name of the user
         @type name:                    string
@@ -60,6 +63,7 @@ class user:
         Gets the rootobject.
 
         @execution_method = sync
+        @authorize =
 
         @param rootobjectguid:   guid of the job rootobject
         @type rootobjectguid:    guid
@@ -82,6 +86,7 @@ class user:
 
         @security: administrator
         @execution_method = sync
+        @authorize =
 
         @param userguid:                 guid of the user object
         @type userguid:                  guid
@@ -101,6 +106,8 @@ class user:
     def update(self, userguid, name="", password=None, jobguid="", executionparams=dict()):
         """
         Update a user object name.
+
+        @authorize =
 
         @param userguid:         guid of the user object
         @type userguid:          guid
@@ -127,6 +134,8 @@ class user:
         """
         Add a user to a group.
 
+        @authorize =
+
         @param userguid:         guid of the user object
         @type userguid:          guid
 
@@ -148,6 +157,8 @@ class user:
     def deleteGroup(self, userguid, groupguid, jobguid="", executionparams=None):
         """
         Delete a user from a group.
+
+        @authorize =
 
         @param userguid:         guid of the user object
         @type userguid:          guid

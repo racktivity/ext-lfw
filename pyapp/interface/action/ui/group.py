@@ -7,6 +7,8 @@ class group:
         """
         Create a new group object.
 
+        @authorize =
+
         @param name:             name of the group
         @type name:              string
 
@@ -25,6 +27,8 @@ class group:
     def find(self, name="", jobguid="", executionparams=None):
         """
         Returns a list of group objects which met the find criteria.
+
+        @authorize =
 
         @execution_method = sync
         @security administrators
@@ -53,6 +57,8 @@ class group:
         """
         Gets the rootobject.
 
+        @authorize =
+
         @execution_method = sync
 
         @param rootobjectguid:   guid of the job rootobject
@@ -73,6 +79,8 @@ class group:
     def delete(self, groupguid, jobguid="",executionparams=None):
         """
         Delete the group object with the guid specified.
+
+        @authorize =
 
         @security: administrator
         @execution_method = sync
@@ -95,6 +103,8 @@ class group:
     def update(self, groupguid, name="", jobguid="", executionparams=dict()):
         """
         Update a group object name.
+
+        @authorize =
 
         @param userguid:         guid of the user object
         @type userguid:          guid

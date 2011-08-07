@@ -26,10 +26,9 @@ class HelperServer(oauth.Server):
             return False
         return client.get(tokenKey)
 
-    def check_access_token(self, oauth_request, url):
+    def checkAccessToken(self, oauthRequest, url):
         try:
-            self.q.logger.log('CALLING check_access_token for %s' % url, 3)
-            self.verify_request(oauth_request, self.consumer, self.access_token)
+            self.verify_request(oauthRequest, self.consumer, self.access_token)
             return True
         except oauth.Error, err:
             self.q.logger.log('EXCEPTION inside check_access_token for %s' % url, 4)
@@ -61,27 +60,33 @@ def _getAuthHeaders(headers, q):
     q.logger.log("OAUTH HEADERS "+ str(oAuthHeaders), 5)
     return oAuthHeaders
 
+def getConfig(q, p):
+    if not getConfig.config:
+        getConfig.config = q.tools.inifile.open(q.system.fs.joinPaths(q.dirs.pyAppsDir, p.api.appname, "cfg", \
+            "auth.cfg")).getFileAsDict()
+    return getConfig.config
+getConfig.config = None
+
 def main(q, i, p, params, tags):
     request = params["request"]
     headers = _getHeaders(request, q)
-    config = q.tools.inifile.open(q.system.fs.joinPaths(q.dirs.pyAppsDir, p.api.appname, "cfg", \
-        "auth.cfg")).getFileAsDict()
     if headers.has_key('Authorization') and headers['Authorization'].find('OAuth realm="alkira"') >= 0:
+        config = config = getConfig(q, p)
         helperServer = HelperServer(q, p, config)
         oAuthHeaders = _getAuthHeaders(headers, q)
         tokenkey = oAuthHeaders['oauth_token']
-        token_attributes = helperServer.getTokenAttributesFromStore(tokenkey)
-        if token_attributes:
-            token_attributes = ast.literal_eval(token_attributes)
-        if not token_attributes:
+        tokenAttributes = helperServer.getTokenAttributesFromStore(tokenkey)
+        if tokenAttributes:
+            tokenAttributes = ast.literal_eval(tokenAttributes)
+        if not tokenAttributes:
             q.logger.log("The token key does not exist in the Arakoon store", 4)
             params["result"] = False
         else:
-            q.logger.log("token_attributes: " + str(token_attributes), 5)
-            tokensecret = token_attributes['tokensecret']
+            q.logger.log("token_attributes: " + str(tokenAttributes), 5)
+            tokensecret = tokenAttributes['tokensecret']
 
             #check validuntil
-            validuntil = float(token_attributes['validuntil'])
+            validuntil = float(tokenAttributes['validuntil'])
             now = time.time()
             if now > validuntil:
                 q.logger.log("The token existing in the Arakoon store is expired", 4)
@@ -93,7 +98,7 @@ def main(q, i, p, params, tags):
                     timedelta(hours=validhours * 0.75).seconds
                 if now > renewaltime:
                     q.logger.log("Renewing the token in the Arakoon store", 3)
-                    helperServer.renewToken(tokenkey, token_attributes)
+                    helperServer.renewToken(tokenkey, tokenAttributes)
 
                 helperServer.consumer = oauth.Consumer(oAuthHeaders['oauth_consumer_key'], '')
                 helperServer.access_token = oauth.Token(tokenkey, tokensecret)
@@ -104,26 +109,19 @@ def main(q, i, p, params, tags):
                 index = path.find("/", 1)
                 if index > 0:
                     path = path[index:]
-                http_url = "http://alkira%s" % (path)
+                httpUrl = "http://alkira%s" % (path)
                 ## </dirty hack>
                 parameters = request._request.args
 
-                oauth_request = oauth.Request.from_request(request._request.method, http_url, headers=headers,
+                oauthRequest = oauth.Request.from_request(request._request.method, httpUrl, headers=headers,
                     parameters=parameters)
-                params["result"] = helperServer.check_access_token(oauth_request, http_url)
+                params["result"] = helperServer.checkAccessToken(oauthRequest, httpUrl)
 
                 #set the username so this can be used in the authorize tasklet
                 request.username = oAuthHeaders['oauth_consumer_key']
-    elif not int(config["auth"]["insecure"]):
-        params["result"] = False
     else:
-        #An unauthenticated user cannot access the administration space
-        if request._request.uri.find("/appserver/rest/ui/portal/getPage?space=Admin") > 0 or \
-            request._request.uri.find("/appserver/rest/ui/portal/getPage?space=IDE") > 0:
-
-            params["result"] = False
-        else:
-            params["result"] = True
+        request.username = "anonymous"
+        params["result"] = True
 
     #set the http response to 403 when we failed
     if params["result"] == False:

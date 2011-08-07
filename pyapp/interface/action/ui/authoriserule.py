@@ -7,6 +7,8 @@ class authoriserule:
         """
         Assign a new authoriserule object.
 
+        @authorize =
+
         @param groupguids:       list of the group
         @type groupguids:        list of guids
 
@@ -31,6 +33,8 @@ class authoriserule:
     def find(self, groupguid="", function="", context="", jobguid="", executionparams=None):
         """
         Returns a list of authoriserule objects which met the find criteria.
+
+        @authorize =
 
         @execution_method = sync
         @security administrators
@@ -65,6 +69,8 @@ class authoriserule:
         """
         Gets the rootobject.
 
+        @authorize =
+
         @execution_method = sync
 
         @param rootobjectguid:   guid of the job rootobject
@@ -85,6 +91,8 @@ class authoriserule:
     def revoke(self, groupguids, function, context, jobguid="",executionparams=None):
         """
         Revoke the authoriserule objects who match the given parameters.
+
+        @authorize =
 
         @security: administrator
         @execution_method = sync

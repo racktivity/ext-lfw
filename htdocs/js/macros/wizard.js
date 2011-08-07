@@ -14,7 +14,7 @@ var render = function(options) {
         var urlitems = document.location.href.split("/")
         var idx = urlitems.indexOf(document.domain)
         var appname = options.params.appname || urlitems[idx+1];
-        var domain = options.params.domain || urlitems[idx+3];
+        var domain = options.params.domain || options.space;
         var extra = options.params.extra || '';
         var service = options.params.service || null;
         if (!service){

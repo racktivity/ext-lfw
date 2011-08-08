@@ -460,16 +460,11 @@ class Alkira:
                     if _isdir(olddir):
                         self._moveDir(olddir, dir)
 
-                if _isdir(dir):
-                    file = _join(dir, filename)
-                _write(file, page.content)
-            else:
-                #in the chain
-                if _isfile(file):
-                    tmp = os.tmpnam()
-                    self._moveFile(file, tmp)
+                if not _isdir(dir):
                     q.system.fs.createDir(dir)
-                    self._moveFile(tmp, _join(dir, filename))
+
+                file = _join(dir, filename)
+                _write(file, page.content)
 
             upper = dir
 
@@ -480,14 +475,14 @@ class Alkira:
 
         dir = self._getDir(space)
         for i, level in enumerate(crumbs):
-            name = level['name']
-            filename = name + ".md"
-            file = _join(dir, filename)
-            dir = _join(dir, name)
             if i == len(crumbs) - 1:
+                name = level['name']
+                filename = name + ".md"
+                file = _join(dir, filename)
+                dir = _join(dir, name)
                 if _isdir(dir):
                     q.system.fs.removeDirTree(dir)
-                elif _isfile(file):
+                if _isfile(file):
                     q.system.fs.removeFile(file)
 
     def _deletePage(self, space, page):
@@ -1069,25 +1064,23 @@ class Alkira:
         def alkiraTree(folder_paths, root_parent=None):
             for folder_path in folder_paths:
                 base_name = q.system.fs.getBaseName(folder_path)
+
                 # Ignore hg dir
                 if base_name == '.hg':
                     continue
 
                 folder_name = base_name.split('.')[0]
                 parent_name = folder_name + '.md'
-                parent_path = q.system.fs.joinPaths(folder_path, parent_name)
+                parent_dir = q.system.fs.getParent(folder_path)
+                parent_path = q.system.fs.joinPaths(parent_dir, parent_name)
 
                 if not q.system.fs.exists(parent_path):
-                    q.errorconditionhandler.raiseError('The directory "%s" does not have a page "%s" specified for it.'%(folder_path, parent_name))
-
-                if root_parent:
-                    createPage(parent_path, parent=root_parent)
-                else:
-                    createPage(parent_path)
+                    q.errorconditionhandler.raiseError(\
+                        'The directory "%s" does not have a page "%s" specified for it.' % (parent_dir, parent_name))
 
                 children_files = q.system.fs.listFilesInDir(folder_path, filter='*.md')
                 for child_file in children_files:
-                    if child_file != parent_path:
+                    if q.system.fs.getBaseName(child_file) != base_name:
                         createPage(child_file, parent=folder_name)
 
                 sub_folders = q.system.fs.listDirsInDir(folder_path)
@@ -1112,7 +1105,7 @@ class Alkira:
             portal_spaces = q.system.fs.listDirsInDir(md_path)
 
         #make the first space is the Admin Space
-        portal_spaces = sorted(portal_spaces, lambda x,y: -1 if x.endswith("/Admin") else 1)
+        portal_spaces = sorted(portal_spaces, lambda x,y: -1 if x.endswith("/" + ADMINSPACE) else 1)
 
         for folder in portal_spaces:
             space = folder.split(os.sep)[-1]

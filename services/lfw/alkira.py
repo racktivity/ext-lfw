@@ -451,20 +451,16 @@ class Alkira:
                     oldfile = _join(upper, oldpagename + ".md")
                     olddir = _join(upper, oldpagename)
                     tofile = file
-                    if _isdir(olddir):
-                        oldfile = _join(olddir, oldpagename)
-                        tofile = _join(olddir, filename)
 
                     if _isfile(oldfile):
                         self._moveFile(oldfile, tofile)
                     if _isdir(olddir):
                         self._moveDir(olddir, dir)
 
+                _write(file, page.content)
+            else:
                 if not _isdir(dir):
                     q.system.fs.createDir(dir)
-
-                file = _join(dir, filename)
-                _write(file, page.content)
 
             upper = dir
 

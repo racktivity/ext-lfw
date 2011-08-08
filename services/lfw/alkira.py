@@ -471,11 +471,12 @@ class Alkira:
 
         dir = self._getDir(space)
         for i, level in enumerate(crumbs):
+            name = level['name']
+            filename = name + ".md"
+            file = _join(dir, filename)
+            dir = _join(dir, name)
+
             if i == len(crumbs) - 1:
-                name = level['name']
-                filename = name + ".md"
-                file = _join(dir, filename)
-                dir = _join(dir, name)
                 if _isdir(dir):
                     q.system.fs.removeDirTree(dir)
                 if _isfile(file):

@@ -8,7 +8,7 @@ var render = function(options) {
     var data_dict = $.parseJSON(options.body);
     var height = data_dict.height || 300;
     var width = data_dict.width || 260;
-    var protovis_id = data_dict.protovis_id;
+    
     var data = data_dict.data; // like this: [1, 1.2, 1.7, 1.5, .7, .5, .2]
     var horz_unit = data_dict.horz_unit || 40; // should we name this like this?
     var horz_offset = data_dict.horz_offset || 0;
@@ -16,6 +16,11 @@ var render = function(options) {
     var label = data_dict.label || "";
     var labelOffset = label ? 20: 0;
 
+    var getID = function(){
+        return Math.round(Math.random() * 1000000000).toString();
+    };
+    
+    var protovis_id = getID();
     var roundNumber = function (num) {
         var dec = 1;
         var result = Math.round(num*Math.pow(10,dec))/Math.pow(10,dec);

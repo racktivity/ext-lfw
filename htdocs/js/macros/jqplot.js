@@ -1,6 +1,7 @@
 //@metadata wizard=jqplot
 //@metadata description=Plots charts (bars, pie, etc.)
 //@metadata image=img/macros/jqplot.png
+//@metadata documentationUrl=http://www.pylabs.org/#/alkiradocs/MacroJqPlot
 
 var render = function(options) {
     var TEMPLATE_NAME = 'plugin.jqplot';
@@ -23,7 +24,7 @@ var render = function(options) {
     var getID = function(){
         return Math.round(Math.random() * 1000000000).toString();
     };
-    
+
     var chart_div = getID();
 
     var cb = function(){

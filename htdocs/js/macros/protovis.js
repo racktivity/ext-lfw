@@ -1,6 +1,7 @@
 //@metadata wizard=protovis
 //@metadata description=Plots charts
 //@metadata image=img/macros/protovis.png
+//@metadata documentationUrl=http://www.pylabs.org/#/alkiradocs/MacroProtovis
 
 var render = function(options) {
     var TEMPLATE_NAME = 'plugin.protovis'; // this is only local I think
@@ -129,7 +130,7 @@ var render = function(options) {
             .left(function() {return fx(this.index);});
         };
 
-        if ($.isArray(data)) {
+        if (data && $.isArray(data[0])) {
             var i = 0;
             for (i = 0; i < data.length; i++) {
                 d = data[i];
@@ -166,7 +167,7 @@ var render = function(options) {
         };
 
         // Context area chart.
-        if ($.isArray(data)) {
+        if (data && $.isArray(data[0])) {
             var i = 0;
             for (i = 0; i < data.length; i++) {
                 d = data[i];

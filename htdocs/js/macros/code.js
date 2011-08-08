@@ -1,5 +1,6 @@
 //@metadata wizard=code
 //@metadata ignore=true
+//@metadata documentationUrl=http://www.pylabs.org/#/alkiradocs/MacroCode
 
 var render = function(options) {
     var $this = $(this);

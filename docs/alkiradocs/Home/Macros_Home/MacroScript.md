@@ -1,7 +1,6 @@
 @metadata title=Script Macro
 @metadata tagstring=script js javascript macro alkira
 
-
 #Script Macro
 
 The script macro allows you to include javascripts in your text. There are two ways to include javascripts:
@@ -28,13 +27,13 @@ To call the script macro:
     [[/script]]
 
     <button id="mybutton">Alert</button>
-    
+
 or
 
-    [[script:src=http://path.to/javascriptfile.js/]]    
+    [[script:src=http://path.to/javascriptfile.js/]]
 
-    
-    
+
+
 ##Sample
 
 [[script]]

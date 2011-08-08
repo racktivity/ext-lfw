@@ -1,6 +1,7 @@
 //@metadata wizard=wizard
 //@metadata description=Shows a button for wizard start-up
 //@metadata image=img/macros/wizard.png
+//@metadata documentationUrl=http://www.pylabs.org/#/alkiradocs/MacroWizard
 
 var render = function(options) {
     var $this = $(this);

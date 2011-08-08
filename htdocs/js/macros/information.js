@@ -1,6 +1,7 @@
 //@metadata wizard=information
 //@metadata description=Presents a text "information style"
 //@metadata image=img/macros/information.png
+//@metadata documentationUrl=http://www.pylabs.org/#/alkiradocs/MacroInformation
 
 var render = function(options) {
     var $this = $(this);

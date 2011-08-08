@@ -15,7 +15,7 @@ The `sqlgrid` macro does not accept parameters, the parameters are all defined i
 * __sqlselect:__ your SQL select statement, to be used without the `columns` and `wheredict` parameters
 * __columns:__ columns of the table that you want to display, do not combine with the `sqlselect` parameter
 * __wheredict:__ the filter of your data, do not combine with the `sqlselect` parameter
-* __link:__ indicates the columns that can be set as link to other objects. This is a JSON dictionary, where the key is the name of the column table and the value the link to an object. 
+* __link:__ indicates the columns that can be set as link to other objects. This is a JSON dictionary, where the key is the name of the column table and the value the link to an object.
 The object can be a variable and is a representation of the column name in the database. When using aliases for column names, the alias is used in the value.
 * __hidden:__ optional parameter. This is a list, containing the columns that are required to retrieve the data but that you don't want to show in the table, for example GUIDs are likely not to be displayed in a table.
 Similar to the _link_ parameter, use the alias of the column name if available.
@@ -34,7 +34,7 @@ To configure remote databases this configuration should be in file under locatio
 
     [db_sampleapp]
     dbtype = postgresql
-    dbpasswd = 
+    dbpasswd =
     dblogin = pylabsdoc
     dbname = pylabsdoc
     dbserver = 127.0.0.1

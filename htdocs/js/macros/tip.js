@@ -1,6 +1,7 @@
 //@metadata wizard=tip
 //@metadata description=Presents a text "tip style"
 //@metadata image=img/macros/tip.png
+//@metadata documentationUrl=http://www.pylabs.org/#/alkiradocs/MacroTip
 
 var render = function(options) {
     var $this = $(this);

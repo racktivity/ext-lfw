@@ -1,6 +1,6 @@
 //@metadata description=Shows clickable button
 //@metadata image=img/macros/button.png
-
+//@metadata documentationUrl=http://www.pylabs.org/#/alkiradocs/MacroButton
 var render = function(options) {
     var $this = $(this);
     var params = $.extend({click: '',

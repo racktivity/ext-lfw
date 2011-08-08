@@ -1,6 +1,7 @@
 //@metadata wizard=actions
 //@metadata description=Server-side tasklet-defined action set
 //@metadata image=img/macros/actions.png
+//@metadata documentationUrl=http://www.pylabs.org/#/alkiradocs/MacroActions
 
 var render = function(options) {
 

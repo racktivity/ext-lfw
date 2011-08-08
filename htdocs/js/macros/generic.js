@@ -1,5 +1,6 @@
 //@metadata wizard=generic
 //@metadata description=Generic widget calling serverside python tasklet
+//@metadata documentationUrl=http://www.pylabs.org/#/alkiradocs/MacroGeneric
 
 var render = function(options) {
 

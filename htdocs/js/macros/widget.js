@@ -1,5 +1,6 @@
 //@metadata description=Show a collapseable block with the given content
 //@metadata image=img/macros/widget.png
+//@metadata documentationUrl=http://www.pylabs.org/#/alkiradocs/MacroWidget
 
 var render = function(options) {
     var $this = $(this);

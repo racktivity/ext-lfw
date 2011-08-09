@@ -97,8 +97,8 @@ This is the title that is displayed in the title bar of the dashboard.
           {"order": 1, "id": "widget4", "widgettype": "youtube", "title": "Monty Python"}
         ]
       }
-    ], 
-    "id": "dashboard1", 
+    ],
+    "id": "dashboard1",
     "title": "My Dashboard"
 }
 [[/dashboard]]

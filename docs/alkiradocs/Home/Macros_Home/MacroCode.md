@@ -31,6 +31,6 @@ Use the code macro as follows:
 
 [[code]]
 class MyClass(object):
-	def __init__(self):
-		# Do some init
+    def __init__(self):
+        # Do some init
 [[/code]]

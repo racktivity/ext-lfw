@@ -10,7 +10,7 @@ The information macro is used to highlight a piece of information on a page with
 
 The body of the macro is the piece of information which should be highlighted.
 
-## Example 
+## Example
 
     [[information]]
         This is a piece of information.

@@ -1,6 +1,7 @@
 //@metadata wizard=sqlgrid
 //@metadata description=Show a table with data taken from specific datasource
 //@metadata image=img/macros/sqlgrid.png
+//@metadata documentationUrl=http://www.pylabs.org/#/alkiradocs/MacroSqlGrid
 
 var render = function(options) {
     var TEMPLATE_NAME = 'plugin.grid.sql';

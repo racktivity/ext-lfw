@@ -1,7 +1,6 @@
 @metadata title=Warning Macro
 @metadata tagstring=macro alkira warning
 
-
 #Macro Warning
 The warning macro is used to highlight a warning on a page with a red box.
 
@@ -10,7 +9,7 @@ The warning macro is used to highlight a warning on a page with a red box.
 
 The body of the macro is the warning which should be highlighted.
 
-## Example 
+## Example
 
     [[warning]]
         This is a warning.

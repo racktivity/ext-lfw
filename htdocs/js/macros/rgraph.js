@@ -1,16 +1,17 @@
 //@metadata wizard=rgraph
 //@metadata description=Plots graph
 //@metadata image=img/macros/rgraph.png
+//@metadata documentationUrl=http://www.pylabs.org/#/alkiradocs/MacroRgraph
 
 var render = function(options) {
     var TEMPLATE_NAME = 'plugin.rgraph';
     var $this = $(this);
     var data_dict = options.body ? $.parseJSON(options.body) : options.params;
-    
+
     var getID = function(){
         return Math.round(Math.random() * 1000000000).toString();
     };
-    
+
     var chart_div = getID();
     var height = data_dict.height || 300;
     var width = data_dict.width || 280;

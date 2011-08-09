@@ -1,7 +1,6 @@
 @metadata title=Tip Macro
 @metadata tagstring=macro alkira tip
 
-
 #Macro Tip
 The tip macro is used to highlight a tip on a page with a green box.
 
@@ -10,7 +9,7 @@ The tip macro is used to highlight a tip on a page with a green box.
 
 The body of the macro is the tip which should be highlighted.
 
-## Example 
+## Example
 
     [[tip]]
         This is a tip.

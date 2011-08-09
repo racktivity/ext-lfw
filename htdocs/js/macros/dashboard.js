@@ -270,7 +270,7 @@ $(function() {
                     that.parent._moveWidget(ui.item[0]);
                 }
             }
-            
+
         });
 
         // Set width (minus margins and such)
@@ -519,7 +519,7 @@ $(function() {
                         (type.image ? "<img src='" + type.image + "' />" : "<img src='img/pixel.gif' />") +
                         "<button class='add'><span class='ui-button-text'>Pick me</span></button>" +
                         "<h3>" + type.name + "</h3><p>" + (type.description ? type.description : "No description") +
-                        "</p></div>");
+                        "<br /><a href=\"" + type.documentationUrl + "\" target=\"doc\">Documentation</a></p></div>");
                 }
 
                 // Make em clickable
@@ -783,7 +783,6 @@ var render = function(options) {
             // Load the data first
             $.get("appserver/rest/ui/portal/generic", { tagstring: "", macroname: "macrolist" }, function(data) {
                 LFW_DASHBOARD.widgetTypes = data;
-
                 // Exclude the dashboard macro itself and create widgetTypesByName
                 var i, toRemove = [], macro;
                 for (i = 0; i < data.length; ++i) {

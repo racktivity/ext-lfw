@@ -49,7 +49,7 @@ The macro does not use parameters. The body is the content of a dot file, used t
             Step3  -> End [label=193];
             }
     [[/graphviz]]
-    
+
 
 ###Result
 

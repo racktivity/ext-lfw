@@ -3,7 +3,7 @@
 
 #Actions Macro
 
-The Actions macro allows users to create a button that performs a certain action.   
+The Actions macro allows users to create a button that performs a certain action.
 The button information is located in a tasklet that gets executed by the generic service.
 
 ##Parameters
@@ -16,7 +16,7 @@ The tasklets are located under:
 
     /opt/qbase5/pyapps/sampleapp/impl/portal/pylabsmacro/actions/
 
-Currently we have a sample tasklet called "test1.py" which contains the information of two buttons.   
+Currently we have a sample tasklet called "test1.py" which contains the information of two buttons.
 Below is the tasklet code:
 
     __author__ = "incubaid"

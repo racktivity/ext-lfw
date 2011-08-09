@@ -73,7 +73,7 @@ var render = function(options) {
         fx = pv.Scale.linear().range(0, w),
         fy = pv.Scale.linear().range(0, h1);
 
-        var c = pv.Colors.category10(data);
+        var c = pv.Colors.category10();
 
         $.template(TEMPLATE_NAME, '<div id=${protovis_id} style="height:${height}px;width:${width}px; "></div>');
         $.tmpl(TEMPLATE_NAME, {protovis_id:protovis_id, height:height, width:width}).appendTo($this);
@@ -122,10 +122,10 @@ var render = function(options) {
           .anchor("left").add(pv.Label)
             .text(function(y) { return roundNumber(y);});
 
-        var addLine = function(_data) {
+        var addLine = function(_data, lineNr) {
             focus.add(pv.Line)
             .data(_data)
-            .strokeStyle(function(d) { return c(d);})
+            .strokeStyle(function(d) { return c(lineNr);})
             .bottom(function(d) {return fy(d);} )
             .left(function() {return fx(this.index);});
         };
@@ -134,7 +134,7 @@ var render = function(options) {
             var i = 0;
             for (i = 0; i < data.length; i++) {
                 d = data[i];
-                addLine(d);
+                addLine(d, i);
             }
         } else {
             addLine(data);
@@ -157,10 +157,10 @@ var render = function(options) {
         /* Y-axis ticks. */
         context.add(pv.Rule).bottom(0);
 
-        var addContextLine = function(_data) {
+        var addContextLine = function(_data, lineNr) {
             context.add(pv.Line)
                 .data(_data)
-                .strokeStyle(function(d) { return c(d);})
+                .strokeStyle(function(d) { return c(lineNr); })
                 .bottom(function(d) {return y(d);} )
                 .left(function() {return x(this.index);})
                 .lineWidth(1);
@@ -171,7 +171,7 @@ var render = function(options) {
             var i = 0;
             for (i = 0; i < data.length; i++) {
                 d = data[i];
-                addContextLine(d);
+                addContextLine(d, i);
             }
         } else {
             addContextLine(data);

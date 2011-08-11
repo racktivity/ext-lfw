@@ -3,6 +3,8 @@ __author__ = "incubaid"
 def main(q, i, p, params, tags):
     macroPath  = q.dirs.baseDir + "www/lfw/js/macros/"
     macros = q.system.fs.listFilesInDir(macroPath, filter="*.js")
+    pyappMacrosPath = q.system.fs.joinPaths(q.dirs.pyAppsDir, p.api.appname, "impl", "portal", "jsmacros")
+    macros.extend(q.system.fs.listFilesInDir(pyappMacrosPath, filter="*.js"))
 
     result = []
     for i in xrange(0, len(macros)):

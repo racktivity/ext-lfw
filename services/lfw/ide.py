@@ -17,7 +17,8 @@ TASKLETS = ['impl/action',
             'impl/osis',
             'impl/schedule',
             'impl/setup',
-            'impl/ui']
+            'impl/ui/form',
+            'impl/ui/wizard']
 
 
 

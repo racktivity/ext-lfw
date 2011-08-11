@@ -1075,6 +1075,7 @@ class Alkira:
                     q.errorconditionhandler.raiseError(\
                         'The directory "%s" does not have a page "%s" specified for it.' % (parent_dir, parent_name))
 
+                base_name += ".md"
                 children_files = q.system.fs.listFilesInDir(folder_path, filter='*.md')
                 for child_file in children_files:
                     if q.system.fs.getBaseName(child_file) != base_name:

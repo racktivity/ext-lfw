@@ -682,8 +682,10 @@ class Alkira:
     def updateSpace(self, space, newname=None, tagslist=None, repository=None, repo_username=None, repo_password=None, order=None):
         space = self.getSpace(space)
 
-        if space.name == ADMINSPACE:
-            raise ValueError("Invalid space")
+        # Allow the modification of the order attribute for Admin and IDE spaces:
+        if (space.name == ADMINSPACE or space.name == IDESPACE) and (newname or tagslist or repository or repo_username or repo_password):
+            raise ValueError("You can only modify the order for %s space" %space.name)
+        
         oldname = space.name
 
         if newname != None and newname != oldname:

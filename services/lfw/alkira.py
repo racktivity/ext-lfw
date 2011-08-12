@@ -223,10 +223,10 @@ class Alkira:
         """
         spaces = self._getSpaceInfo(name)
         def byOrder(x, y):
-            #Always put the admin space last
-            if x["name"] == ADMINSPACE:
+            #Always put the admin and ide spaces last if they don't have an order or if the order is set to None
+            if (x["name"] == ADMINSPACE or x["name"] == IDESPACE) and ("order" not in x or x["order"] is None):
                 return 1
-            elif y["name"] == ADMINSPACE:
+            elif (y["name"] == ADMINSPACE or y["name"] == IDESPACE) and ("order" not in y or y["order"] is None):
                 return -1
 
             if "order" in x and x["order"] != None:

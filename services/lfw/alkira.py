@@ -714,7 +714,9 @@ class Alkira:
 
         if newname != None and oldname != newname:
             #rename space page.
-            self.updatePage(ADMINSPACE, oldname, name=newname, content=p.core.codemanagement.api.getSpacePage(newname))
+            newspacefile = 's_' + newname
+            oldspacefile = 's_' + oldname
+            self.updatePage(space = ADMINSPACE, old_name = oldspacefile, name=newspacefile, content=p.core.codemanagement.api.getSpacePage(newspacefile))
 
             #sync file system
             self._moveDir(self._getDir(oldname),

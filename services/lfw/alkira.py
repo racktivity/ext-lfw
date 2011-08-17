@@ -428,7 +428,8 @@ class Alkira:
             self.connection.page.delete(page['guid'])
 
         self.connection.space.delete(space.guid)
-        self.deletePage(ADMINSPACE, space.name)
+        spacefile = 's_' + space.name
+        self.deletePage(ADMINSPACE, spacefile)
         q.system.fs.removeDirTree(self._getDir(space.name))
 
     def _syncPageToDisk(self, space, page, oldpagename=None):
@@ -543,10 +544,11 @@ class Alkira:
         q.system.fs.createDir(self._getDir(name))
 
         #create a space page under the default admin space
+        spacefile = 's_' + name
         spacectnt = p.core.codemanagement.api.getSpacePage(name)
         if createHomePage:
             self.createPage(name, "Home", content="", order=10000, title="Home", tagsList=tagsList)
-        self.createPage(ADMINSPACE, name, spacectnt, title=name, parent="Spaces")
+        self.createPage(ADMINSPACE, spacefile, spacectnt, title=name, parent="Spaces")
 
         return space
 

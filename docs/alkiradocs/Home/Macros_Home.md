@@ -2,9 +2,9 @@
 @metadata order=30
 @metadata tagstring=macro alkira home
 
-[howto]: /#/alkiradocs/Macros_HOWTO
-[pylabs]: /#/alkiradocs/MacrosPylabs
-[js]: /#/alkiradocs/MacrosJavascript
+[howto]: #/alkiradocs/Macros_HOWTO
+[pylabs]: #/alkiradocs/MacrosPylabs
+[js]: #/alkiradocs/MacrosJavascript
 
 #Alkira Macros
 

@@ -3,7 +3,7 @@
 @metadata tagstring=jqplot chart bar
 
 [bar chart]: http://www.jqplot.com/tests/barRendererTests.php
-[createmacro]: /#/alkiradocs/Macros_HOWTO
+[createmacro]: #/alkiradocs/Macros_HOWTO
 
 
 # Bar Chart

@@ -4,10 +4,10 @@
 
 #Source of Markdown Home Page
 
-    [mdhome]: /#/alkiradocs/Markdown_Home
-    [basics]: /#/alkiradocs/Basics
+    [mdhome]: #/alkiradocs/Markdown_Home
+    [basics]: #/alkiradocs/Basics
     [syntax]: http://daringfireball.net/projects/markdown/syntax
-    [license]: /#/alkiradocs/License
+    [license]: #/alkiradocs/License
     [dl]: http://daringfireball.net/projects/downloads/Markdown_1.0.1.zip
     [dingus]: http://daringfireball.net/projects/markdown/dingus
     [sourcehome]: /pylabsdoc/#/alkiradocs/HomeSource

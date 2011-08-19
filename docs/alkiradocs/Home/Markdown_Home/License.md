@@ -2,10 +2,10 @@
 @metadata order=40
 @metadata tagstring=markdown license
 
-[mdhome]: /#/alkiradocs/Markdown_Home
-[basics]: /#/alkiradocs/Basics
+[mdhome]: #/alkiradocs/Markdown_Home
+[basics]: #/alkiradocs/Basics
 [syntax]: http://daringfireball.net/projects/markdown/syntax
-[license]: /#/alkiradocs/License
+[license]: #/alkiradocs/License
 
 
 #Markdown: License

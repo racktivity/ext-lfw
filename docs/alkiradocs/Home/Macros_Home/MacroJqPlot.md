@@ -3,11 +3,11 @@
 
 [new jqplt chart]:http://www.jqplot.com/docs/files/usage-txt.html
 [jqPlot Examples]:http://www.jqplot.com/tests/
-[line]: /#/alkiradocs/LineChart
-[bar]: /#/alkiradocs/BarChart
-[pie]: /#/alkiradocs/PieChart
-[block]: /#/alkiradocs/BlockChart
-[bubble]: /#/alkiradocs/BubbleChart
+[line]: #/alkiradocs/LineChart
+[bar]: #/alkiradocs/BarChart
+[pie]: #/alkiradocs/PieChart
+[block]: #/alkiradocs/BlockChart
+[bubble]: #/alkiradocs/BubbleChart
 
 
 #JqPlot Macro 

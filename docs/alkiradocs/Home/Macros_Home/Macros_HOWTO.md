@@ -2,8 +2,10 @@
 @metadata order=20
 @metadata tagstring=macro alkira create new howto
 
-[generic]: /#/alkiradocs/MacroGeneric
-[tasklet]: /#/Overview/Tasklets
+[generic]: #/alkiradocs/MacroGeneric
+[tasklet]: #/Overview/Tasklets
+[alkira]: /sampleapp/#/alkiradocs/Home
+[code highlighting]: /sampleapp/#/alkiradocs/MacroCode
 
 #How to Create Macros
 Adding dynamic content to an Alkira page is easy by using macros. There are two ways to add dynamic content:
@@ -73,7 +75,7 @@ Below you can find an example of a macro that shows a static Google map.
 
 1. Create a macro file under `/opt/qbase5/www/lfw/js/macros/`, for example `macrotest.js`.
 
-    __Note:__ `lfw` is the acronym for _Lightning Fast Wiki_, which is the Incubaid code name for the [Alkira](/sampleapp/#/alkiradocs/Home) project.
+    __Note:__ `lfw` is the acronym for _Lightning Fast Wiki_, which is the Incubaid code name for the [Alkira][] project.
 
 2. Define the parameters if any. You can set a default value for each parameter. In the example these parameters are defined with `options.params`, for example `var longitude = parseFloat(options.params.longitude);`.
 You can provide default values by adding double pipe characters: `var longitude = parseFloat(options.params.longitude) || 3.83333;`
@@ -140,5 +142,3 @@ Where `macroname` is the name of your macro, i.e. the name of the JavaScript fil
     [[googlemaps]][[/googlemaps]]
 
 For another example, take a look at the [code highlighting][] macro which takes the code itself as a body.
-
-  [code highlighting]: /sampleapp/#/alkiradocs/MacroCode

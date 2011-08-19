@@ -2,13 +2,13 @@
 @metadata order=20
 @metadata tagstring=markdown md doc documentation
 
-[mdhome]: /#/alkiradocs/Markdown_Home
-[basics]: /#/alkiradocs/Basics
+[mdhome]: #/alkiradocs/Markdown_Home
+[basics]: #/alkiradocs/Basics
 [syntax]: http://daringfireball.net/projects/markdown/syntax
-[license]: /#/alkiradocs/License
+[license]: #/alkiradocs/License
 [dl]: http://daringfireball.net/projects/downloads/Markdown_1.0.1.zip
 [dingus]: http://daringfireball.net/projects/markdown/dingus
-[sourcehome]: /#/alkiradocs/HomeSource
+[sourcehome]: #/alkiradocs/HomeSource
 [s_src]: http://daringfireball.net/projects/markdown/syntax.text
 [l_src]: http://daringfireball.net/projects/markdown/license.text
 [pl]: http://daringfireball.net/projects/markdown/license

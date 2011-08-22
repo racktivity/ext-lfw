@@ -1,107 +1,49 @@
 @metadata title=Dashboard Macro
 @metadata tagstring=macro alkira dashboard
 
+[imgInitialDashboard]: images/images50/md_images/initialDashboard.png
+[configureDashboard]: images/images50/md_images/configureDashboard.png
+[addWidget]: images/images50/md_images/addWidget.png
+[configureWidget]: images/images50/md_images/configureWidget.png
+
 #Dashboard Macro
-The `dashboard` macro allows you to add pages or other macros as widgets in your Alkira page.
+The `dashboard` macro allows you to create a page to which you can add widgets. This way you can create a custom page with your favorite widgets.
 
 
-##Parameters
-The parameters of the Dashboard macro are the widgets you would like to include in the page. Take a look at the example.
+##Adding the Dashboard Macro
+
+To add the Dashboard macro to a page, simply add the following line to your page:
+
+    [[dashboard:config=myconfig]][[/dashboard]]
+    
+The name of the `config` parameter can be freely chosen, but a name is mandatory. 
+
+From then on you have to configure your dashboard through the Alkira documentation. Go to your page where you have created your dashboard. An empty dashboard looks like this:
+
+![InitialDashboard][imgInitialDashboard]
 
 
-##Example
-Assume that you want to add the following widgets to your page:
+##Configuring the Dashboard
 
-First Column:
+To configure your dashboard, click the wrench icon in the top right-hand corner of the dashboard area.
 
-* Home page
-* Actions
+![configureDashboard][configureDashboard]
 
-Second Column:
-
-* Macros page
-* Youtube macro
-
-__Note:__ The youtube macro is for demo only and currently shows the Monty Python video.
-
-##Code and Explanation
-
-    [[dashboard]]
-    {
-      "columns": [
-        {
-          "order": 0,
-          "widgets": [
-            {"order": 0, "id": "widget1", "widgettype": "include", "title": "Widget 1", "params": {"name": "Macros_Home"}},
-            {"order": 1, "id": "widget2", "widgettype": "actions", "title": "Actions", "config": {}}
-          ]
-        },
-        {
-          "order": 1,
-          "widgets": [
-            {"order": 0, "id": "widget3", "widgettype": "include", "title": "Widget 3", "params": {"name": "Macros"}},
-            {"order": 1, "id": "widget4", "widgettype": "youtube", "title": "Monty Python", "config": {}}
-          ]
-        }
-      ],
-      "id": "dashboard1",
-       "title": "My Dashboard"
-    }
-    [[/dashboard]]
-
-There are three main sections:
-
-* Columns
-* ID
-* Title
+* Title: set a name for your dashboard
+* Number of columns: set the number of columns that will be shown in your dashboard
 
 
-###Columns
+##Adding Widgets to Dashboard
 
-This is where everything is mainly defined. For every column you want to add, you will have a section containing two variables:
+To add widgets to the dashboard, click the 'plus' icon in the top right-hand corner of the dashboard area.
 
-* Order: a number that specifies in which column you want to add the widgets.
-* Widgets: a list that contains the actual widgets you want to add, it has the following parameters:
-    * __order:__ The position of the widget inside the previous column you chose before.
-    * __id:__ An ID given to the widget.
-    * __widgettype:__ Specifies which macro the widget will contain. You should write the macro name itself. For example, if you want the widget to include the Home page, then you set the widgit type to 'include'. If you want to display the youtube widgit, then you set it to 'youtube'.
-    * __title:__ A title which is displayed in the title bar of the widget.
-    * __config:__ If the macro you want to add uses the body as a parameter (for example, the [code macro][] or [include macro][]), then you write that body in the config parameter.
-    * __params:__ The parameters you want to pass to the macro
+![addWidget][addWidget]
+
+Click `Pick me` next to the desired widget to add it to your dashboard. A configuration window for your widget appears. This window is widget dependent.
+Below you find an example for the Google Maps macro.
+
+![configureWidget][configureWidget]
 
 
-###ID
-This is a unique identifier for your dashboard.
-
-
-###Title
-This is the title that is displayed in the title bar of the dashboard.
-
-
-##Sample
-
-[[dashboard]]
-{
-    "columns": [
-      {
-        "order": 0,
-        "widgets": [
-          {"order": 0, "id": "widget1", "widgettype": "include", "title": "Widget 1", "params": {"name": "Macros_Home"}},
-          {"order": 1, "id": "widget2", "widgettype": "actions", "title": "Actions", "config": {}}
-        ]
-      },
-      {
-        "order": 1,
-        "widgets": [
-          {"order": 0, "id": "widget3", "widgettype": "include", "title": "Widget 3", "params": {"name": "Macros"}},
-          {"order": 1, "id": "widget4", "widgettype": "youtube", "title": "Monty Python"}
-        ]
-      }
-    ],
-    "id": "dashboard1",
-    "title": "My Dashboard"
-}
-[[/dashboard]]
-
-[code macro]: /sampleapp/#/alkiradocs/MacroCode
-[include macro]: /sampleapp/#/alkiradocs/MacroInclude
+##Post-Configuration of a Dashboard
+When you want to rearrange your widgets, drag and drop the widgets to the desired location in the dashboard. Click in the title bar of the widget to grab the widget.

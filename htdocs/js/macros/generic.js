@@ -22,12 +22,7 @@ var render = function(options) {
     )
     .success( function (data, textStatus, jqXHR) {
         console.log('Got config: ' + $.toJSON(data));
-        /** @todo: Should be handled by framework or utility function **/
-        var compiler = new Showdown.converter(),
-                rendered = compiler.makeHtml(data || '');
-        /** /@todo **/
-        //$.swap(rendered, '', $this);
-        $this.append(rendered);
+        options.swap(options.renderWiki(data), '', $this);
     })
     .error( function (data, textStatus, jqXHR) {
         console.log('Failed to get config: ' + textStatus);

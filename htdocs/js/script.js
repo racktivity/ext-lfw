@@ -496,7 +496,7 @@ data;
             if (start == "  "){
                 return fullmatch;
             }
-            var result = start + '\n<div class="macro macro_' + macroname + '"';
+            var result = (start?start:"") + '\n<div class="macro macro_' + macroname + '"';
             if (paramstring){
                 paramstring = paramstring.substr(1);
                 paramstring = "," + paramstring;

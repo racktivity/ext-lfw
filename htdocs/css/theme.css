@@ -21,4 +21,4 @@ a.logo {     background: url("../img/logo.png") no-repeat scroll left top transp
 #main { border:none; padding:5px 10px 10px}
 .ide-fileid {font-weight: bold; margin-bottom: 10px;}
 a.ide-modified {font-weight: bold; font-style: italic;}
-
+.ui-state-default .emoticon-smile {background-image: url("../img/icons/emoticon-smile.png")}

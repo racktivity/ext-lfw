@@ -8,7 +8,7 @@
 
 #Alkira Macros
 
-As we have mentioned, Alkira is highly customizable; this is due to the fact that you can develop your own macros, which are written in _JavaScript_.
+As we have mentioned, Alkira is highly customizable; this is due to the fact that you can develop your own macros.
 
 There are two types of macros:
 

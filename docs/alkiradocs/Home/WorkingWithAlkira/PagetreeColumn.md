@@ -2,7 +2,7 @@
 @metadata order=30
 @metadata tagstring=pagetree add page column
 
-[pagetree]: #/Macros_Home/MacroPagetree
+[pagetree]: #/alkiradocs/MacroPageTree
 
 
 #Adding a Pagetree Column

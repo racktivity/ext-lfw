@@ -6,6 +6,8 @@
 [tasklet]: #/Overview/Tasklets
 [alkira]: #/alkiradocs/Home
 [code highlighting]: #/alkiradocs/MacroCode
+[dashboard]: #/alkiradocs/MacroDashboard
+[Sammy]: http://sammyjs.org/
 
 #How to Create Macros
 Adding dynamic content to an Alkira page is easy by using macros. There are two ways to add dynamic content:
@@ -37,6 +39,11 @@ Below you can find an example of a macro that shows a static Google map.
 
 
 [[code]]
+	//@metadata wizard=googlemaps
+	//@metadata description=Shows Google Maps static map of choice
+	//@metadata image=img/macros/googlemaps.png
+	//@metadata documentationUrl=http://www.pylabs.org/#/alkiradocs/MacroGoogleMaps
+
     var render = function(options) {
         var $this = $(this);
             //define params that user can provide when adding the macro to a page
@@ -76,20 +83,33 @@ Below you can find an example of a macro that shows a static Google map.
 1. Create a macro file under `/opt/qbase5/www/lfw/js/macros/`, for example `macrotest.js`.
 
     __Note:__ `lfw` is the acronym for _Lightning Fast Wiki_, which is the Incubaid code name for the [Alkira][] project.
+    
+2. Set the metadata for your macro. This information is used in the widget store when adding a widget to a [Dashboard][dashboard].
+	* __//@metadata wizard__: name of the wizard that is launched when selecting the widget.
+	* __//@metadata description__: description of the widget.
+	* __//@metadata image__: link to image that is used in the widget store. The images must be stored in `/opt/qbase5/www/lfw/img/macros`, the link is relative from `/opt/qbase5/www/lfw/`.
+	* __//@metadata documentationUrl__: link to the full documentation of the widget on www.pylabs.org
 
-2. Define the parameters if any. You can set a default value for each parameter. In the example these parameters are defined with `options.params`, for example `var longitude = parseFloat(options.params.longitude);`.
+3. Define the parameters if any. You can set a default value for each parameter. In the example these parameters are defined with `options.params`, for example `var longitude = parseFloat(options.params.longitude);`.
 You can provide default values by adding double pipe characters: `var longitude = parseFloat(options.params.longitude) || 3.83333;`
 
-3. There must be a render function which takes `options` as a parameter. Options is an object with some parameters that we can use, such as:
-    * __options.space:__ get space name.
-    * __options.page:__ get page name.
-    * __options.body:__ get the page contents.
-    * __options.addCss():__ select a CSS style sheet either through a CSS file or a direct style code.
-    * __options.addDependency():__ add a JavaScript library dependency if needed by the macro.
-    * __options.swap():__ swap the old content of a page with new content.
-    * __options.renderWiki():__ return the HTML element of a given Markdown syntax.
+4. There must be a render function which takes `options` as a parameter. Options is an object with some parameters that we can use, such as:
+    * __options.space__: get space name.
+    * __options.page__: get page name.
+    * __options.body__: get the page contents.
+    * __options.tags__: get the tags of a page.
+    * __options.params__: get the parameters that are passed to the macro tag, for example [[note:param1=value1]].
+    * __options.query__: retrieves the query from a URL, for example the query `?space=myspace&page=mypage` results in `options.query.space=myspace` and `options.query.page=mypage`.
+    * __options.pagecontent__: get the content of a page in HTML code.
+    * __options.app__: get an instance of the '[Sammy][]' framework, which allows you to trigger actions.
+    * __options.config__: get the configuration of the macro.
+    * __options.saveConfig()__: saves the provided configuration of the macro.
+    * __options.addCss()__: select a CSS style sheet either through a CSS file or a direct style code.
+    * __options.addDependency()__: add a JavaScript library dependency if needed by the macro.
+    * __options.swap()__: swap the old content of a page with new content.
+    * __options.renderWiki()__: return the HTML element of a given Markdown syntax.
 
-4. If you want to apply a special style sheet for your macro, you need the `options.addCss()` function. This function has three arguments:
+5. If you want to apply a special style sheet for your macro, you need the `options.addCss()` function. This function has three arguments:
     * __id:__ a unique id for your macro (usually just the macro name since it should be unique).
     * __tag:__ either "style" or "link" tag, where:
 
@@ -103,30 +123,30 @@ You can provide default values by adding double pipe characters: `var longitude 
 
         For example: 'params': {'rel': 'stylesheet', 'href': 'http://yandex.st/highlightjs/5.16/styles/default.min.css'}
 
-5. You can load extra JavaScript libraries in your macro with the `options.addDependency` function. This functions requires two arguments:
+6. You can load extra JavaScript libraries in your macro with the `options.addDependency` function. This functions requires two arguments:
 
     * __callback:__  callback function to be called after loading all dependency scripts, `cb` in the given example
     * __dependencies:__ list of file links to be loaded.
 
     In this case, you have to put all code that depends on the loaded dependencies in a callback function which you give as first argument to the `addDependency` function call.
 
-6. Create a template using jQuery; jQuery.template(name, template) where:
+7. Create a template using jQuery; jQuery.template(name, template) where:
 
     * __name:__ A string naming the compiled template.
     * __template:__ The HTML markup and/or text to be used as template. Can be a string, or an HTML element (or jQuery object wrapping an element) whose content is to be used as a template.
 
-7. Render the specified HTML content as a template, using the specified data:
+8. Render the specified HTML content as a template, using the specified data:
 
     jQuery.tmpl(name, [ options ]) where:
 
     * __name:__ A string naming the compiled template.
     * __options:__ An optional map of user-defined key-value pairs. Extends the tmplItem data structure, available to the template during rendering.
 
-8. Register the render function using:
+9. Register the render function using:
 
     * register(render);
 
-9. Define your macro in a Markdown file.
+10. Define your macro in a Markdown file.
 
 
 ###Calling the Macro in a Markdown File

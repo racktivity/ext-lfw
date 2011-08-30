@@ -185,6 +185,10 @@ var app = $.sammy(function(app) {
                         console.log('Waiting for ' + ajaxTodo + ' more ajax calls before rendering macro ' + name);
                         return;
                     }
+                    if (options.page !== getPage() || options.space !== getSpace()) {
+                        console.log('The page has already changed, aborting the rendering of macro ' + name);
+                        return;
+                    }
                     console.log('Start rendering macro ' + name + ' - ' + data);
                     try{
                         options.params.macroname = name;

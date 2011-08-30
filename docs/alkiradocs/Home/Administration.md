@@ -9,4 +9,4 @@ For the administration of a PyLabs Application, you have a separate Admin space.
 
 This section covers the following subjects...
 
-[[children /]]
+[[children/]]

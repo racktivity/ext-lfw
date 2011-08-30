@@ -32,7 +32,11 @@ To create a new space in your application:
 1. Select the __Admin__ space of the PyApp.
 2. Go to the __Spaces__ page. An overview of existing spaces appears.
 3. Click __Create New Space__, a form appears to create a space.
+<br/>
+<br/>
 ![CreateSpace][imgCreateSpace]
+<br/>
+<br/>
 4. Provide a name for the space and click __Create Space__. 
 The new space appears in the list of spaces.
 
@@ -82,10 +86,18 @@ To create a new page in your application:
 2. By default the Home page of the space is shown. Your new page will be a child page of the Home page. 
 If your page must have another parent page, then first select the proper parent page before continuing. 
 3. Click __New__. A form appears to create a new page.
+<br/>
+<br/>
 ![newpage][imgNewPage]
+<br/>
+<br/>
 4. Fill out the _Name_ and _Title_ of your page. Leave _Type_ to 'Markup', _Tags_ are automatically added when saving your page.
+<br/>
+<br/>
 	* __Name__: file name of your page
 	* __Title__: name of the page that appears in pagetrees and lists of child pages
+<br/>
+<br/>
 5. Create your page, see the [Working with Alkira][alkira] section.
 6. Click __Save__. The page is added to Alkira.
 

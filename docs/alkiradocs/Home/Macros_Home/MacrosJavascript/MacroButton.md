@@ -21,12 +21,12 @@ The macro accepts the following parameters:
 
 ##Example
 
-    [[button:href=#/Test/button, click=alert("This is Incubaid"), name=Button, title=Title, target=_self /]]
+    [[button:href=#/alkiradocs/MacroButton, click=alert("This is Incubaid"), name=Button, title=Title, target=_self /]]
     
     
 ##Sample
 
-[[button:href=#/Test/button, click=alert("This is Incubaid"), name=Button, title=Title, target=_self/]] 
+[[button:href=#/alkiradocs/MacroButton, click=alert("This is Incubaid"), name=Button, title=Title, target=_self/]] 
 
 
 ##How to Modify the Button Icon
@@ -51,11 +51,11 @@ For each icon that you want to use in your application, you have to create a new
 
 Define a button with a custom icon as follows:
 
-    [[button:href=#/Test/button, click=alert("This is Incubaid"), name=Button, title=Title, target=_self, icon=<class name> /]]
+    [[button:href=#/alkiradocs/MacroButton, click=alert("This is Incubaid"), name=Button, title=Title, target=_self, icon=<class name> /]]
     
 for example:
 
-    [[button:href=#/Test/button, click=alert("This is Incubaid"), name=Button, title=Title, target=_self, icon=emoticon-smile /]]
+    [[button:href=#/alkiradocs/MacroButton, click=alert("This is Incubaid"), name=Button, title=Title, target=_self, icon=emoticon-smile /]]
     
 This is then the result:
 

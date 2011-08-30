@@ -29,7 +29,11 @@ To create a new space:
 1. Select the __Admin__ space of the PyApp.
 2. Go to the __Spaces__ page. An overview of existing spaces appears.
 3. Click __Create New Space__, a form appears to create a space.
+<br/>
+<br/>
 ![CreateSpace][imgCreateSpace]
+<br/>
+<br/>
 4. Provide a name for the space and click __Create Space__. 
 The new space appears in the list of spaces.
 
@@ -46,7 +50,11 @@ To rename a space:
 1. Select the __Admin__ space of the PyApp.
 2. Go to the __Spaces__ page. An overview of existing spaces appears.
 3. Click __rename__, next to the space that you want to rename. A form appears to rename the space
+<br/>
+<br/>
 ![RenameSpace][imgRenameSpace]
+<br/>
+<br/>
 4. Update the space name and click Rename Space__. 
 The space name is updated.
 
@@ -57,6 +65,10 @@ To delete a space:
 1. Select the __Admin__ space of the PyApp.
 2. Go to the __Spaces__ page. An overview of existing spaces appears.
 3. Click __delete__ next to the space that your want to delete. A confirmation window appears.
+<br/>
+<br/>
 ![DeleteSpace][imgDeleteSpace]
+<br/>
+<br/>
 4. Click __Ok__ to confirm the removal of the space. 
 The space is immediately deleted from the PyApp.

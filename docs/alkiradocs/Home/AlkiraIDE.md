@@ -16,12 +16,16 @@ The provided IDE is not a fully fledged IDE, but it is a nice and easy feature w
 
 Some of the IDE's features:
 * code immediately available in PyApp
+
 * code highlighting for Python
-
+<br/>
+<br/>
 ![CodeHighlight][imgCode]
-
+<br/>
+<br/>
 * TAB-completion in the `q`-name space (CTRL-SPACE)
-
+<br/>
+<br/>
 ![TabCompletion][imgTabCompletion]
 
 
@@ -41,9 +45,11 @@ These actions are all called by right-clicking on a directory or file name.
 ##File Management
 To open a file, double-click the file in the directory tree. The file is opened in a tab in the workspace of the IDE.
 To save a file in the IDE, click the icon next to the file name in the tab:
-
+<br/>
+<br/>
 ![SaveFile][imgSaveFile]
-
+<br/>
+<br/>
 When you create a file, make sure that you add the `.py` extension to your file name.
 
 

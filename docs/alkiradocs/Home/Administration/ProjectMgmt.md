@@ -4,6 +4,8 @@
 
 
 [ide]: #/alkiradocs/AlkiraIDE
+[imgNewProject]: images/images50/md_images/newproject.png
+[imgDeleteProject]: images/images50/md_images/deleteproject.png
 
 
 #Alkira Project Management
@@ -25,7 +27,11 @@ To create a new project:
 2. Go to the __Projects__ page. An overview of existing projects appears.
 3. In the tree structure, right-click on the directory where you want to create the project, and select __Create Project Here__. 
 A form appears to create the space.
+<br/>
+<br/>
 ![NewProject][imgNewProject]
+<br/>
+<br/>
 4. Provide a name for your project and click __Ok__.
 The project appears in the list of _Available Projects_.
 
@@ -38,6 +44,10 @@ To delete a project:
 1. Select the __Admin__ space of the PyApp.
 2. Go to the __Projects__ page. An overview of existing projects appears.
 3. In the list of _Available Projects_, click __delete__ next to the project that you want to delete. A confirmation window appears.
+<br/>
+<br/>
 ![DeleteProject][imgDeleteProject].
+<br/>
+<br/>
 4. Click __Ok__ to delete the project. The project is deleted, but possible created files within the project remain.
 

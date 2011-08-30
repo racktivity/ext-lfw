@@ -3,9 +3,9 @@
 @metadata tagstring=metadata title order tagstring
 
 
-[children]: /#/alkiradocs/MacroChildren
-[pagetree]: /#/alkiradocs/MacroPageTree
-[spaceandpage]: /#/alkiradocs/SpacesAndPages
+[children]: #/alkiradocs/MacroChildren
+[pagetree]: #/alkiradocs/MacroPageTree
+[spaceandpage]: #/alkiradocs/SpacesAndPages
 
 
 

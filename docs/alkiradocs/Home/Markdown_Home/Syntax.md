@@ -2,10 +2,10 @@
 @metadata order=20
 @metadata tagstring=syntax markdown
 
-[mdhome]: /#/alkiradocs/Markdown_Home
-[basics]: /#/alkiradocs/Basics
+[mdhome]: #/alkiradocs/Markdown_Home
+[basics]: #/alkiradocs/Basics
 [syntax]: http://daringfireball.net/projects/markdown/syntax
-[license]: /#/alkiradocs/License
+[license]: #/alkiradocs/License
 [src]: http://daringfireball.net/projects/markdown/syntax.text
 [1]: http://docutils.sourceforge.net/mirror/setext.html
 [2]: http://www.aaronsw.com/2002/atx/

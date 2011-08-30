@@ -496,11 +496,11 @@ data;
         mdstring = mdstring || '';
         var regex = /\n?(..)?\[\[(\w+)(:[^\]]+)?\]\]([.\s\S]*?[\s\S])??(\[\[\/\2\]\])/g;
         var regex2 = /\n?(..)?\[\[(\w+)(:[^\]]+)?\/\]\]/g;
-        var replacefunc = function(fullmatch, macroname, paramstring, body){
-            if (fullmatch.substr(0, 2) == "  "){
+        var replacefunc = function(fullmatch, start, macroname, paramstring, body){
+            if (start == "  "){
                 return fullmatch;
             }
-            var result = '\n<div class="macro macro_' + macroname + '"';
+            var result = (start?start:"") + '\n<div class="macro macro_' + macroname + '"';
             if (paramstring){
                 paramstring = paramstring.substr(1);
                 paramstring = "," + paramstring;
@@ -520,12 +520,12 @@ data;
         };
 
         mdstring = mdstring.replace(regex ,
-            function(fullmatch, _, macroname, paramstring, body, _){
-                return replacefunc(fullmatch, macroname, paramstring, body);
+            function(fullmatch, start, macroname, paramstring, body, _){
+                return replacefunc(fullmatch, start, macroname, paramstring, body);
             });
         mdstring = mdstring.replace(regex2 ,
-            function(fullmatch, _, macroname, paramstring){
-                return replacefunc(fullmatch, macroname, paramstring, null);
+            function(fullmatch, start, macroname, paramstring){
+                return replacefunc(fullmatch, start, macroname, paramstring, null);
             });
 
         // Allow anchors to space and page

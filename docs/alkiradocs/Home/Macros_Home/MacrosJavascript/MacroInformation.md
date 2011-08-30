@@ -16,6 +16,8 @@ The body of the macro is the piece of information which should be highlighted.
         This is a piece of information.
     [[/information]]
 
+
+##Sample
 [[information]]
 This is a piece of information.
 [[/information]]

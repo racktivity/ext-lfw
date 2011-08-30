@@ -3,9 +3,9 @@
 @metadata tagstring=alkira
 @metadata spaceorder=140
 
-[macros]: /#/alkiradocs/Macros\_Home
-[md]: /#/alkiradocs/Markdown\_Home
-[pl]: /#/PyLabs50/Home
+[macros]: #/alkiradocs/Macros\_Home
+[md]: #/alkiradocs/Markdown\_Home
+[pl]: #/PyLabs50/Home
 [incubaid]: http://www.incubaid.com
 [mdsyntax]: http://daringfireball.net/projects/markdown/syntax
 
@@ -38,3 +38,7 @@ Alkira uses the Markdown syntax, check the [Markdown][md] page for more details.
 On the Alkira platform, you can easily add [macros][] in your documentation. A macro gives you the possibility to add extra functionality on a page, for example add dynamic content such as graphics or database views.
 Alkira has already a set of default macros, but of course nothing can stop you from creating your own macros. You can find the list of default Alkira macros **[here][macros]**.
 
+- - -
+
+##Integrated User/Group Management
+Each PyLabs application has its own user and group management, available via the Alkira platform. You can add, remove, and update users, create groups and so on.

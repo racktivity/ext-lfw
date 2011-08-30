@@ -8,6 +8,7 @@ var render = function(options) {
     var space = options.params.space || options.space;
     var page = options.page;
     var root = options.params.root || 0;
+    var lazyload = options.params.lazyload || true;
 
     options.addCss({'id': 'pagetree', 'tag': 'link', 'params': {'rel': 'stylesheet', 'href': '/static/lfw/js/libs/jstree/themes/classic/style.css'}});
 
@@ -16,7 +17,7 @@ var render = function(options) {
         $this.jstree({
             "json_data": {
                 "ajax": {
-                    "url": "appserver/rest/ui/portal/generic?macroname=pagetree&space=" + space,
+                    "url": "appserver/rest/ui/portal/generic?macroname=pagetree&space=" + space + "&lazyload=" + lazyload,
                     "data": function(n) {
                         return {id: n.attr ? n.attr("id") : root};
                     },

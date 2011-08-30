@@ -1,17 +1,19 @@
 @metadata title=RGraph Macro
 @metadata tagstring=macro alkira rgraph infovis
 
-[Javascript Infovis Toolkit]: http://mbostock.github.com/http://thejit.org//
+[Javascript Infovis Toolkit]: http://thejit.org/
+[rgraph]: 
 
 #RGraph Macro
-The `rgraph` macro creates an rgraph
+The RGraph macro creates an [rgraph][], which is a powerful graphics visualization. The data of the graph is stored in a JSON data structure.
 
 
 ##Parameters
-The macro does not use parameters. The body contains the data to generate the rgraph.
+The macro does not use parameters. The body contains the data to generate the rgraph. For advanced examples of RGraphs, see [thejit.org][rgraph].
 
 
 ##Example
+
     [[rgraph]]
         {"name": "Macros_Home",
          "chart_div": "bar_div",
@@ -50,9 +52,9 @@ The macro does not use parameters. The body contains the data to generate the rg
          }
         }
     [[/rgraph]]
+    
 
-
-###Result
+##Sample
 
 [[rgraph]]
 {"name": "Macros_Home",

@@ -2,9 +2,9 @@
 @metadata order=11
 @metadata tagstring=macro pylabs list
 
-[generic]: /#/alkiradocs/MacroGeneric
-[child]: /#/alkiradocs/MacroChildren
-[page]: /#/alkiradocs/MacroPageValidator
+[generic]: #/alkiradocs/MacroGeneric
+[child]: #/alkiradocs/MacroChildren
+[page]: #/alkiradocs/MacroPageValidator
 
 
 ##PyLabs Macros

@@ -196,7 +196,7 @@ class ide(object):
                 dirname = q.system.fs.getBaseName(dir)
                 results.append({"state": "closed" if self._hasChildren(dir) else "leaf",
                                 "data": dirname,
-                                "attr": {"id": self._getID(project, dir)}})
+                                "attr": {"id": self._getID(project, dir),"title": dirname}})
 
             for file in q.system.fs.listFilesInDir(fullpath):
                 filename = q.system.fs.getBaseName(file)
@@ -205,7 +205,8 @@ class ide(object):
                 results.append({"state": "leaf",
                                 "data": filename,
                                 "attr": {"id": self._getID(project, file),
-                                         "rel": "file"}})
+                                         "rel": "file",
+                                         "title":filename}})
 
         return results
 

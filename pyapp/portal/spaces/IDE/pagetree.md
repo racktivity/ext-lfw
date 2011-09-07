@@ -1,3 +1,4 @@
+[[html]]
 <link rel=StyleSheet href="/static/lfw/js/libs/jstree/themes/classic/style.css" type="text/css" />
 <script language="javascript" src="/static/lfw/js/libs/jstree/jquery.hotkeys.js"/>
 <script language="javascript" src="/static/lfw/js/libs/jstree/jquery.jstree.js"/>
@@ -298,3 +299,4 @@ $(document).ready(function() {
     });
 });
 </script>
+[[/html]]

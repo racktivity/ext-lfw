@@ -196,18 +196,24 @@ class ide(object):
                 dirname = q.system.fs.getBaseName(dir)
                 results.append({"state": "closed" if self._hasChildren(dir) else "leaf",
                                 "data": dirname,
-                                "attr": {"id": self._getID(project, dir),"title": dirname}})
-
+                                "attr": {"id": self._getID(project, dir)}})
+            
+            results = sorted(results, key=lambda i: i['data'])
+            
+            files = []
             for file in q.system.fs.listFilesInDir(fullpath):
                 filename = q.system.fs.getBaseName(file)
                 if not self._filter(filename):
                     continue
-                results.append({"state": "leaf",
+                files.append({"state": "leaf",
                                 "data": filename,
                                 "attr": {"id": self._getID(project, file),
                                          "rel": "file",
                                          "title":filename}})
-
+            
+            files = sorted(files, key=lambda i: i['data'])
+            results += files
+        
         return results
 
     @q.manage.applicationserver.expose_authorized(defaultGroups=["admin", "developer"], authorizeParams={}, authorizeRule="use project")

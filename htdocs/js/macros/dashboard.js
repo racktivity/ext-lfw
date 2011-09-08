@@ -518,7 +518,7 @@ $(function() {
                     display.append("<div id='widget-" + type.name + "' class='widgettype'>" +
                         (type.image ? "<img src='" + type.image + "' />" : "<img src='img/pixel.gif' />") +
                         "<button class='add'><span class='ui-button-text'>Pick me</span></button>" +
-                        "<h3>" + type.name + "</h3><p>" + (type.description ? type.description : "No description") +
+                        "<h3>" + (type.label ? type.label : type.name) + "</h3><p>" + (type.description ? type.description : "No description") +
                         "<br /><a href=\"" + type.documentationUrl + "\" target=\"doc\">Documentation</a></p></div>");
                 }
 

@@ -131,7 +131,7 @@ var render = function(options) {
             pager: '#gridpager',
             rowNum: body.pagesize,
             sortname: body.sort,
-            sortorder: 'asc',
+            sortorder: body.sortorder || 'asc',
             viewrecords: false,
             caption: caption,
             width: width,

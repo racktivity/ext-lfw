@@ -7,9 +7,13 @@ var render = function(options) {
     var $this = $(this);
 
     var cb = function() {
+        var name = options.params.name;
+        if (!name){
+            //when we are calling macro just to load the dependencies dont render a button
+            return;
+        }
         var appserver = options.params.appserver || document.domain;
         var title = options.params.title;
-        var name = options.params.name;
         var type = options.params.type || "button";
         var element = null;
         var urlitems = document.location.href.split("/")

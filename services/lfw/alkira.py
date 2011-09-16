@@ -680,6 +680,7 @@ class Alkira:
                          pagetype=pagetype)
 
         self._syncPageToDisk(space.name, page)
+        return page
 
     def updateSpace(self, space, newname=None, tagslist=None, repository=None, repo_username=None, repo_password=None, order=None):
         space = self.getSpace(space)
@@ -728,10 +729,7 @@ class Alkira:
                    order=None, title=None, parent=None, category=None, pagetype=None, filename=None, contentIsFilePath=False):
 
         space = self.getSpace(space)
-        spacename = space.name
         page = self.getPage(space.guid, old_name)
-
-        type = None
 
         params = {"name": name, "pagetype": pagetype, "category":category,
                   "title": title, "order": order, "filename":filename,

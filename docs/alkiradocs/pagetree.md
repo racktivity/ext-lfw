@@ -15,3 +15,4 @@
 [[pagetree:space=CodeExamples]][[/pagetree]]
 [[pagetree:space=alkiradocs]][[/pagetree]]
 [[pagetree:space=Glossary]][[/pagetree]]
+[[pagetree:space=ReleaseNotes]][[/pagetree]]

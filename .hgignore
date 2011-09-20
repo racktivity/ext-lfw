@@ -2,3 +2,20 @@
 
 .bak$
 .pyc$
+
+syntax: regexp
+.project
+syntax: regexp
+.pydevproject
+syntax: regexp
+.hgignore
+syntax: regexp
+.hgignore
+syntax: regexp
+.hg
+syntax: regexp
+.hgtags
+syntax: regexp
+.pydevproject
+syntax: regexp
+.hgignore

@@ -66,7 +66,7 @@ var render = function(options) {
     options.addDependency(createGrid, ["/static/lfw/js/libs/jquery.jqGrid-4.0.0/src/i18n/grid.locale-en.js",
         "/static/lfw/js/libs/jquery.jqGrid-4.0.0/js/jquery.jqGrid.min.js",
         "/static/lfw/js/libs/jquery.jqGrid-4.0.0/src/jqModal.js",
-        "/static/lfw/js/libs/jquery.jqGrid-4.0.0/src/jqDnR.js"]);
+        "/static/lfw/js/libs/jquery.jqGrid-4.0.0/src/jqDnR.js"], true);
 };
 
 register(render);

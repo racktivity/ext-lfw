@@ -886,7 +886,7 @@ data;
                 if (xhr.status === 404) {
                     context.notFound();
                 } else if (xhr.status === 401) {
-                    swap("<p class='error'> Invalid User Name /Password</p>", '#/' + space + '/' + page);
+                    swap("<p class='error'> Not allowed to access. </p>", '#/' + space + '/' + page);
                 } else if (xhr.status === 403) {
                     swap("<p class='error'>Authentication needed</p>", '#/' + space + '/' + page);
                 } else if (xhr.responseText.indexOf("Authorization failed") > 0) {

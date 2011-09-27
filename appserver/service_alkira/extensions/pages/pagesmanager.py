@@ -1,4 +1,4 @@
-class PagesManager(objec):
+class PagesManager(object):
     '''
     Alkira related pages operations manager
     '''

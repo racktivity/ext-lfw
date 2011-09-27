@@ -13,19 +13,18 @@ import alkira
 # @TODO: use sqlalchemy to construct queries - escape values
 # @TODO: add space to filter criteria
 
-
-
 class LFWService(object):
-
+    '''
+    The LFW (a.k.a Alkira) core functionality
+    '''
+    
     def __init__(self):
-        # Initialize API
-        self.connection = p.api.model.ui
-        self.alkira = Alkira(p.api)
+        self._alkira = Alkira()
 
-        tasklet_path = q.system.fs.joinPaths(q.dirs.pyAppsDir, p.api.appname, 'impl', 'portal')
-        self._tasklet_engine = q.taskletengine.get(tasklet_path)
-        self._tasklet_engine.addFromPath(os.path.join(q.dirs.baseDir,'lib','python','site-packages','alkira', 'tasklets'))
-        self.db_config_path = q.system.fs.joinPaths(q.dirs.cfgDir, 'qconfig', 'dbconnections.cfg')
+        # tasklet_path = q.system.fs.joinPaths(q.dirs.pyAppsDir, p.api.appname, 'impl', 'portal')
+        # self._tasklet_engine = q.taskletengine.get(tasklet_path)
+        # self._tasklet_engine.addFromPath(os.path.join(q.dirs.baseDir,'lib','python','site-packages','alkira', 'tasklets'))
+        # self.db_config_path = q.system.fs.joinPaths(q.dirs.cfgDir, 'qconfig', 'dbconnections.cfg')
 
     @staticmethod
     def getAuthorizedFunctions():
@@ -81,7 +80,8 @@ class LFWService(object):
             return {"token": token, "username": username}
         return None
 
-    @q.manage.applicationserver.expose_authorized(defaultGroups=["public"], authorizeParams={"space": "space"}, authorizeRule="view page")
+    # @q.manage.applicationserver.expose_authorized(defaultGroups=["public"], authorizeParams={"space": "space"},
+    #                                               authorizeRule="view page")
     def tags(self, space=None, term=None):
         results = self.alkira.getitems('tags', space=space, term=term)
         final_result = set()
@@ -93,19 +93,23 @@ class LFWService(object):
         result = list(final_result)
         return result
 
-    @q.manage.applicationserver.expose_authorized(defaultGroups=["public"], authorizeParams={}, authorizeRule="view page")
+    # @q.manage.applicationserver.expose_authorized(defaultGroups=["public"], authorizeParams={},
+    #                                               authorizeRule="view page")
     def listSpaces(self, term=None):
         return self.alkira.listSpaces()
 
-    @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={}, authorizeRule="create space")
+    # @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={},
+    # authorizeRule="create space")
     def createSpace(self, name, tags="", order=None):
         self.alkira.createSpace(name, tags.split(' '), order=order)
 
-    @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={"space": "name"}, authorizeRule="update space")
+    # @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={"space": "name"},
+    # authorizeRule="update space")
     def updateSpace(self, name, newname=None, tags=""):
         self.alkira.updateSpace(name, newname, tags.split(' '))
 
-    @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={}, authorizeRule="sort spaces")
+    # @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={},
+    #                                               authorizeRule="sort spaces")
     def sortSpaces(self, spaces, tags=""):
         """
         get space names in a specific order and update the actual spaces to reflect this order
@@ -114,83 +118,103 @@ class LFWService(object):
         for order, space in enumerate(spaces):
             self.alkira.updateSpace(space, order=order + 1)
 
-    @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={"space": "name"}, authorizeRule="delete space")
+    # @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={"space": "name"},
+    #                                               authorizeRule="delete space")
     def deleteSpace(self, name):
         self.alkira.deleteSpace(name)
 
-    @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={}, authorizeRule="get user info")
+    # @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={},
+    #                                               authorizeRule="get user info")
     def listUsers(self, login=None):
         return self.alkira.listUsers(login)
 
-    @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={}, authorizeRule="get user info")
+    # @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={},
+    #                                               authorizeRule="get user info")
     def listUsersInfo(self):
         return self.alkira.listUsersInfo()
 
-    @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={}, authorizeRule="get user info")
+    # @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={},
+    #                                               authorizeRule="get user info")
     def getUserInfo(self, login):
         return self.alkira._getUserInfo(login)
 
-    @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={}, authorizeRule="create user")
+    # @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={},
+    #                                               authorizeRule="create user")
     def createUser(self, login, name=None, password=None, applicationserver_request=""):
         return self.alkira.createUser(login, name, password, self.getTokenAndUsername(applicationserver_request))
 
-    @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={}, authorizeRule="delete user")
+    # @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={},
+    #                                               authorizeRule="delete user")
     def deleteUser(self, userguid, applicationserver_request=""):
         return self.alkira.deleteUser(userguid, self.getTokenAndUsername(applicationserver_request))
 
-    @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={}, authorizeRule="update user")
+    # @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={},
+    #                                               authorizeRule="update user")
     def updateUser(self, userguid, name=None, password=None, applicationserver_request=""):
         return self.alkira.updateUser(userguid, name, password, self.getTokenAndUsername(applicationserver_request))
 
-    @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={}, authorizeRule="add user to group")
+    # @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={},
+    #                                               authorizeRule="add user to group")
     def addUserToGroup(self, userguid, groupguid, applicationserver_request=""):
         return self.alkira.addUserToGroup(userguid, groupguid, self.getTokenAndUsername(applicationserver_request))
 
-    @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={}, authorizeRule="remove user from group")
+    # @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={},
+    #                                               authorizeRule="remove user from group")
     def removeUserFromGroup(self, userguid, groupguid, applicationserver_request=""):
         return self.alkira.removeUserFromGroup(userguid, groupguid, self.getTokenAndUsername(applicationserver_request))
 
-    @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={}, authorizeRule="create group")
+    # @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={},
+    #                                               authorizeRule="create group")
     def createGroup(self, name, applicationserver_request=""):
         return self.alkira.createGroup(name, self.getTokenAndUsername(applicationserver_request))
 
-    @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={}, authorizeRule="delete group")
+    # @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={},
+    #                                               authorizeRule="delete group")
     def deleteGroup(self, groupguid, applicationserver_request=""):
         return self.alkira.deleteGroup(groupguid, self.getTokenAndUsername(applicationserver_request))
 
-    @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={}, authorizeRule="get group info")
+    # @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={},
+    #                                               authorizeRule="get group info")
     def listGroups(self, name=None):
         return self.alkira.listGroups(name)
 
-    @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={}, authorizeRule="get group info")
+    # @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={},
+    #                                               authorizeRule="get group info")
     def getGroupInfo(self, name):
         return self.alkira._getGroupInfo(name)
 
-    @q.manage.applicationserver.expose_authorized(defaultGroups=["public"], authorizeParams={}, authorizeRule="get own groups")
+    # @q.manage.applicationserver.expose_authorized(defaultGroups=["public"], authorizeParams={},
+    #                                               authorizeRule="get own groups")
     def getMyGroups(self, applicationserver_request=""):
         return self.alkira.getUserGroups(self.getUsername(applicationserver_request))
 
-    @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={}, authorizeRule="update group")
+    # @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={},
+    #                                               authorizeRule="update group")
     def updateGroup(self, groupguid, name):
         return self.alkira.updateGroup(groupguid, name)
 
-    @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={}, authorizeRule="get group info")
+    # @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={},
+    #                                               authorizeRule="get group info")
     def listGroupsInfo(self):
         return self.alkira.listGroupsInfo()
 
-    @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={}, authorizeRule="assign rule")
+    # @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={},
+    #                                               authorizeRule="assign rule")
     def assignRule(self, groupguids, function, context, applicationserver_request=""):
         return self.alkira.assignRule(groupguids, function, context, self.getTokenAndUsername(applicationserver_request))
 
-    @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={}, authorizeRule="revoke rule")
+    # @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={},
+    #                                               authorizeRule="revoke rule")
     def revokeRule(self, groupguids, function, context, applicationserver_request=""):
         return self.alkira.revokeRule(groupguids, function, context, self.getTokenAndUsername(applicationserver_request))
 
-    @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={}, authorizeRule="get group info")
+    # @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={},
+    #                                               authorizeRule="get group info")
     def listRulesInfo(self):
         return self.alkira.listRulesInfo()
 
-    @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={}, authorizeRule="get group info")
+    # @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={},
+    #                                               authorizeRule="get group info")
     def listPossibleRules(self):
         rules = []
         spaces = filter(lambda s: s not in (alkira.ADMINSPACE, alkira.IDESPACE), self.alkira.listSpaces())
@@ -225,27 +249,33 @@ class LFWService(object):
 
         return rules
 
-    @q.manage.applicationserver.expose_authorized(defaultGroups=["public"], authorizeParams={"space": "space"}, authorizeRule="view page")
+    # @q.manage.applicationserver.expose_authorized(defaultGroups=["public"], authorizeParams={"space": "space"},
+    #                                               authorizeRule="view page")
     def listPages(self, space=None, term=None):
         return self.alkira.listPages(space)
 
-    @q.manage.applicationserver.expose_authorized(defaultGroups=["public"], authorizeParams={"space": "space"}, authorizeRule="view page")
+    # @q.manage.applicationserver.expose_authorized(defaultGroups=["public"], authorizeParams={"space": "space"},
+    #                                               authorizeRule="view page")
     def countPages(self, space=None):
         return self.alkira.countPages(space=space)
 
-    @q.manage.applicationserver.expose_authorized(defaultGroups=["public"], authorizeParams={"space": "space"}, authorizeRule="view page")
+    # @q.manage.applicationserver.expose_authorized(defaultGroups=["public"], authorizeParams={"space": "space"},
+    #                                               authorizeRule="view page")
     def categories(self, space=None, term=None):
         return self.alkira.getitems('category', space, term)
 
-    @q.manage.applicationserver.expose_authorized(defaultGroups=["public"], authorizeParams={}, authorizeRule="search")
+    # @q.manage.applicationserver.expose_authorized(defaultGroups=["public"], authorizeParams={},
+    #                                               authorizeRule="search")
     def search(self, text=None, tags=None):
         return self.alkira.search(text=text, tags=tags)
 
-    @q.manage.applicationserver.expose_authorized(defaultGroups=["public"], authorizeParams={"space": "space"}, authorizeRule="view page")
+    # @q.manage.applicationserver.expose_authorized(defaultGroups=["public"], authorizeParams={"space": "space"},
+    #                                               authorizeRule="view page")
     def breadcrumbs(self, space, name):
         return self.alkira.breadcrumbs(space, name)
 
-    @q.manage.applicationserver.expose_authorized(defaultGroups=["public"], authorizeParams={"space": "space"}, authorizeRule="view page")
+    # @q.manage.applicationserver.expose_authorized(defaultGroups=["public"], authorizeParams={"space": "space"},
+    #                                               authorizeRule="view page")
     def getPage(self, space, name):
         if not self.alkira.spaceExists(space) or not self.alkira.pageExists(space, name):
             return {"code": 404,
@@ -259,13 +289,17 @@ class LFWService(object):
 
         return result
 
-    @q.manage.applicationserver.expose_authorized(defaultGroups=["admin", "creator"], authorizeParams={"space": "space"}, authorizeRule="create page")
-    def createPage(self, space, name, content, parent=None, order=None, title=None, tags="", category='portal', pagetype="md"):
-        if self.alkira.pageExists(space, name):
+    # @q.manage.applicationserver.expose_authorized(defaultGroups=["admin", "creator"], authorizeParams={"space": "space"},
+    #                                               authorizeRule="create page")
+    def createPage(self, service, space, name, content, parent=None, order=None, title=None, tags="", category='portal',
+                   pagetype="md"):
+        if self._alkira.pageExists(service, space, name):
             raise ValueError("A page with the same name already exists")
-        self.alkira.createPage(space=space, name=name, content=content, parent=parent, order=order, title=title, tagsList=tags.split(" "), category=category, pagetype=pagetype)
+        self._alkira.createPage(service, space=space, name=name, content=content, parent=parent, order=order, title=title,
+                                tagsList=tags.split(" "), category=category, pagetype=pagetype)
 
-    @q.manage.applicationserver.expose_authorized(defaultGroups=["admin", "creator", "editor"], authorizeParams={"space": "space"}, authorizeRule="update page")
+    # @q.manage.applicationserver.expose_authorized(defaultGroups=["admin", "creator", "editor"],
+    #                                               authorizeParams={"space": "space"}, authorizeRule="update page")
     def updatePage(self, space, name, content, newname=None, parent=None, order=None, title=None, tags="", category=None, pagetype=None):
         if not self.alkira.pageExists(space, name):
             raise ValueError("Page '%s' doesn't exists" % name)
@@ -277,11 +311,13 @@ class LFWService(object):
         self.alkira.updatePage(space, old_name=name, name=newname,
                                content=content, parent=parent, order=order, title=title, tagsList=tags.split(" "), category=category, pagetype=pagetype)
 
-    @q.manage.applicationserver.expose_authorized(defaultGroups=["admin", "creator"], authorizeParams={"space": "space"}, authorizeRule="delete page")
+    # @q.manage.applicationserver.expose_authorized(defaultGroups=["admin", "creator"], authorizeParams={"space": "space"},
+    #                                               authorizeRule="delete page")
     def deletePage(self, space, name):
         self.alkira.deletePage(space, name)
 
-    @q.manage.applicationserver.expose_authorized(defaultGroups=["public"], authorizeParams={}, authorizeRule="view page")
+    # @q.manage.applicationserver.expose_authorized(defaultGroups=["public"], authorizeParams={},
+    #                                               authorizeRule="view page")
     def generic(self, tagstring=None, macroname=None, params=None, *args, **kwargs):
         q.logger.log('[GENERIC] Request tagstring: %s' % tagstring, 5)
         params = params or dict()
@@ -299,23 +335,28 @@ class LFWService(object):
 
         return result
 
-    @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={"space": "space"}, authorizeRule="update space")
+    # @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={"space": "space"},
+    #                                               authorizeRule="update space")
     def importSpace(self, space, filename, cleanImport=True):
         return self.alkira.importSpace(space, filename, cleanImport=cleanImport)
 
-    @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={"space": "space"}, authorizeRule="update space")
+    # @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={"space": "space"},
+    #                                               authorizeRule="update space")
     def exportSpace(self, space, filename):
         return self.alkira.exportSpace(space, filename)
 
-    @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={"space": "space"}, authorizeRule="update space")
+    # @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={"space": "space"},
+    #                                               authorizeRule="update space")
     def hgPushSpace(self, space, repository, repo_username, repo_password=None):
         return self.alkira.hgPushSpace(space, repository, repo_username, repo_password=repo_password)
 
-    @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={"space": "space"}, authorizeRule="update space")
+    # @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={"space": "space"},
+    #                                               authorizeRule="update space")
     def hgPullSpace(self, space, repository, repo_username, repo_password=None, dontSync=False):
         return self.alkira.hgPullSpace(space, repository, repo_username, repo_password=repo_password, dontSync=dontSync)
 
-    @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={"space": "space"}, authorizeRule="update space")
+    # @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={"space": "space"},
+    #                                               authorizeRule="update space")
     def getSpace(self, space):
         if not self.alkira.spaceExists(space):
             return {"code": 404,
@@ -333,12 +374,14 @@ class LFWService(object):
 
         return result
 
-    @q.manage.applicationserver.expose_authorized(defaultGroups=["public"], authorizeParams={"space": "space"}, authorizeRule="view page")
+    # @q.manage.applicationserver.expose_authorized(defaultGroups=["public"], authorizeParams={"space": "space"},
+    #                                               authorizeRule="view page")
     def macroConfig(self, space, page, macro, configId=None, applicationserver_request=""):
         username = self.getUsername(applicationserver_request)
         return json.loads(self.alkira.getMacroConfig(space, page, macro, configId, username).data)
 
-    @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={"space": "space"}, authorizeRule="update page")
+    # @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={"space": "space"},
+    #                                               authorizeRule="update page")
     def updateMacroConfig(self, space, page, macro, config, configId=None, applicationserver_request=""):
         username = self.getUsername(applicationserver_request)
         self.alkira.setMacroConfig(space, page, macro, config, configId, username)

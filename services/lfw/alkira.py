@@ -13,17 +13,15 @@ import ast
 ADMINSPACE = "Admin"
 IDESPACE = "IDE"
 
-class Alkira:
-    def __init__(self, api=None):
+class Alkira(object):
+    def __init__(self):
         """
-        Initialize the alkira library with a certain API
+        Initialize the alkira library with a certain Service
 
-        @param api: The application api (in APPSERVER content)
+        @param service: Application Server service using this Alkira library
+        @type service:  Application Server service
         """
         self.KNOWN_TYPES = ["py", "md", "html", "txt"]
-
-        self.connection = api.model.ui
-        self.api = api
 
     def _callAuthService(self, method, oauthInfo, **args):
         data = {}
@@ -299,7 +297,7 @@ class Alkira:
         """
         return bool(self._getProjectInfo(name))
 
-    def pageExists(self, space, name):
+    def pageExists(self, service, space, name):
         """
         Checks whether a page exists or not.
 
@@ -311,11 +309,18 @@ class Alkira:
 
         @return: True if the page exists, False otherwise.
         """
-        space = self._getSpaceGuid(space)
-        if self._getPageInfo(space, name):
-            return True
-        else:
-            return False
+        if not service:
+            raise Exception('Invalid Service reference.')
+
+        if not space or not name:
+            raise ValueError('Invalid space or name values. Space: %s, Name: %s' % (space, name))
+
+        page_id = service.extensions.common.getPageId(space, name)
+        space_prefixed_keys = service.db.prefix(space)
+        if space_prefixed_keys:
+            return page_id in space_prefixed_keys
+
+        return False
 
     def pageFind(self, name='', space='', category='', parent='', tags='', order=None, title='', exact_properties=None):
         filterObject = self.connection.page.getFilterObject()

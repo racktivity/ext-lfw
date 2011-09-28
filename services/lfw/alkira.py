@@ -280,15 +280,19 @@ class Alkira(object):
         query = self.connection.page.findAsView(filter, 'ui_view_page_list')
         return list(name["name"] for name in query)
 
-    def spaceExists(self, name):
+    def spaceExists(self, service, space):
         """
         Checks whether a space exists or not
 
-        @param name: Space name
+        @param service: Service with which this library is used
+        @type service:  Application Server service
+        @param space: Space name
+        @type space:  string
 
         @return: True if the space exists, False otherwise
         """
-        return bool(self._getSpaceInfo(name))
+        space_prefixed_keys = service.db.prefix(space)
+        return space_prefixed_keys not in (None, [])
 
     def projectExists(self, name):
         """
@@ -386,23 +390,23 @@ class Alkira(object):
         space = self._getSpaceGuid(space)
         return self.connection.space.get(space)
 
-    def getPage(self, space, name):
+    def getPage(self, service, space, name):
         """
         Gets a page object.
 
-        @type space: String
-        @param space: The name of the space.
-
-        @type name: String
-        @param name: The name of the page.
+        @param service: Service with which this library is used
+        @type service:  Application Service service
+        @type space:    string
+        @param space:   space name
+        @type name:     string
+        @param name:    page name
 
         @return: Page object.
         """
-        space = self._getSpaceGuid(space)
-        page_info = self._getPageInfo(space, name)
-        if not page_info:
-            q.errorconditionhandler.raiseError("Page %s does not exist." % name)
-        return self.connection.page.get(page_info[0]['guid'])
+        page_id = service.extensions.common.alkira.getPageId(space, name)        
+        if not service.db.exists(page_id):
+            q.errorconditionhandler.raiseError('Page %s does not exist.' % name)
+        return service.db.get(page_id)
 
     def getPageByGUID(self, guid):
         """

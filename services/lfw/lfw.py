@@ -287,12 +287,13 @@ class LFWService(object):
         @param name:    Alkira page name
         @type name:     string
         '''
-        if not self._alkira.spaceExists(space) or not self._alkira.pageExists(service, space, name):
-            return {"code": 404,
-                    "error": "Page Not Found"}
+        if not self._alkira.spaceExists(service, space) or not self._alkira.pageExists(service, space, name):
+            return {'code': 404, 'error': 'Page Not Found'}
 
-        page = self.alkira.getPage(space, name)
-        props = ['name', 'space', 'category', 'content', 'creationdate', 'title', 'pagetype']
+        page = self._alkira.getPage(service, space, name)
+        # @remark - MNour: Not using spaces in pages for now
+        # props = ['name', 'space', 'category', 'content', 'creationdate', 'title', 'pagetype']
+        props = ['name', 'category', 'content', 'creationdate', 'title', 'pagetype']
 
         result = dict([(prop, getattr(page, prop)) for prop in props])
         result['tags'] = page.tags.split(' ') if page.tags else []

@@ -37,3 +37,16 @@ class PagesManager(object):
         '''
         self._lfw.createPage(service, space=space, name=name, content=content, parent=parent, order=order, title=title,
                              tags=tags, category=category, pagetype=pagetype)
+
+    def getPage(self, service, space, name):
+        '''
+        Retrieve page from Alkira
+        
+        @param service: The service with which this library is used
+        @type service:  Application Server service
+        @param space:   Alkira space name
+        @type space:    string
+        @param name:    Alkira page name
+        @type name:     string
+        '''
+        return self._lfw.getPage(service, space, name)

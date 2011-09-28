@@ -5,7 +5,8 @@ class page(model.RootObjectModel):
     #@doc name of the page
     name = model.String(thrift_id=1)
     #@doc space of the page
-    space = model.GUID(thrift_id=2)
+    # @remark - MNour: Not using GUID(s) for now
+    # space = model.GUID(thrift_id=2)
     #@doc category of the page
     category = model.String(thrift_id=3)
     #@doc GUID of the parent page

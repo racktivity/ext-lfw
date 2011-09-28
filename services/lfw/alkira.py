@@ -1,3 +1,4 @@
+# @task - MNour: Clean unused code.
 from pylabs import q, p
 
 import os
@@ -22,6 +23,8 @@ class Alkira(object):
         @type service:  Application Server service
         """
         self.KNOWN_TYPES = ["py", "md", "html", "txt"]
+        self._serializer = q.db.pymodelserializers.thriftbase64
+        self._deserializer = q.db.pymodelserializers.thriftbase64
 
     def _callAuthService(self, method, oauthInfo, **args):
         data = {}
@@ -315,7 +318,7 @@ class Alkira(object):
         if not space or not name:
             raise ValueError('Invalid space or name values. Space: %s, Name: %s' % (space, name))
 
-        page_id = service.extensions.common.getPageId(space, name)
+        page_id = service.extensions.common.alkira.getPageId(space, name)
         space_prefixed_keys = service.db.prefix(space)
         if space_prefixed_keys:
             return page_id in space_prefixed_keys
@@ -366,13 +369,18 @@ class Alkira(object):
         guid = self._getProjectGuid(project)
         return self.connection.project.get(guid)
 
-    def getSpace(self, space):
+    def getSpace(self, service, space):
         """
         Gets a space object
 
-        @param name: The space name, or guid
+        @param service: The service with which this library used
+        @type service:  Application Server service
+        @param space: The space name, or guid
+        @type space:  string or guid
         """
-        if isinstance(space, self.connection.space._ROOTOBJECTTYPE):
+        # @task - MNour: - I don't like the _ROOTOBJECTTYPE. I wanna change it to something better.
+        #                - Look at pylabs-core-5.1/extensions/baseworking/db/pymodel_extension/pymodel_extension.py
+        if isinstance(space, service.model.space._ROOTOBJECTTYPE):
             return space
 
         space = self._getSpaceGuid(space)
@@ -611,17 +619,20 @@ class Alkira(object):
     def breadcrumbs(self, space, name):
         return self._breadcrumbs(self.getPage(space, name))
 
-    def _createPage(self, space, name, content, order=None, title=None, tagsList=[], category='portal',
+    def _createPage(self, service, space, name, content, order=None, title=None, tagsList=[], category='portal',
                    parent=None, filename=None, contentIsFilePath=False, pagetype="md"):
+        # @remark - MNour: Make it simple for now. Just use string space names, no objects, no guids.
+        # space = self.getSpace(space)
+        if self.pageExists(service, space, name):
+            q.errorconditionhandler.raiseError('Page %s already exists.' % name)
 
-        space = self.getSpace(space)
-        if self.pageExists(space.guid, name):
-            q.errorconditionhandler.raiseError("Page %s already exists."%name)
-
-        page = self.connection.page.new()
-        params = {"name":name, "pagetype": pagetype, "space":space.guid, "category":category,
-                  "title": title, "order": order, "filename":filename,
-                  "content":q.system.fs.fileGetContents(content) if contentIsFilePath else content
+        page = service.model.page.getEmptyModelObject()
+        params = {
+                  # @remark - MNour: I am not using GUID(s) for now
+                  # 'name':name, 'pagetype': pagetype, 'space':space.guid, 'category':category, 'title': title,
+                  'name':name, 'pagetype': pagetype, 'category':category, 'title': title,
+                  'order': order, 'filename':filename,
+                  'content':q.system.fs.fileGetContents(content) if contentIsFilePath else content
                  }
         for key in params:
             if params[key] != None:
@@ -631,60 +642,58 @@ class Alkira(object):
             page.order = 10000
 
         tags = set(tagsList)
-        tags.add('space:%s' % space.name)
+        # @remark - MNour: Spaces are only strings for now
+        # tags.add('space:%s' % space.name)
+        tags.add('space:%s' % space)
         tags.add('page:%s' % name)
         page.tags = ' '.join(tags)
 
-        if parent:
-            parent_page = self.getPage(space.guid, parent)
-            page.parent = parent_page.guid
+        # @task - MNour: Support parent pages later.
+        # if parent:
+        #     parent_page = self.getPage(space.guid, parent)
+        #     page.parent = parent_page.guid
 
-        self.connection.page.save(page)
-
+        page_id = service.extensions.common.alkira.getPageId(space, name)
+        service.db.set(page_id, page.serialize(self._serializer))
+        # @remark - MNour: For now guids are not set yet.
         return page
 
-    def createPage(self, space, name, content, order=None, title=None, tagsList=[], category='portal',
-                   parent=None, filename=None, contentIsFilePath=False, pagetype="md"):
+    def createPage(self, service, space, name, content, order=None, title=None, tagsList=[], category='portal', parent=None,
+                   filename=None, contentIsFilePath=False, pagetype="md"):
         """
         Creates a new page.
 
-        @type space: String
-        @param space: The name of the space.
-
-        @type name: String
-        @param name: The name of the page.
-
-        @type content: String
-        @param content: The content of the page. This can also be a file path; in this case you should set contentIsFilePath=True.
-
-        @type order: Integer
-        @param order: Order of the page
-
-        @type title: String
-        @param title: Title of the page
-
-        @type tagsList: List
-        @param tagsList: A list containing all the tags you want to add to the page.
-
-        @type category: String
-        @param category: The category of the page. Default is 'portal'.
-
-        @type parent: String
-        @param parent: If you want this to become a child page, add the name of the parent page to this parameter. Default is None.
-
-        @type contentIsFilePath: Boolean
+        @param service:           Service with which this library is used
+        @type service:            Application Server service
+        @type space:              string
+        @param space:             The name of the space.
+        @type name:               string
+        @param name:              The name of the page.
+        @type content:            string
+        @param content:           The content of the page. This can also be a file path; in this case you should set contentIsFilePath=True.
+        @type order:              integer
+        @param order:             Order of the page
+        @type title:              string
+        @param title:             Title of the page
+        @type tagsList:           list
+        @param tagsList:          A list containing all the tags you want to add to the page.
+        @type category:           String
+        @param category:          The category of the page. Default is 'portal'.
+        @type parent:             string
+        @param parent:            If you want this to become a child page, add the name of the parent page to this parameter. Default is None.
+        @type contentIsFilePath:  Boolean
         @param contentIsFilePath: If the content you gave is a file path, set this value to True. Default is False.
-
-        @type filename: string
-        @param filename: used by import directory script to store original file path
+        @type filename:           string
+        @param filename:          Used by import directory script to store original file path
         """
-        space = self.getSpace(space)
-        page = self._createPage(space=space, name=name, content=content,
-                         order=order, title=title, tagsList=tagsList, category=category,
-                         parent=parent, filename=filename, contentIsFilePath=contentIsFilePath,
-                         pagetype=pagetype)
-
-        self._syncPageToDisk(space.name, page)
+        # @remark - MNour: Keep the model simple for now. Just use strings.
+        # @question - MNour: In that case do we still need to maintain the old model ?
+        # space = self.getSpace(service, space)
+        page = self._createPage(service, space=space, name=name, content=content, order=order, title=title,
+                                tagsList=tagsList, category=category, parent=parent, filename=filename,
+                                contentIsFilePath=contentIsFilePath, pagetype=pagetype)
+        # @task - MNour: Work on file system syncing later
+        # self._syncPageToDisk(space.name, page)
         return page
 
     def updateSpace(self, space, newname=None, tagslist=None, repository=None, repo_username=None, repo_password=None, order=None):

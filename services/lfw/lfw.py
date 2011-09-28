@@ -276,8 +276,18 @@ class LFWService(object):
 
     # @q.manage.applicationserver.expose_authorized(defaultGroups=["public"], authorizeParams={"space": "space"},
     #                                               authorizeRule="view page")
-    def getPage(self, space, name):
-        if not self.alkira.spaceExists(space) or not self.alkira.pageExists(space, name):
+    def getPage(self, service, space, name):
+        '''
+        Retrieve page from Alkira
+        
+        @param service: The service with which this library is used
+        @type service:  Application Server service
+        @param space:   Alkira space name
+        @type space:    string
+        @param name:    Alkira page name
+        @type name:     string
+        '''
+        if not self._alkira.spaceExists(space) or not self._alkira.pageExists(service, space, name):
             return {"code": 404,
                     "error": "Page Not Found"}
 
@@ -293,6 +303,30 @@ class LFWService(object):
     #                                               authorizeRule="create page")
     def createPage(self, service, space, name, content, parent=None, order=None, title=None, tags="", category='portal',
                    pagetype="md"):
+        '''
+        Create a new page into Alkira into the specified space
+        
+        @param service:  The service to which this extension belongs
+        @type service:   Application Server Service
+        @param space:    Alkira space
+        @type space:     string
+        @param name:     Alkira page name
+        @type name:      string
+        @param content:  Alkira page content
+        @type content:   string
+        @param parent:   Name of parent page
+        @type parent:    string
+        @param order:    Order of the page
+        @type order:     Integer
+        @param title:    Page title
+        @type title:     string
+        @param tags:     Tags you want to add to the page
+        @type tags:      string
+        @param category: Page category
+        @type category:  string
+        @param pagetype: Page type
+        @type pagetype:  string
+        '''
         if self._alkira.pageExists(service, space, name):
             raise ValueError("A page with the same name already exists")
         self._alkira.createPage(service, space=space, name=name, content=content, parent=parent, order=order, title=title,

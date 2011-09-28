@@ -1,12 +1,6 @@
-import os
-import os.path
-from pylabs import q, p
-import urllib
+from pylabs import q
 import urllib2
-import inspect
-import functools
 import json
-import sys
 from alkira import Alkira
 import alkira
 
@@ -17,7 +11,7 @@ class LFWService(object):
     '''
     The LFW (a.k.a Alkira) core functionality
     '''
-    
+
     def __init__(self):
         self._alkira = Alkira()
 
@@ -95,18 +89,18 @@ class LFWService(object):
 
     # @q.manage.applicationserver.expose_authorized(defaultGroups=["public"], authorizeParams={},
     #                                               authorizeRule="view page")
-    def listSpaces(self, term=None):
-        return self.alkira.listSpaces()
+    def listSpaces(self, service, term=None):
+        return self._alkira.listSpaces(service)
 
     # @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={},
     # authorizeRule="create space")
-    def createSpace(self, name, tags="", order=None):
-        self.alkira.createSpace(name, tags.split(' '), order=order)
+    def createSpace(self, service, name, tags="", order=None):
+        self._alkira.createSpace(service, name, tags.split(' '), order=order)
 
     # @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={"space": "name"},
     # authorizeRule="update space")
-    def updateSpace(self, name, newname=None, tags=""):
-        self.alkira.updateSpace(name, newname, tags.split(' '))
+    def updateSpace(self, service, name, newname=None, tags=""):
+        self._alkira.updateSpace(service, name, newname, tags.split(' '))
 
     # @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={},
     #                                               authorizeRule="sort spaces")
@@ -120,8 +114,8 @@ class LFWService(object):
 
     # @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={"space": "name"},
     #                                               authorizeRule="delete space")
-    def deleteSpace(self, name):
-        self.alkira.deleteSpace(name)
+    def deleteSpace(self, service, name):
+        self._alkira.deleteSpace(service, name)
 
     # @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={},
     #                                               authorizeRule="get user info")
@@ -279,7 +273,7 @@ class LFWService(object):
     def getPage(self, service, space, name):
         '''
         Retrieve page from Alkira
-        
+
         @param service: The service with which this library is used
         @type service:  Application Server service
         @param space:   Alkira space name
@@ -307,7 +301,7 @@ class LFWService(object):
                    pagetype="md"):
         '''
         Create a new page into Alkira into the specified space
-        
+
         @param service:  The service to which this extension belongs
         @type service:   Application Server Service
         @param space:    Alkira space

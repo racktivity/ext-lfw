@@ -1,13 +1,15 @@
 (function($){
     $.alert = function(message, options) {
-        var options = $.extend({title: ''}, options);
+        var options = $.extend({title: '',
+                                width: 600}, options);
         $("<div>").append($("<p>").html(message))
             .dialog({modal: true,
-                     width: 600,
+                     width: options.width,
                      resizable: false,
                     title: options.title,
                     buttons: {Ok: function(){
                        $(this).dialog("close");
+                       $(this).remove();
                     }}});
     };
 

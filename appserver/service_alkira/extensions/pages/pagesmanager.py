@@ -50,3 +50,16 @@ class PagesManager(object):
         @type name:     string
         '''
         return self._lfw.getPage(service, space, name)
+
+    def deletePage(self, service, space, name):
+        '''
+        Delete a page from Alkira
+        
+        @param service: Service with which this library is used
+        @type service: Application Server service
+        @param space: Space name
+        @type space:  string
+        @param name:  Page name
+        @type name:   string
+        '''
+        self._lfw.deletePage(service, space, name)

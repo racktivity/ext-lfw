@@ -502,19 +502,22 @@ class Alkira(object):
                 if _isfile(file):
                     q.system.fs.removeFile(file)
 
-    def _deletePage(self, space, page):
-        def deleterecursive(guid):
-            filter = self.connection.page.getFilterObject()
-            filter.add("ui_view_page_list", "parent", guid, True)
+    def _deletePage(self, service, space, page):
+        # def deleterecursive(guid):
+        #     filter = self.connection.page.getFilterObject()
+        #     filter.add("ui_view_page_list", "parent", guid, True)
 
-            for chguid in self.connection.page.find(filter):
-                deleterecursive(chguid)
+        #     for chguid in self.connection.page.find(filter):
+        #         deleterecursive(chguid)
 
-            self.connection.page.delete(guid)
+        #     self.connection.page.delete(guid)
 
-        crumbs = self._breadcrumbs(page)
-        deleterecursive(page.guid)
-        self._syncPageDelete(space, crumbs)
+        # @remark - MNour: Coming back to that later
+        # crumbs = self._breadcrumbs(page)
+        # deleterecursive(page.guid)
+        # self._syncPageDelete(space, crumbs)
+        page_id = service.extensions.common.alkira.getPageId(space, page.name)
+        service.db.delete(page_id)
 
     def deletePageByGUID(self, guid):
         """
@@ -532,9 +535,9 @@ class Alkira(object):
         space = self.getSpace(page.space)
         self._deletePage(space.name, page)
 
-    def deletePage(self, space, name):
-        page = self.getPage(space, name)
-        self._deletePage(space, page)
+    def deletePage(self, service, space, name):
+        page = self.getPage(service, space, name)
+        self._deletePage(service, space, page)
 
     def createSpace(self, name, tagsList=[], repository="", repo_username="", repo_password="", order=None, createHomePage=True):
         if self.spaceExists(name):

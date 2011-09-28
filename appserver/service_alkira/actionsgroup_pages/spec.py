@@ -33,3 +33,13 @@ class pages():
         @param name:    Alkira page name
         @type name:     string
         '''
+
+    def deletePage(self, space, name):
+        '''
+        Delete a page from Alkira
+        
+        @param space: Space name
+        @type space:  string
+        @param name:  Page name
+        @type name:   string
+        '''

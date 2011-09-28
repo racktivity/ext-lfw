@@ -349,8 +349,8 @@ class LFWService(object):
 
     # @q.manage.applicationserver.expose_authorized(defaultGroups=["admin", "creator"], authorizeParams={"space": "space"},
     #                                               authorizeRule="delete page")
-    def deletePage(self, space, name):
-        self.alkira.deletePage(space, name)
+    def deletePage(self, service, space, name):
+        self._alkira.deletePage(service, space, name)
 
     # @q.manage.applicationserver.expose_authorized(defaultGroups=["public"], authorizeParams={},
     #                                               authorizeRule="view page")

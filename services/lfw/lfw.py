@@ -292,8 +292,9 @@ class LFWService(object):
 
         page = self._alkira.getPage(service, space, name)
         # @remark - MNour: Not using spaces in pages for now
+        # @remark - MNour: creationdate is there but never used and not even in the page model specs
         # props = ['name', 'space', 'category', 'content', 'creationdate', 'title', 'pagetype']
-        props = ['name', 'category', 'content', 'creationdate', 'title', 'pagetype']
+        props = ['name', 'category', 'content', 'title', 'pagetype']
 
         result = dict([(prop, getattr(page, prop)) for prop in props])
         result['tags'] = page.tags.split(' ') if page.tags else []

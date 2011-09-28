@@ -406,7 +406,9 @@ class Alkira(object):
         page_id = service.extensions.common.alkira.getPageId(space, name)        
         if not service.db.exists(page_id):
             q.errorconditionhandler.raiseError('Page %s does not exist.' % name)
-        return service.db.get(page_id)
+        serialized_page = service.db.get(page_id)
+        # @remark - MNour: I know _ROOTOBJECTTYPE is not nice but I will change it later
+        return self._deserializer.deserialize(service.model.page._ROOTOBJECTTYPE, serialized_page)
 
     def getPageByGUID(self, guid):
         """

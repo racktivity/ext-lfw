@@ -1,7 +1,7 @@
 from alkira.lfw import LFWService
 from alkira.alkira import Alkira
 
-class SpaceManager(object):
+class SpacesManager(object):
     '''
     Alkira related space operations manager
     '''

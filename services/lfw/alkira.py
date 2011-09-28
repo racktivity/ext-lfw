@@ -26,6 +26,11 @@ class Alkira(object):
         self._serializer = q.db.pymodelserializers.thriftbase64
         self._deserializer = q.db.pymodelserializers.thriftbase64
 
+    @property
+    def appname(self):
+        #@todo: appname?
+        return "alkira_app"
+
     def _callAuthService(self, method, oauthInfo, **args):
         data = {}
         #only pass arguments that has value
@@ -35,19 +40,19 @@ class Alkira(object):
 
         headers = {'Content-Type': "application/x-www-form-urlencoded"}
 
-        url = '/%(appname)s/appserver/rest/ui/auth/%(method)s' % {'appname': self.api.appname, 'method': method}
+        url = '/%(appname)s/appserver/rest/ui/auth/%(method)s' % {'appname': self.appname, 'method': method}
 
         httpMethod = "POST"
 
         if oauthInfo and "token" in oauthInfo and "username" in oauthInfo:
-            arakoon = q.clients.arakoon.getClient(self.api.appname)
+            arakoon = q.clients.arakoon.getClient(self.appname)
             if arakoon.exists(key=oauthInfo["token"]):
                 tokenAttributes = arakoon.get(oauthInfo["token"])
                 if tokenAttributes:
                     tokenAttributes = ast.literal_eval(tokenAttributes)
                 if tokenAttributes:
                     #remove the appname from the call ass the appserver doesn't get this in his request
-                    oauthUrl = url[len("/%s" % self.api.appname):]
+                    oauthUrl = url[len("/%s" % self.appname):]
 
                     consumer = oauth2.Consumer(oauthInfo["username"], "")
                     token = oauth2.Token(oauthInfo["token"], tokenAttributes["tokensecret"])
@@ -133,7 +138,7 @@ class Alkira(object):
         if page:
             fullName = q.system.fs.joinPaths(space, page)
 
-        return q.system.fs.joinPaths(q.dirs.pyAppsDir, self.api.appname, 'portal', 'spaces', fullName)
+        return q.system.fs.joinPaths(q.dirs.pyAppsDir, self.appname, 'portal', 'spaces', fullName)
 
     def _getType(self, pagename):
         idx = pagename.rfind(".")
@@ -211,7 +216,7 @@ class Alkira(object):
         """
         return self._getProjectInfo(name)
 
-    def listSpaces(self):
+    def listSpaces(self, service):
         """
         Lists all the spaces.
         """
@@ -428,7 +433,7 @@ class Alkira(object):
         guid = self._getProjectGuid(project)
         self.connection.project.delete(guid)
 
-    def deleteSpace(self, space):
+    def deleteSpace(self, service, space):
         """
         Delete space
 
@@ -542,14 +547,14 @@ class Alkira(object):
     def createSpace(self, service, name, tagsList=[], repository="",
             repo_username="", repo_password="", order=None,
             createHomePage=True):
-        if self.spaceExists(name):
+        if self.spaceExists(service, name):
             q.errorconditionhandler.raiseError("Space %s already exists." % name)
 
         space = service.model.space.getEmptyModelObject()
         space.name = name
         space.tags = ' '.join(tagsList)
 
-        repo = service.model.repository.getEmptyModelObject()
+        repo = space.repository.new()
         repo.url = repository
         repo.username = repo_username
         repo.password = repo_password
@@ -707,7 +712,7 @@ class Alkira(object):
         # self._syncPageToDisk(space.name, page)
         return page
 
-    def updateSpace(self, space, newname=None, tagslist=None, repository=None, repo_username=None, repo_password=None, order=None):
+    def updateSpace(self, service, space, newname=None, tagslist=None, repository=None, repo_username=None, repo_password=None, order=None):
         space = self.getSpace(space)
 
         # Allow the modification of the order attribute for Admin and IDE spaces:
@@ -717,7 +722,7 @@ class Alkira(object):
         oldname = space.name
 
         if newname != None and newname != oldname:
-            if self.spaceExists(newname):
+            if self.spaceExists(service, newname):
                 q.errorconditionhandler.raiseError("Space %s already exists." % newname)
             space.name = newname
 
@@ -736,7 +741,7 @@ class Alkira(object):
         if order:
             space.order = order
 
-        self.connection.space.save(space)
+        service.db.set(name, space.serialize(self._serializer))
 
         if newname != None and oldname != newname:
             #rename space page.
@@ -1116,7 +1121,7 @@ class Alkira(object):
 
         md_path = ''
         if not path:
-            md_path = q.system.fs.joinPaths(q.dirs.baseDir, 'pyapps', self.api.appname, 'portal', 'spaces')
+            md_path = q.system.fs.joinPaths(q.dirs.baseDir, 'pyapps', self.appname, 'portal', 'spaces')
         else:
             md_path = path
 

@@ -90,17 +90,17 @@ class LFWService(object):
     # @q.manage.applicationserver.expose_authorized(defaultGroups=["public"], authorizeParams={},
     #                                               authorizeRule="view page")
     def listSpaces(self, service, term=None):
-        return self.alkira.listSpaces(service)
+        return self._alkira.listSpaces(service)
 
     # @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={},
     # authorizeRule="create space")
     def createSpace(self, service, name, tags="", order=None):
-        self.alkira.createSpace(name, service, tags.split(' '), order=order)
+        self._alkira.createSpace(service, name, tags.split(' '), order=order)
 
     # @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={"space": "name"},
     # authorizeRule="update space")
     def updateSpace(self, service, name, newname=None, tags=""):
-        self.alkira.updateSpace(service, name, newname, tags.split(' '))
+        self._alkira.updateSpace(service, name, newname, tags.split(' '))
 
     # @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={},
     #                                               authorizeRule="sort spaces")
@@ -115,7 +115,7 @@ class LFWService(object):
     # @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={"space": "name"},
     #                                               authorizeRule="delete space")
     def deleteSpace(self, service, name):
-        self.alkira.deleteSpace(service, name)
+        self._alkira.deleteSpace(service, name)
 
     # @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={},
     #                                               authorizeRule="get user info")

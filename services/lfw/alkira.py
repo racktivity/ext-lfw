@@ -563,7 +563,8 @@ class Alkira(object):
         else:
             space.order = order
 
-        service.db.set(name, space.serialize(self._serializer))
+        space_id = service.extensions.common.alkira.getSpaceId(name)
+        service.db.set(space_id, space.serialize(self._serializer))
 
         if name == ADMINSPACE:
             return

@@ -17,8 +17,8 @@ class AlkiraCommon(object):
         @param name:  Alkira page name
         @type name:   string
         '''
-        self.checkSpaceName(space)
-        self.checkPageName(space)
+        self._checkSpaceName(space)
+        self._checkPageName(space)
 
         return self._separator.join([self._pagePrefix, space, name])
 
@@ -29,7 +29,7 @@ class AlkiraCommon(object):
         @param name:  Alkira page name
         @type name:   string
         '''
-        self.checkSpaceName(name)
+        self._checkSpaceName(name)
 
         return self._separator.join([self._spacePrefix, name])
 
@@ -41,10 +41,10 @@ class AlkiraCommon(object):
     def pagePrefix(self):
         return self._pagePrefix + self._separator
 
-    def checkSpaceName(self, name):
+    def _checkSpaceName(self, name):
         if not name:
             raise ValueError("Invalid space name '%s'" % name)
 
-    def checkPageName(self, name):
+    def _checkPageName(self, name):
         if not name:
             raise ValueError("Invalid page name '%s'" % name)

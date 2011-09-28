@@ -8,7 +8,6 @@ class SpacesManager(object):
 
     def __init__(self):
         self._lfw = LFWService()
-        self._alkira = Alkira()
 
     def create(self, service, name):
         '''
@@ -19,7 +18,8 @@ class SpacesManager(object):
         @param name: Alkira space name
         @type name: string
         '''
-        self._lfw.createSpace(service, name=name)
+        self._serviceHack(service)
+        self._lfw.createSpace(name=name)
 
     def list(self, service):
         '''
@@ -28,7 +28,8 @@ class SpacesManager(object):
         @param service:  The service to which this extension belongs
         @type service:   Application Server Service
         '''
-        return self._lfw.listSpaces(service)
+        self._serviceHack(service)
+        return self._lfw.listSpaces()
 
     def update(self, service, name, newName, tags=None):
         """
@@ -43,7 +44,8 @@ class SpacesManager(object):
         @param tags: tags
         @type tags: string
         """
-        return self._lfw.updateSpace(service, name, newName, tags=tags)
+        self._serviceHack(service)
+        return self._lfw.updateSpace(name, newName, tags=tags)
 
     def delete(self, service, name):
         """
@@ -54,4 +56,9 @@ class SpacesManager(object):
         @param name: name of the service
         @type name: string
         """
-        return self._lfw.deleteSpace(service, name)
+        self._serviceHack(service)
+        return self._lfw.deleteSpace(name)
+
+    def _serviceHack(self, service):
+        self._lfw.service = service
+        self._lfw._alkira.service = service

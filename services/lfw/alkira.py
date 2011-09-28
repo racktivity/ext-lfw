@@ -25,6 +25,19 @@ class Alkira(object):
         self.KNOWN_TYPES = ["py", "md", "html", "txt"]
         self._serializer = q.db.pymodelserializers.thriftbase64
         self._deserializer = q.db.pymodelserializers.thriftbase64
+        # Used the service property instead of this:
+        self._service = None
+
+    def _getService(self):
+        if not self._service:
+            raise RuntimeError("No service was set on Alkira")
+
+        return self._service
+
+    def _setService(self, s):
+        self._service = s
+
+    service = property(_getService, _setService)
 
     @property
     def appname(self):
@@ -91,7 +104,7 @@ class Alkira(object):
             if q.basetype.guid.check(space):
                 return space
             else:
-                spaces = self._getSpaceInfo(space)
+                spaces = self._getSpaces(space)
                 if not spaces:
                     q.errorconditionhandler.raiseError("Space %s does not exist." % space)
                 return spaces[0]['guid']
@@ -110,12 +123,20 @@ class Alkira(object):
         elif isinstance(project, self.connection.project._ROOTOBJECTTYPE):
             return project.guid
 
-    def _getSpaceInfo(self, name=None):
-        filter = self.connection.space.getFilterObject()
+    def _getSpaces(self, name=None):
+        prefix = self.service.extensions.common.alkira.spacePrefix
+        spaces = self.service.db.prefix(prefix)
+
+        def getter(key):
+            value = self.service.db.get(key)
+            #@todo: there must be a cleaner way than this?
+            return self._deserializer.deserialize(
+                self.service.model.space._ROOTOBJECTTYPE, value)
+
         if name:
-            filter.add('ui_view_space_list', 'name', name, True)
-        space = self.connection.space.findAsView(filter, 'ui_view_space_list')
-        return space
+            return [getter(s) for s in spaces if s == name]
+        else:
+            return [getter(s) for s in spaces]
 
     def _getProjectInfo(self, name=None):
         filter = self.connection.project.getFilterObject()
@@ -214,18 +235,19 @@ class Alkira(object):
         """
         return self._getProjectInfo(name)
 
-    def listSpaces(self, service):
+    def listSpaces(self):
         """
         Lists all the spaces.
         """
-        return map(lambda item: item["name"],
-                   self.listSpaceInfo())
+        prefix = self.service.extensions.common.alkira.spacePrefix
+        spaces = self.service.db.prefix(prefix)
+        return [s[len(prefix):] for s in spaces]
 
     def listSpaceInfo(self, name=None):
         """
         List all spaces info
         """
-        spaces = self._getSpaceInfo(name)
+        spaces = self._getSpaces(name)
         def byOrder(x, y):
             #Always put the admin and ide spaces last if they don't have an order or if the order is set to None
             if (x["name"] == ADMINSPACE or x["name"] == IDESPACE) and ("order" not in x or x["order"] is None):
@@ -283,7 +305,7 @@ class Alkira(object):
         query = self.connection.page.findAsView(filter, 'ui_view_page_list')
         return list(name["name"] for name in query)
 
-    def spaceExists(self, service, space):
+    def spaceExists(self, space):
         """
         Checks whether a space exists or not
 
@@ -294,7 +316,7 @@ class Alkira(object):
 
         @return: True if the space exists, False otherwise
         """
-        space_prefixed_keys = service.db.prefix(space)
+        space_prefixed_keys = self.service.db.prefix(space)
         return space_prefixed_keys not in (None, [])
 
     def projectExists(self, name):
@@ -542,13 +564,13 @@ class Alkira(object):
         page = self.getPage(service, space, name)
         self._deletePage(service, space, page)
 
-    def createSpace(self, service, name, tagsList=[], repository="",
+    def createSpace(self, name, tagsList=[], repository="",
             repo_username="", repo_password="", order=None,
             createHomePage=True):
-        if self.spaceExists(service, name):
+        if self.spaceExists(name):
             q.errorconditionhandler.raiseError("Space %s already exists." % name)
 
-        space = service.model.space.getEmptyModelObject()
+        space = self.service.model.space.getEmptyModelObject()
         space.name = name
         space.tags = ' '.join(tagsList)
 
@@ -563,8 +585,8 @@ class Alkira(object):
         else:
             space.order = order
 
-        space_id = service.extensions.common.alkira.getSpaceId(name)
-        service.db.set(space_id, space.serialize(self._serializer))
+        space_id = self.service.extensions.common.alkira.getSpaceId(name)
+        self.service.db.set(space_id, space.serialize(self._serializer))
 
         if name == ADMINSPACE:
             return
@@ -575,8 +597,8 @@ class Alkira(object):
         spacefile = 's_' + name
         spacectnt = p.core.codemanagement.api.getSpacePage(name)
         if createHomePage:
-            self.createPage(service, name, "Home", content="", order=10000, title="Home", tagsList=tagsList)
-        self.createPage(service, ADMINSPACE, spacefile, spacectnt, title=name, parent="Spaces")
+            self.createPage(self.service, name, "Home", content="", order=10000, title="Home", tagsList=tagsList)
+        self.createPage(self.service, ADMINSPACE, spacefile, spacectnt, title=name, parent="Spaces")
 
         return space
 
@@ -711,7 +733,7 @@ class Alkira(object):
         # self._syncPageToDisk(space.name, page)
         return page
 
-    def updateSpace(self, service, space, newname=None, tagslist=None, repository=None, repo_username=None, repo_password=None, order=None):
+    def updateSpace(self, space, newname=None, tagslist=None, repository=None, repo_username=None, repo_password=None, order=None):
         space = self.getSpace(space)
 
         # Allow the modification of the order attribute for Admin and IDE spaces:
@@ -721,7 +743,7 @@ class Alkira(object):
         oldname = space.name
 
         if newname != None and newname != oldname:
-            if self.spaceExists(service, newname):
+            if self.spaceExists(newname):
                 q.errorconditionhandler.raiseError("Space %s already exists." % newname)
             space.name = newname
 

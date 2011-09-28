@@ -14,11 +14,24 @@ class LFWService(object):
 
     def __init__(self):
         self._alkira = Alkira()
+        # Used the service property instead of this:
+        self._service = None
 
         # tasklet_path = q.system.fs.joinPaths(q.dirs.pyAppsDir, p.api.appname, 'impl', 'portal')
         # self._tasklet_engine = q.taskletengine.get(tasklet_path)
         # self._tasklet_engine.addFromPath(os.path.join(q.dirs.baseDir,'lib','python','site-packages','alkira', 'tasklets'))
         # self.db_config_path = q.system.fs.joinPaths(q.dirs.cfgDir, 'qconfig', 'dbconnections.cfg')
+
+    def _getService(self):
+        if not self._service:
+            raise RuntimeError("No service was set on LFW")
+
+        return self._service
+
+    def _setService(self, s):
+        self._service = s
+
+    service = property(_getService, _setService)
 
     @staticmethod
     def getAuthorizedFunctions():
@@ -89,18 +102,18 @@ class LFWService(object):
 
     # @q.manage.applicationserver.expose_authorized(defaultGroups=["public"], authorizeParams={},
     #                                               authorizeRule="view page")
-    def listSpaces(self, service, term=None):
-        return self._alkira.listSpaces(service)
+    def listSpaces(self, term=None):
+        return self._alkira.listSpaces()
 
     # @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={},
     # authorizeRule="create space")
-    def createSpace(self, service, name, tags="", order=None):
-        self._alkira.createSpace(service, name, tags.split(' '), order=order)
+    def createSpace(self, name, tags="", order=None):
+        self._alkira.createSpace(name, tags.split(' '), order=order)
 
     # @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={"space": "name"},
     # authorizeRule="update space")
-    def updateSpace(self, service, name, newname=None, tags=""):
-        self._alkira.updateSpace(service, name, newname, tags.split(' '))
+    def updateSpace(self, name, newname=None, tags=""):
+        self._alkira.updateSpace(name, newname, tags.split(' '))
 
     # @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={},
     #                                               authorizeRule="sort spaces")
@@ -114,8 +127,8 @@ class LFWService(object):
 
     # @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={"space": "name"},
     #                                               authorizeRule="delete space")
-    def deleteSpace(self, service, name):
-        self._alkira.deleteSpace(service, name)
+    def deleteSpace(self, name):
+        self._alkira.deleteSpace(name)
 
     # @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={},
     #                                               authorizeRule="get user info")

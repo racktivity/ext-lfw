@@ -403,7 +403,7 @@ class Alkira(object):
 
         @return: Page object.
         """
-        page_id = service.extensions.common.alkira.getPageId(space, name)        
+        page_id = service.extensions.common.alkira.getPageId(space, name)
         if not service.db.exists(page_id):
             q.errorconditionhandler.raiseError('Page %s does not exist.' % name)
         serialized_page = service.db.get(page_id)
@@ -539,15 +539,17 @@ class Alkira(object):
         page = self.getPage(service, space, name)
         self._deletePage(service, space, page)
 
-    def createSpace(self, name, tagsList=[], repository="", repo_username="", repo_password="", order=None, createHomePage=True):
+    def createSpace(self, service, name, tagsList=[], repository="",
+            repo_username="", repo_password="", order=None,
+            createHomePage=True):
         if self.spaceExists(name):
             q.errorconditionhandler.raiseError("Space %s already exists." % name)
 
-        space = self.connection.space.new()
+        space = service.model.space.getEmptyModelObject()
         space.name = name
         space.tags = ' '.join(tagsList)
 
-        repo = space.repository.new()
+        repo = service.model.repository.getEmptyModelObject()
         repo.url = repository
         repo.username = repo_username
         repo.password = repo_password
@@ -558,7 +560,7 @@ class Alkira(object):
         else:
             space.order = order
 
-        self.connection.space.save(space)
+        service.db.set(name, space.serialize(self._serializer))
 
         if name == ADMINSPACE:
             return
@@ -569,8 +571,8 @@ class Alkira(object):
         spacefile = 's_' + name
         spacectnt = p.core.codemanagement.api.getSpacePage(name)
         if createHomePage:
-            self.createPage(name, "Home", content="", order=10000, title="Home", tagsList=tagsList)
-        self.createPage(ADMINSPACE, spacefile, spacectnt, title=name, parent="Spaces")
+            self.createPage(service, name, "Home", content="", order=10000, title="Home", tagsList=tagsList)
+        self.createPage(service, ADMINSPACE, spacefile, spacectnt, title=name, parent="Spaces")
 
         return space
 
@@ -711,7 +713,7 @@ class Alkira(object):
         # Allow the modification of the order attribute for Admin and IDE spaces:
         if (space.name == ADMINSPACE or space.name == IDESPACE) and (newname or tagslist or repository or repo_username or repo_password):
             raise ValueError("You can only modify the order for %s space" %space.name)
-        
+
         oldname = space.name
 
         if newname != None and newname != oldname:

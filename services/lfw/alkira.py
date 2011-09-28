@@ -166,13 +166,11 @@ class Alkira(object):
         return map(lambda i: i['name'],
                    self.listPageInfo(space))
 
-    def countPages(self, space=None):
-        where = ''
-        if space:
-            space = self._getSpaceGuid(space)
-            where = "where space='%s'" % space
-
-        return self.connection.page.query("SELECT count(guid) from ui_page.ui_view_page_list %s;" % where)[0]['count']
+    # @remark - MNour: For now we only use Arakoon so *don not* use this it for a huge environment
+    def countPages(self, service, space=None):
+        prefix = space or ''
+        keys = service.db.prefix(prefix)
+        return len(keys)
 
     def search(self, text=None, tags=None):
         # ignore tags for now

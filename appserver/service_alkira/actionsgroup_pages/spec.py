@@ -43,3 +43,11 @@ class pages():
         @param name:  Page name
         @type name:   string
         '''
+
+    def countPages(self, space=None):
+        '''
+        Count pages in Alkira
+        
+        @param space: Alkira space
+        @type sapce:  string
+        '''

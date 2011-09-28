@@ -256,8 +256,8 @@ class LFWService(object):
 
     # @q.manage.applicationserver.expose_authorized(defaultGroups=["public"], authorizeParams={"space": "space"},
     #                                               authorizeRule="view page")
-    def countPages(self, space=None):
-        return self.alkira.countPages(space=space)
+    def countPages(self, service, space=None):
+        return self._alkira.countPages(service, space=space)
 
     # @q.manage.applicationserver.expose_authorized(defaultGroups=["public"], authorizeParams={"space": "space"},
     #                                               authorizeRule="view page")

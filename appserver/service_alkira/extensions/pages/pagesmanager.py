@@ -63,3 +63,12 @@ class PagesManager(object):
         @type name:   string
         '''
         self._lfw.deletePage(service, space, name)
+
+    def countPages(self, service, space=None):
+        '''
+        Count pages in Alkira
+        
+        @param space: Alkira space
+        @type sapce:  string
+        '''
+        return self._lfw.countPages(service, space)

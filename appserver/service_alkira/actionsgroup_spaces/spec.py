@@ -1,4 +1,12 @@
 class Spaces:
+    def get(self, name):
+        '''
+        Get space
+
+        @param name: name of the space
+        @type name: string
+        '''
+
     def list(self, term=None):
         '''
         List spaces

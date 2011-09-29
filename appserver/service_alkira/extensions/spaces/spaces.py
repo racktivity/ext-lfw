@@ -1,5 +1,4 @@
 from alkira.lfw import LFWService
-from alkira.alkira import Alkira
 
 class SpacesManager(object):
     '''
@@ -8,6 +7,18 @@ class SpacesManager(object):
 
     def __init__(self):
         self._lfw = LFWService()
+
+    def get(self, service, name):
+        """
+        Get the page with the argument name
+
+        @param service: The service to which this extension belongs
+        @type service: Application Server Service
+        @param name: name of the space
+        @type name: string
+        """
+        self._serviceHack(service)
+        return self._lfw.getSpace(name)
 
     def create(self, service, name):
         '''
@@ -19,7 +30,7 @@ class SpacesManager(object):
         @type name: string
         '''
         self._serviceHack(service)
-        self._lfw.createSpace(name=name)
+        return self._lfw.createSpace(name=name)
 
     def list(self, service):
         '''

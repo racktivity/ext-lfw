@@ -406,11 +406,11 @@ class LFWService(object):
     # @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={"space": "space"},
     #                                               authorizeRule="update space")
     def getSpace(self, space):
-        if not self.alkira.spaceExists(space):
+        if not self._alkira.spaceExists(space):
             return {"code": 404,
                     "error": "Space Not Found"}
 
-        space = self.alkira.getSpace(space)
+        space = self._alkira.getSpace(space)
         result = {
             'name': space.name,
             'repository': {

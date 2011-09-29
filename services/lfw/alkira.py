@@ -189,8 +189,16 @@ class Alkira(object):
 
         @param space: The name, guid or space object of the space.
         """
-        return map(lambda i: i['name'],
-                   self.listPageInfo(space))
+        a = self.service.extensions.common.alkira
+        if space:
+            if isinstance(space, basestring):
+                prefix = a.getPagePrefix(space)
+            else:
+                raise ValueError("Unsupported type for argument space")
+        else:
+            prefix = a.pagePrefix
+        pages = self.service.db.prefix(prefix)
+        return [a.getPageName(s) for s in pages]
 
     # @remark - MNour: For now we only use Arakoon so *don not* use this it for a huge environment
     def countPages(self, service, space=None):
@@ -239,9 +247,10 @@ class Alkira(object):
         """
         Lists all the spaces.
         """
-        prefix = self.service.extensions.common.alkira.spacePrefix
+        a = self.service.extensions.common.alkira
+        prefix = a.spacePrefix
         spaces = self.service.db.prefix(prefix)
-        return [s[len(prefix):] for s in spaces]
+        return [a.getSpaceName(s) for s in spaces]
 
     def listSpaceInfo(self, name=None):
         """
@@ -309,15 +318,13 @@ class Alkira(object):
         """
         Checks whether a space exists or not
 
-        @param service: Service with which this library is used
-        @type service:  Application Server service
         @param space: Space name
         @type space:  string
 
         @return: True if the space exists, False otherwise
         """
-        space_prefixed_keys = self.service.db.prefix(space)
-        return space_prefixed_keys not in (None, [])
+        key = self.service.extensions.common.alkira.getSpaceId(space)
+        return self.service.db.exists(key)
 
     def projectExists(self, name):
         """
@@ -398,42 +405,37 @@ class Alkira(object):
         guid = self._getProjectGuid(project)
         return self.connection.project.get(guid)
 
-    def getSpace(self, service, space):
+    def getSpace(self, spaceName):
         """
         Gets a space object
 
-        @param service: The service with which this library used
-        @type service:  Application Server service
-        @param space: The space name, or guid
-        @type space:  string or guid
+        @param spaceName: space name
+        @type spaceName: string
         """
-        # @task - MNour: - I don't like the _ROOTOBJECTTYPE. I wanna change it to something better.
-        #                - Look at pylabs-core-5.1/extensions/baseworking/db/pymodel_extension/pymodel_extension.py
-        if isinstance(space, service.model.space._ROOTOBJECTTYPE):
-            return space
+        key = self.service.extensions.common.alkira.getSpaceId(spaceName)
+        value = self.service.db.get(key)
+        return self._deserializer.deserialize(
+            self.service.model.space._ROOTOBJECTTYPE, value)
 
-        space = self._getSpaceGuid(space)
-        return self.connection.space.get(space)
-
-    def getPage(self, service, space, name):
+    def getPage(self, spaceName, name):
         """
         Gets a page object.
 
         @param service: Service with which this library is used
         @type service:  Application Service service
-        @type space:    string
-        @param space:   space name
+        @param spaceName: space name
+        @type spaceName: string
         @type name:     string
         @param name:    page name
 
         @return: Page object.
         """
-        page_id = service.extensions.common.alkira.getPageId(space, name)
-        if not service.db.exists(page_id):
+        page_id = self.service.extensions.common.alkira.getPageId(spaceName, name)
+        if not self.service.db.exists(page_id):
             q.errorconditionhandler.raiseError('Page %s does not exist.' % name)
-        serialized_page = service.db.get(page_id)
+        serialized_page = self.service.db.get(page_id)
         # @remark - MNour: I know _ROOTOBJECTTYPE is not nice but I will change it later
-        return self._deserializer.deserialize(service.model.page._ROOTOBJECTTYPE, serialized_page)
+        return self._deserializer.deserialize(self.service.model.page._ROOTOBJECTTYPE, serialized_page)
 
     def getPageByGUID(self, guid):
         """
@@ -453,31 +455,34 @@ class Alkira(object):
         guid = self._getProjectGuid(project)
         self.connection.project.delete(guid)
 
-    def deleteSpace(self, service, space):
+    def deleteSpace(self, spaceName):
         """
         Delete space
 
-        @param space: The space name, object or guid to delete
-
         @note: Deleting a space will delete all the pages in that space.
+
+        @param spaceName: The space name, object or guid to delete
+        @type spaceName: string
         """
-        if space in (ADMINSPACE, IDESPACE):
-            raise ValueError("%s space is not deletable" % space)
+        if spaceName in (ADMINSPACE, IDESPACE):
+            raise ValueError("%s space is not deletable" % spaceName)
 
-        space = self.getSpace(space)
+        pageNames = self.listPages(spaceName)
 
-        pages = self.listPageInfo(space)
+        for pageName in pageNames:
+            self._deletePage(spaceName, pageName)
 
-        for page in pages:
-            self.connection.page.delete(page['guid'])
+        key = self.service.extensions.common.alkira.getSpaceId(spaceName)
+        self.service.db.delete(key)
 
-        self.connection.space.delete(space.guid)
-        spacefile = 's_' + space.name
-        self.deletePage(ADMINSPACE, spacefile)
-        q.system.fs.removeDirTree(self._getDir(space.name))
+        spaceFile = 's_' + spaceName
+        self.deletePage(ADMINSPACE, spaceFile)
+        q.system.fs.removeDirTree(self._getDir(spaceName))
 
     def _syncPageToDisk(self, space, page, oldpagename=None):
-        crumbs = self._breadcrumbs(page)
+        #@todo No crumbs yet
+        crumbs = []
+        # crumbs = self._breadcrumbs(page)
         _join = q.system.fs.joinPaths
         _isfile = q.system.fs.isFile
         _isdir = q.system.fs.isDir
@@ -527,7 +532,7 @@ class Alkira(object):
                 if _isfile(file):
                     q.system.fs.removeFile(file)
 
-    def _deletePage(self, service, space, page):
+    def _deletePage(self, spaceName, pageName):
         # def deleterecursive(guid):
         #     filter = self.connection.page.getFilterObject()
         #     filter.add("ui_view_page_list", "parent", guid, True)
@@ -541,8 +546,8 @@ class Alkira(object):
         # crumbs = self._breadcrumbs(page)
         # deleterecursive(page.guid)
         # self._syncPageDelete(space, crumbs)
-        page_id = service.extensions.common.alkira.getPageId(space, page.name)
-        service.db.delete(page_id)
+        page_id = self.service.extensions.common.alkira.getPageId(spaceName, pageName)
+        self.service.db.delete(page_id)
 
     def deletePageByGUID(self, guid):
         """
@@ -558,11 +563,11 @@ class Alkira(object):
         """
         page = self.getPageByGUID(guid)
         space = self.getSpace(page.space)
-        self._deletePage(space.name, page)
+        self._deletePage(space.name, page.name)
 
-    def deletePage(self, service, space, name):
-        page = self.getPage(service, space, name)
-        self._deletePage(service, space, page)
+    def deletePage(self, spaceName, name):
+        page = self.getPage(spaceName, name)
+        self._deletePage(spaceName, page.name)
 
     def createSpace(self, name, tagsList=[], repository="",
             repo_username="", repo_password="", order=None,
@@ -725,7 +730,7 @@ class Alkira(object):
         """
         # @remark - MNour: Keep the model simple for now. Just use strings.
         # @question - MNour: In that case do we still need to maintain the old model ?
-        # space = self.getSpace(service, space)
+        # space = self.getSpace(space)
         page = self._createPage(service, space=space, name=name, content=content, order=order, title=title,
                                 tagsList=tagsList, category=category, parent=parent, filename=filename,
                                 contentIsFilePath=contentIsFilePath, pagetype=pagetype)
@@ -733,19 +738,19 @@ class Alkira(object):
         # self._syncPageToDisk(space.name, page)
         return page
 
-    def updateSpace(self, space, newname=None, tagslist=None, repository=None, repo_username=None, repo_password=None, order=None):
-        space = self.getSpace(space)
-
+    def updateSpace(self, name, newName=None, tagslist=None, repository=None, repo_username=None, repo_password=None, order=None):
         # Allow the modification of the order attribute for Admin and IDE spaces:
-        if (space.name == ADMINSPACE or space.name == IDESPACE) and (newname or tagslist or repository or repo_username or repo_password):
-            raise ValueError("You can only modify the order for %s space" %space.name)
+        if (name == ADMINSPACE or name == IDESPACE) and (newName or tagslist or repository or repo_username or repo_password):
+            raise ValueError("You can only modify the order for %s space" % name)
 
-        oldname = space.name
+        space = self.getSpace(name)
 
-        if newname != None and newname != oldname:
-            if self.spaceExists(newname):
-                q.errorconditionhandler.raiseError("Space %s already exists." % newname)
-            space.name = newname
+        oldName = space.name
+
+        if newName not in (None, oldName):
+            if self.spaceExists(newName):
+                raise ValueError("Space %s already exists." % newName)
+            space.name = newName
 
         if tagslist:
             space.tags = ' '.join(tagslist)
@@ -762,25 +767,30 @@ class Alkira(object):
         if order:
             space.order = order
 
-        service.db.set(name, space.serialize(self._serializer))
+        oldKey = self.service.extensions.common.alkira.getSpaceId(oldName)
+        newKey = self.service.extensions.common.alkira.getSpaceId(newName)
+        #@todo use sequence to combine these
+        self.service.db.set(newKey, space.serialize(self._serializer))
+        self.service.db.delete(oldKey)
 
-        if newname != None and oldname != newname:
+        if newName not in (None, oldName):
             #rename space page.
-            newspacefile = 's_' + newname
-            oldspacefile = 's_' + oldname
-            self.updatePage(space = ADMINSPACE, old_name = oldspacefile, name=newspacefile, content=p.core.codemanagement.api.getSpacePage(newspacefile))
+            newspacefile = 's_' + newName
+            oldspacefile = 's_' + oldName
+            content = p.core.codemanagement.api.getSpacePage(newspacefile)
+            self.updatePage(spaceName=ADMINSPACE, old_name=oldspacefile,
+                    name=newspacefile, content=content)
 
             #sync file system
-            self._moveDir(self._getDir(oldname),
-                          self._getDir(newname))
+            self._moveDir(self._getDir(oldName),
+                          self._getDir(newName))
 
         return space
 
-    def _updatePage(self, space, old_name, name=None, tagsList=None, content=None,
+    def _updatePage(self, spaceName, old_name, name=None, tagsList=None, content=None,
                    order=None, title=None, parent=None, category=None, pagetype=None, filename=None, contentIsFilePath=False):
 
-        space = self.getSpace(space)
-        page = self.getPage(space.guid, old_name)
+        page = self.getPage(spaceName, old_name)
 
         params = {"name": name, "pagetype": pagetype, "category":category,
                   "title": title, "order": order, "filename":filename,
@@ -795,26 +805,24 @@ class Alkira(object):
             page.tags = ' '.join(tagsList)
 
         if parent:
-            parent_page = self.getPage(space, parent)
+            parent_page = self.getPage(spaceName, parent)
             page.parent = parent_page.guid
 
-        self.connection.page.save(page)
+        key = self.service.extensions.common.alkira.getPageId(spaceName, page.name)
+        self.service.db.set(key, page.serialize(self._serializer))
 
         return page
 
-    def updatePage(self, space, old_name, name=None, tagsList=None, content=None,
+    def updatePage(self, spaceName, old_name, name=None, tagsList=None, content=None,
                    order=None, title=None, parent=None, category=None, pagetype=None, filename=None, contentIsFilePath=False):
         """
         Updates an existing page.
 
-        @type space: String
-        @param space: The name of the space.
+        @param spaceName: Gives the page a new space.
+        @type spaceName: String
 
         @type old_name: String
         @param old_name: The name of the page.
-
-        @type space: String
-        @param space: Gives the page a new space.
 
         @type name: String
         @param name: Gives the page a new name.
@@ -844,13 +852,12 @@ class Alkira(object):
         @param filename: used by import directory script to store original file path
         """
 
-        space = self.getSpace(space)
-        page = self._updatePage(space=space, old_name=old_name, name=name, tagsList=tagsList, content=content,
+        page = self._updatePage(spaceName=spaceName, old_name=old_name, name=name, tagsList=tagsList, content=content,
                          order=order, title=title, parent=parent, category=category,
                          pagetype=pagetype, filename=filename, contentIsFilePath=contentIsFilePath)
 
 
-        self._syncPageToDisk(space.name, page, old_name)
+        self._syncPageToDisk(spaceName, page, old_name)
 
         return page
 

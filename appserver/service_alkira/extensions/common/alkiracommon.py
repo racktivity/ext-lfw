@@ -41,6 +41,15 @@ class AlkiraCommon(object):
     def pagePrefix(self):
         return self._pagePrefix + self._separator
 
+    def getPagePrefix(self, spaceName):
+        return self._pagePrefix + self._separator + spaceName + self._separator
+
+    def getPageName(self, key):
+        return key.split(self._separator, 2)[-1]
+
+    def getSpaceName(self, key):
+        return key.split(self._separator, 1)[-1]
+
     def _checkSpaceName(self, name):
         if not name:
             raise ValueError("Invalid space name '%s'" % name)

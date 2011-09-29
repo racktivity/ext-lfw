@@ -113,7 +113,12 @@ class LFWService(object):
     # @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={"space": "name"},
     # authorizeRule="update space")
     def updateSpace(self, name, newname=None, tags=""):
-        self._alkira.updateSpace(name, newname, tags.split(' '))
+        if tags is None:
+            tagslist = None
+        else:
+            tagslist = tags.split(' ')
+
+        self._alkira.updateSpace(name, newname, tagslist=tagslist)
 
     # @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={},
     #                                               authorizeRule="sort spaces")

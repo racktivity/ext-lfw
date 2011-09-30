@@ -506,7 +506,7 @@ $(function() {
                     type = LFW_DASHBOARD.widgetTypes[i];
 
                     // Search name
-                    if (contains(type.name, types)) {
+                    if (contains(type.label ? type.label : type.name, types)) {
                         widgets.push(type);
                     }
                 }
@@ -558,7 +558,7 @@ $(function() {
         typeContainer.append("<li title=''>All (" + LFW_DASHBOARD.widgetTypes.length + ")</li>");
         for (i = 0; i < LFW_DASHBOARD.widgetTypes.length; ++i) {
             type = LFW_DASHBOARD.widgetTypes[i];
-            typeContainer.append("<li title='" + type.name +"'>" + type.name + "</li>");
+            typeContainer.append("<li title='" + type.name +"'>" + (type.label ? type.label : type.name) + "</li>");
         }
         // Make em clickable
         typeContainer.find("li").click(function(event) {

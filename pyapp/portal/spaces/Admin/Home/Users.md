@@ -105,15 +105,33 @@ $(document).ready(function() {
                 width: "auto",
                 buttons: {
                     "Remove": function() {
-                        $.get(LFW_CONFIG.uris.deleteUser, { userguid: user.guid }, function() {
-                            var i;
-                            for (i = 0; i < users.length; ++i) {
-                                if (users[i] === user) {
-                                    users.splice(i, 1);
-                                    break;
+                        $.get(LFW_CONFIG.uris.deleteUser, { userguid: user.guid }, function(data) {
+                            if(data == false){
+                                var alertMsg = $("#cannot-remove-user-dialog").tmpl(user);
+                                $(document).append(alertMsg);
+                                alertMsg.dialog({
+                                    resizable: false,
+                                    modal: true,
+                                    height: "auto",
+                                    width: "auto",
+                                    buttons: {
+                                       "OK": function() {
+                                           $(this).dialog("close");
+                                           alertMsg.remove();
+                                        }
+                                    }
+                                });
+                            } 
+                            else{
+                                var i;
+                                for (i = 0; i < users.length; ++i) {
+                                    if (users[i] === user) {
+                                        users.splice(i, 1);
+                                        break;
+                                    }
                                 }
+                                updateUsers();
                             }
-                            updateUsers();
                         });
                         $(this).dialog("close");
                         removeDialog.remove();
@@ -630,6 +648,13 @@ $(document).ready(function() {
             </div>
         </td>
     </tr>
+</script>
+
+<script id="cannot-remove-user-dialog" type="text/x-jquery-tmpl">
+    <div title="Cannot Remove ${name}" style="display: none;">
+       <span class="ui-icon ui-icon-alert" style="float: left; margin: 0 7px 20px 0;" />
+       Cannot Remove logged in user.
+    </div>
 </script>
 
 <script id="user-remove-dialog" type="text/x-jquery-tmpl">

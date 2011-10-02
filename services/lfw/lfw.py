@@ -136,7 +136,11 @@ class LFWService(object):
 
     @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={}, authorizeRule="delete user")
     def deleteUser(self, userguid, applicationserver_request=""):
-        return self.alkira.deleteUser(userguid, self.getTokenAndUsername(applicationserver_request))
+        user = p.api.action.ui.user.getObject(userguid)
+        result = self.getTokenAndUsername(applicationserver_request)
+        if result['username'] == user.name:
+            return False
+        return self.alkira.deleteUser(userguid, result)
 
     @q.manage.applicationserver.expose_authorized(defaultGroups=["admin"], authorizeParams={}, authorizeRule="update user")
     def updateUser(self, userguid, name=None, password=None, applicationserver_request=""):

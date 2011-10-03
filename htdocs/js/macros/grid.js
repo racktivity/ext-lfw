@@ -7,6 +7,7 @@ var render = function(options) {
         body = $.parseJSON(options.body),
         colNames = [],
         colModel = [],
+        dataModel = [],
         now = (new Date()).getTime(),
         gridId = "grid-" + now,
         gridpagerId = "gridpager-" + now;
@@ -19,6 +20,7 @@ var render = function(options) {
 
     function createGrid() {
         colNames = body.columns;
+        dataModel = body.model || [];
         setColModel();
 
         var grid = $("#" + gridId, options.pagecontent);
@@ -54,8 +56,10 @@ var render = function(options) {
         var width = 80,
             i;
         for (i = 0; i < colNames.length; ++i) {
-            colname = colNames[i];
-            colModel.push({name: colname, index: colname, width: width, align: "left"});
+            var colname = colNames[i];
+            var model = dataModel[i] || {};
+            colModel.push({name: colname, index: colname, width: model['width'] || width, align: model['align'] || "left",
+                           sortable:typeof(model.sortable)==='undefined' ? true : model.sortable});
         }
     }
 

@@ -6,7 +6,7 @@ The grid macro is a macro that builds a table in which you can sort on the colum
 
 
 #Parameters
-The Grid macro does not accept parameters
+The Grid macro does not accept parameters, all data is provided in the body of the macro.
 
 ##Example
 
@@ -59,6 +59,20 @@ The Grid macro does not accept parameters
 	    "Aggregated data", 
 	    "Value"
 	  ], 
+      "model": [
+	    {"sortable": false
+	     "align": "center"
+	     "width": 200	    
+	    },
+	    {"sortable": true
+	    }
+	  ], 
+	    "model": [
+	    {"sortable": false
+	    },
+	    {"sortable": true
+	    }
+	  ],
 	  "height": 75
 	}
 	[[/grid]]
@@ -114,7 +128,21 @@ The Grid macro does not accept parameters
   "columns": [
     "Aggregated data", 
     "Value"
-  ], 
+  ],
+  "model": [
+	    {"sortable": false
+	     "align": "center"
+	     "width": 200	    
+	    },
+	    {"sortable": true
+	    }
+	  ], 
   "height": 75
 }
 [[/grid]]	
+
+The model section is used for the layout of your table. This section is a list of dicts, where each dict represents one column. The first dict for the first column, and so on...
+
+* sortable: true/false, if true, you can sort the column in ascending or descending order
+* align: left (default), center, right; alignment of the values
+* width: width of the column in pixels

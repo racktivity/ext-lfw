@@ -95,6 +95,30 @@ class page:
         @raise e:                      In case an error occurred, exception is raised
         """
 
+    def list(self, space="", jobguid="", executionparams=None):
+        """
+        Returns a list of dicts containing page info for pages which met the find criteria.
+
+        @param space:                  space of the page
+        @type space:                   guid
+
+        @param jobguid:                guid of the job if available else empty string
+        @type jobguid:                 guid
+
+        @param executionparams:        dictionary of job specific params e.g. userErrormsg, maxduration ...
+        @type executionparams:         dictionary
+
+        @return:                       A list of dicts as result and jobguid: {'result': [], 'jobguid': guid}
+        @rtype:                        list
+
+        @note:                         Example return value:
+        @note:                         {'result': '[{name:"mypage", space:"FAD805F7-1F4E-4DB1-8902-F440A59270E6", ...}, {...}, ...]',
+        @note:                          'jobguid':'5D2C0F39-F34E-4542-9B6F-B9233E80D803'}
+
+
+        @raise e:                      In case an error occurred, exception is raised
+        """
+
     def getObject(self, rootobjectguid, jobguid="",executionparams=None):
         """
         Gets the rootobject.

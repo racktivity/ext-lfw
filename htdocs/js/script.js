@@ -800,7 +800,6 @@ data;
 
         var space = this.params['space'],
             page = this.params['page'];
-
         var render = true;
 
         //pages with /'s should be left unchanged
@@ -809,11 +808,9 @@ data;
                 page = page.substr(0, page.length - 3);
             render = false;
         }
-
             //pageUri = LFW_CONFIG['uris']['pages'] + '/' + space + '/' + page;
         var pageUri = LFW_CONFIG['uris']['pages'] + '?space=' + space +
                 '&name=' + page;
-
         setSpace(space);
         setPage(page);
         setQuery(this.params);
@@ -1045,15 +1042,54 @@ $(function() {
 
 });
 
+function sortTitle(a,b){
+    if (a['title'].toLowerCase() > b['title'].toLowerCase()) return 1;
+    else if (a['title'].toLowerCase() < b['title'].toLowerCase()) return -1;
+    else return 0
+}
+
 $(function(){
+
     //build editor buttons and dialog
-    var Editor = function(name, title, content, filetype) {
+    var Editor = function(name, title, content, filetype, editortype, parentguid) {
         var that = this;
         var body = $("#edit-page-template").tmpl();
         var editor = $("#editorspace", body).editor();
 
+        $.get("appserver/rest/ui/page/list", {'space':app.getSpace()}, function(data){
+            var elem = $("#parentpage");
+            elem.append($("<option>").attr("value", null).text("No Parent"));
+            if (editortype == undefined || (parentguid == undefined && editortype == "edit")){
+                $.each(data['result'].sort(sortTitle), function(idx, pageinfo) {
+                    elem.append($("<option>").attr("value", pageinfo.name).text(pageinfo.title+" ("+pageinfo.name+")"));
+                });
+            }
+            else{
+                if (editortype == "edit"){
+                    $.each(data['result'].sort(sortTitle), function(idx, pageinfo) {
+                        if (pageinfo.guid == parentguid){
+                            elem.append($("<option>").attr("value", pageinfo.name).attr("selected", true).text(pageinfo.title+" ("+pageinfo.name+")"));}
+                        else{
+                            elem.append($("<option>").attr("value", pageinfo.name).text(pageinfo.title+" ("+pageinfo.name+")"));}
+                    });
+                }
+                else if (editortype == "new"){
+                    $.each(data['result'].sort(sortTitle), function(idx, pageinfo) {
+                        if (pageinfo.name == app.getPage()){
+                            elem.append($("<option>").attr("value", pageinfo.name).attr("selected", true).text(pageinfo.title+" ("+pageinfo.name+")"));}
+                        else{
+                            elem.append($("<option>").attr("value", pageinfo.name).text(pageinfo.title+" ("+pageinfo.name+")"));}
+                    });
+                }
+            }
+        });
+
         $("#filetype", body).change(function(){
             editor.editor("filetype", $(this).val());
+        });
+
+        $("parentpage", body).change(function(){
+            editor.editor("parentpage", $(this).val());
         });
 
         this.save = $.noop;
@@ -1100,6 +1136,10 @@ $(function(){
             }
         };
 
+        this.parentpage = function(parent){
+            return $("#parentpage", body).val();
+        };
+
         this.content = function(content){
             return editor.editor("content", content);
         };
@@ -1135,25 +1175,25 @@ $(function(){
     };
 
     $("#toolbar > #newpage").button({icons: {primary: 'ui-icon-document'}}).click(function(){
-        var parent = app.getPage();
+        var currentpage = app.getPage();
         var space = app.getSpace();
         var defaultname = ''
-        if (parent.indexOf("/") > 0)
+        if (currentpage.indexOf("/") > 0)
         {
-            idx = parent.lastIndexOf("/")
-            defaultname = parent.substr(0, idx + 1) + 'untitled'
+            idx = currentpage.lastIndexOf("/")
+            defaultname = currentpage.substr(0, idx + 1) + 'untitled'
         }
 
-        var editor = new Editor(defaultname, "", "", "md");
+        var editor = new Editor(defaultname, "", "", "md", "new");
         editor.appendTo($("#main").empty());
         editor.cancel = function(e){
             if ("" != this.content()) {
                 $.confirm("There are some unsaved changes, are you sure you want to close the editor", {title: 'Unsaved Changes',
                     ok: function(){
-                        app.trigger('change-page', {title: parent});
+                        app.trigger('change-page', {title: currentpage});
                     }});
             } else {
-                app.trigger('change-page', {title: parent});
+                app.trigger('change-page', {title: currentpage});
             }
         };
 
@@ -1162,6 +1202,7 @@ $(function(){
             var name = $.trim(this.name());
             var title = $.trim(this.title());
             var filetype = this.filetype();
+            var parent = this.parentpage();
 
             if (!name) {
                 $.alert("Name can't be empty", "Invalid Name");
@@ -1196,8 +1237,7 @@ $(function(){
         var space = app.getSpace();
         var pageobj = app.getPageObj();
         var content = pageobj.content ? pageobj.content : "";
-
-        var editor = new Editor(pageobj.name, app.getTitle(), content, pageobj.pagetype);
+        var editor = new Editor(pageobj.name, app.getTitle(), content, pageobj.pagetype, "edit", pageobj.parent);
         if (pageobj.name === "Home"){
             editor.disable("name");
             editor.disable("title");
@@ -1221,6 +1261,7 @@ $(function(){
             var name = $.trim(this.name());
             var title = $.trim(this.title());
             var filetype = this.filetype();
+            var parentpage = this.parentpage();
 
             if (!name) {
                 $.alert("Name can't be empty", "Invalid Name");
@@ -1239,10 +1280,12 @@ $(function(){
                            'pagetype': filetype,
                            'content': this.content(),
                            'tags': this.tags(),
+                           'parent': parentpage,
                            'title': title},
                     dataType: 'json',
                     success: function(data) {
                         app.trigger('change-page', {title: name});
+                        app.setSpace(space, true);
                     },
                     error: $.alerterror
                 });

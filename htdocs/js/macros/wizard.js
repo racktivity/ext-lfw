@@ -22,11 +22,13 @@ var render = function(options) {
         var domain = options.params.domain || options.space;
         var extra = options.params.extra || '';
         var service = options.params.service || null;
+        var refresh = options.params.refresh === "false" ? false : true; //default true
+        
         if (!service){
             var service = "http://" + appserver + "/" + appname + "/appserver/rest/ui/wizard";
         }
 
-        var action = "JSWizards.launch('" + service + "', '" + domain + "', '" + name + "', '" + extra +"')";
+        var action = "JSWizards.launch('" + service + "', '" + domain + "', '" + name + "', '" + extra +"', undefined, undefined, " + refresh + ")";
         if (type == "button"){
             element = $("<button>");
         }

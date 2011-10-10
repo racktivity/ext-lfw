@@ -149,6 +149,7 @@ $(function() {
         this.menu = new LFW_DASHBOARD.Menu(this.jq.find(".portlet-header .icon-menu"), this.jq.find(".portlet-menu"));
         this.menu.addItem("Configure", this, this.showOptions);
         this.menu.addItem("Remove", this, this._confirmRemoval);
+        this.menu.addItem("Refresh", this, this.refresh);
 
         // Make the icons only show when hovering
         this.jq.mouseenter(function() { that.jq.find(".portlet-header .icons").show(); });
@@ -156,6 +157,24 @@ $(function() {
             that.jq.find(".portlet-header .icons").hide();
             that.menu.hide();
         });
+        // if refresh param is set, prepare refresh callback
+        var params = $.evalJSON(object.params)
+        console.log(object.params)
+        if (params.refresh) {
+            console.log('refresh param set to ' + params.refresh)
+            var rSec = params.refresh * 1000
+            if (rSec) {
+                this._interval = window.setInterval(function () { 
+                     if ($('#' + that.fullId)[0]) {
+                         console.log('refresh interval ' + that.fullId)
+                         that.refresh();
+                     } else {
+                         console.log('refresh interval cleaned ' + that.fullId)
+                         window.clearInterval(that._interval)
+                     }
+                   }, rSec)
+            }
+        } 
     }
 
     // Toggle the collapse
@@ -220,6 +239,33 @@ $(function() {
             args.params = params;
         }
         JSWizards.launch("appserver/rest/ui/wizard", "widgets", wizard, $.toJSON(args), update);
+    };
+
+    // Show the options
+    Widget.prototype.refresh = function() {
+        var widgetId = this.fullId,
+            pOld = '-old',
+            pNew = '-new'
+        console.log('called refresh of widget ' + widgetId)
+        function realRefresh(e,info) {
+            console.log('start refresh of widget ' + widgetId  + ' ' + info.name)
+            if (!info.error && info.options.subsequentmacros) {
+                console.log('refresh delay requested, waiting for subsequent event')
+                return;
+            }
+	     $('#'+widgetId+pNew).removeClass('portlet-refresh').attr('id','')
+			.unbind('macro-render-finish')
+	     $('#'+widgetId+pOld).remove()
+            console.log('done refresh of widget ' + widgetId)
+        }
+        var oldContent = $('#'+widgetId+" .portlet-content")[0]
+        oldContent.id = widgetId+pOld
+        var newContent = $('<div>')
+        newContent.attr('id', widgetId+pNew).addClass('portlet-content').addClass('portlet-refresh')
+                .appendTo($('#'+widgetId))
+                .bind('macro-render-finish', realRefresh)
+        var data = $.tmpl('plugin.dashboard.widgetcontent', this.options);
+        this.parent.parent.opts.swap(data, newContent, false, newContent);
     };
 
     // Get the dashboard object
@@ -709,6 +755,7 @@ var render = function(options) {
         '.portlet-header .icons .ui-icon { float: right; cursor: pointer; }' +
         '.portlet .portlet-menu { position: absolute; z-index: 1000; right: 5px; top: 20px; }' +
         '.portlet .portlet-content { padding: 0.4em; overflow: auto; }' +
+        '.portlet .portlet-refresh { padding: 0 0.4em!important; height:0;}' +
         '.ui-sortable-placeholder { border: 1px dotted black; visibility: visible !important;' +
             '!important; }' +
         '.ui-sortable-placeholder * { visibility: hidden; }' +

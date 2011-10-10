@@ -190,13 +190,17 @@ var app = $.sammy(function(app) {
                         return;
                     }
                     console.log('Start rendering macro ' + name + ' - ' + data);
+                    var info = {name: name, options: options, error:false}
                     try{
                         options.params.macroname = name;
                         LFW.macros[name].call(context, options);
+                        info['options'] = options
                     }catch(err){
+                        info['error'] = true;
                         $this.append("<div class='macro_error'>Macro "+ name +" failed to render<br>"+err+"</div>");
                     }
                     console.log('Stop rendering macro ' + name + ' - ' + data);
+                    $this.trigger('macro-render-finish',[info])
                 };
 
                 if (typeof(params.call) === 'string') {

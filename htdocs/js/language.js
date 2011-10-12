@@ -23,7 +23,7 @@
             return key;
         };
         while(kparts.length) {
-            part = kparts.shift();
+            var part = kparts.shift();
             if (!(part in domain)){
                 break;
             }

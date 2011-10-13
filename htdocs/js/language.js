@@ -2,7 +2,7 @@
     var cache = {};
     var keyre = /^\s*(?:(\w+):)?\s*(\w+(?:\.\w+)*)$/;
     var guessLocale = function(){
-        var locale = localStorage.getItem("jquery.language");
+        var locale = $.cookie("jquery.language");
         if (locale)
             return locale;
         

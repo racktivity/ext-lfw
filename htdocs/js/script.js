@@ -145,6 +145,7 @@ var app = $.sammy(function(app) {
                     'space': getSpace(),
                     'page': getPage(),
                     'tags': (_pageobj ? _pageobj.tags : []),
+                    'pageobj': (_pageobj ? _pageobj : {}),
                     'body': htmlDecode(data),
                     'params': params,
                     'query': getQuery(),

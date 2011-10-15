@@ -1,12 +1,8 @@
 import os
 import os.path
 from pylabs import q, p
-import urllib
 import urllib2
-import inspect
-import functools
 import json
-import sys
 from alkira import Alkira
 import alkira
 
@@ -256,9 +252,10 @@ class LFWService(object):
                     "error": "Page Not Found"}
 
         page = self.alkira.getPage(space, name)
-        props = ['name', 'space', 'category', 'content', 'creationdate', 'title', 'pagetype']
+        props = ['name', 'space', 'category', 'content', 'title', 'pagetype']
 
         result = dict([(prop, getattr(page, prop)) for prop in props])
+        result['creationdate'] = float(page.creationdate) if page.creationdate else 0
         result['tags'] = page.tags.split(' ') if page.tags else []
 
         return result

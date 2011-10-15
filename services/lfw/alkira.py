@@ -9,6 +9,7 @@ import httplib
 import oauth2
 import json
 import ast
+import time
 
 ADMINSPACE = "Admin"
 IDESPACE = "IDE"
@@ -621,6 +622,7 @@ class Alkira:
         for key in params:
             if params[key] != None:
                 setattr(page, key, params[key])
+        page.creationdate = str(time.time())
 
         if not order:
             page.order = 10000
@@ -739,6 +741,7 @@ class Alkira:
         for key in params:
             if params[key] != None:
                 setattr(page, key, params[key])
+        page.creationdate = str(time.time())
 
         if tagsList:
             page.tags = ' '.join(tagsList)

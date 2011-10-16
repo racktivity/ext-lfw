@@ -16,7 +16,6 @@
  */
 
 (function($) {
-
 var DEFAULT_PAGE_NAME = 'Home',
     LABELS_RE = /,\s*/,
     LOCATION_PREFIX = '#/',
@@ -37,7 +36,6 @@ var Utils = {
             $(selector).html());
     }
 };
-
 $.fillSpacesList = function(options) {
     var opts = $.extend({success: $.noop}, options);
 
@@ -450,8 +448,8 @@ data;
 
     var setPage = function(page) {
         _page = page;
-    },
-        getPage = function() {
+    };
+    var getPage = function() {
         return _page;
     };
     var setQuery = function(query) {

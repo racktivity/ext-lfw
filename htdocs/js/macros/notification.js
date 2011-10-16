@@ -3,6 +3,7 @@ var render = function(options) {
     var $this = $(this);
     var defaultmsg = $("<div>").html("The curent page is out of date click <a href=\"javascript:location.reload();\">here</a> to reload.");
     var params = $.extend({content: defaultmsg, delay:-1, cssclass: "customNotify"}, options.params);
+    params.delay = Number(params.delay);
     $this.addClass(params.cssclass);
     $this.html(params.content);
 

@@ -1079,12 +1079,13 @@ $(function() {
     $('#spinner')
         .ajaxStart(function() {
             $(this).show();
+            $("#main").css("cursor", "wait");
         })
         .ajaxStop(function() {
             $(this).hide();
+            $("#main").css('cursor', 'default');
         })
         .hide();
-
 
 });
 

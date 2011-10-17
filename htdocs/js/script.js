@@ -426,6 +426,49 @@ data;
                 swap("", treePage, '#tree');
             }
         });
+
+        var footerUri = LFW_CONFIG['uris']['pages'] + '?space=' + space +
+                '&name=' + 'footer';
+        var footerPage = '#/' + space + '/footer';
+
+        var toggleFooter = function(visible) {
+            if (visible){
+                $("#footercustomised").show(0);
+                $("#content").addClass("span-19");
+                $("#toolbar").addClass("span-20");
+                $("#main").addClass("span-20");
+            } else {
+                $("#footercustomised").hide(0);
+                $("#content").removeClass("span-19");
+                $("#toolbar").removeClass("span-20");
+                $("#main").removeClass("span-20");
+            }
+        };
+        $.ajax({
+            url: footerUri,
+            success: function(data) {
+                var content = data['content'];
+                if(!content || !content.length || content.length === 0) {
+                    content = "";
+                }
+
+                console.log('Footer source: ' + content);
+                rendered = renderWiki(content);
+                console.log('Footer rendered: ' + rendered);
+                if (rendered !== ""){
+                    toggleFooter(true);
+                } else {
+                    toggleFooter(false);
+                }
+                swap(rendered, footerPage, '#footercustomised');
+            },
+            //cache: false,
+            dataType: 'json',
+            error: function(xhr, text, exc) {
+                toggleFooter(false);
+                swap("", footerPage, '#footercustomised');
+            }
+        });
     };
     var getAppName = function () {
         if( ! _appName ) {

@@ -1,8 +1,8 @@
 (function($) {
     var cache = {};
-    
+    var keyre = /^\s*(?:(\w+):)?\s*(\w+(?:\.\w+)*)$/;
     var guessLocale = function(){
-        var locale = localStorage.getItem("jquery.language");
+        var locale = $.cookie("jquery.language");
         if (locale)
             return locale;
         
@@ -61,7 +61,19 @@
     };
     
     $.language = function(key, settings){
-        var options = {package: 'default',
+        var m = keyre.exec(key)
+        if (!m) {
+            return key;
+        }
+        
+        package = m[1];
+        key = m[2];
+        
+        if (package === undefined){
+            package = 'default';
+        }
+        
+        var options = {package: package,
                       locale: guessLocale()};
         
         if (typeof settings === "string"){

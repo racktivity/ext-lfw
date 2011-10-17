@@ -16,7 +16,6 @@
  */
 
 (function($) {
-
 var DEFAULT_PAGE_NAME = 'Home',
     LABELS_RE = /,\s*/,
     LOCATION_PREFIX = '#/',
@@ -37,7 +36,6 @@ var Utils = {
             $(selector).html());
     }
 };
-
 $.fillSpacesList = function(options) {
     var opts = $.extend({success: $.noop}, options);
 
@@ -145,6 +143,7 @@ var app = $.sammy(function(app) {
                     'space': getSpace(),
                     'page': getPage(),
                     'tags': (_pageobj ? _pageobj.tags : []),
+                    'pageobj': (_pageobj ? _pageobj : {}),
                     'body': htmlDecode(data),
                     'params': params,
                     'query': getQuery(),
@@ -492,8 +491,8 @@ data;
 
     var setPage = function(page) {
         _page = page;
-    },
-        getPage = function() {
+    };
+    var getPage = function() {
         return _page;
     };
     var setQuery = function(query) {

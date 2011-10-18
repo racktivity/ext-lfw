@@ -15,8 +15,10 @@ The notification macro is used to show a notification when the page which you ar
 * delay: Time the notification should be visible in milliseconds; -1 means infinity which is the default
 
 ## Example
-    [[notification:content=This page is a new page delay=-1/]]
+    [[notification:content=This page is updated,delay=-1/]]
 
 
 ##Sample
-[[notification:content=This page is a new page delay=-1/]]
+See the notification on top of your browser.
+
+[[notification:content=This page is updated,delay=-1/]]

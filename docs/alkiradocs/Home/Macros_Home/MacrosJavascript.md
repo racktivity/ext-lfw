@@ -13,6 +13,7 @@
 [info]: #/alkiradocs/MacroInformation
 [jqplot]: #/alkiradocs/MacroJqPlot/MacroJqPlot
 [note]: #/alkiradocs/MacroNote
+[notif]: #/alkiradocs/MacroNotification
 [pagetree]: #/alkiradocs/MacroPageTree
 [protovis]: #/alkiradocs/MacroProtovis
 [rgraph]: #/alkiradocs/MacroRgraph
@@ -39,6 +40,7 @@
 * [Information Macro][info]
 * [JqPlot Macro][jqplot]
 * [Note Macro][note]
+* [Notification Macro][notif]
 * [PageTree Macro][pagetree]
 * [Protovis Macro][protovis]
 * [Rgraph Macro][rgraph]

@@ -654,7 +654,7 @@ data;
     }
 
     var addCssId = function(id) {
-        console.log('adding cdd with id: ' + id);
+        console.log('adding css with id: ' + id);
         if (!inArray(id, csses)) {
             csses.push(id);
             return true;
@@ -1078,12 +1078,10 @@ $(function() {
 
     $('#spinner')
         .ajaxStart(function() {
-            $(this).show();
-            $("#main").css("cursor", "wait");
+            $("html").css("cursor", "wait");
         })
         .ajaxStop(function() {
-            $(this).hide();
-            $("#main").css('cursor', 'default');
+            $("html").css('cursor', 'default');
         })
         .hide();
 

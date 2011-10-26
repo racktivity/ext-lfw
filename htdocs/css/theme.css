@@ -22,3 +22,4 @@ a.logo {     background: url("../img/logo.png") no-repeat scroll left top transp
 .ide-fileid {font-weight: bold; margin-bottom: 10px;}
 a.ide-modified {font-weight: bold; font-style: italic;}
 .ui-state-default .emoticon-smile {background-image: url("../img/icons/emoticon_smile.png")}
+.macro-helpbutton {float: right; margin: 5px 7px 0px 0px;}

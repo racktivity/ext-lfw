@@ -290,7 +290,13 @@ data;
                 },
                     'text'
                 )
-                .success()
+                .success(function () {
+                    helpurl = $this.attr("helpurl");
+                    if (helpurl)
+                    {
+                        $this.prepend(addHelpButton(helpurl))
+                    }
+                })
                 .error(function(data, textStatus, jqXHR) {
                     if (name != 'generic') {
                         macroname = 'generic';
@@ -537,6 +543,18 @@ data;
         }
         return $('<div/>').html(value).text();
     };
+        
+    var addHelpButton = function(url, width, height)
+    {
+        width = (width || 600)
+        height = (height || 800)
+        var left = screen.width - width;
+        
+        //Strip quotes
+        url = String(url).replace(/^('|")+|('|")+$/g, '');
+        script = 'window.open("' + url + '", "_blank", "toolbar=0, location=0, menubar=0, left=' + left + ', width=' + width + ', height=' + height + '");return false;';
+        return "<div class='macro-helpbutton'><a href='" + url + "' onclick='" + script + "'><img src='img/help.png' border='0'></img><a/></div>";
+    }
 
     var renderWiki = function(mdstring) {
         mdstring = mdstring || '';
@@ -550,18 +568,25 @@ data;
             if (paramstring){
                 paramstring = paramstring.substr(1);
                 paramstring = "," + paramstring;
+                helpurl = null;
                 var params = new Object();
                 var pieces = paramstring.split(/,\s*(\w+)\s*=\s*/);
                 for (var i = 1; i < pieces.length; i+=2)
                 {
                     var key = pieces[i];
                     var param = pieces[i+1];
-                    params[key] = param;
+                    if (key == "help")
+                        helpurl = param
+                    else
+                        params[key] = param;
                 }
                 result += " params='" + htmlEncode($.toJSON(params)) + "'";
             }
             body = body || '';
-            result += ">" + htmlEncode(body.trim()) + "\n</div>";
+            if (helpurl)
+                result += " helpurl = " +  helpurl;
+
+            result += " >" + htmlEncode(body.trim()) + "\n</div>";
             return result;
         };
 

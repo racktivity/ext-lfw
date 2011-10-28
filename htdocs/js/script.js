@@ -16,7 +16,6 @@
  */
 
 (function($) {
-
 var DEFAULT_PAGE_NAME = 'Home',
     LABELS_RE = /,\s*/,
     LOCATION_PREFIX = '#/',
@@ -37,7 +36,6 @@ var Utils = {
             $(selector).html());
     }
 };
-
 $.fillSpacesList = function(options) {
     var opts = $.extend({success: $.noop}, options);
 
@@ -145,6 +143,7 @@ var app = $.sammy(function(app) {
                     'space': getSpace(),
                     'page': getPage(),
                     'tags': (_pageobj ? _pageobj.tags : []),
+                    'pageobj': (_pageobj ? _pageobj : {}),
                     'body': htmlDecode(data),
                     'params': params,
                     'query': getQuery(),
@@ -291,7 +290,13 @@ data;
                 },
                     'text'
                 )
-                .success()
+                .success(function () {
+                    helpurl = $this.attr("helpurl");
+                    if (helpurl)
+                    {
+                        $this.prepend(addHelpButton(helpurl))
+                    }
+                })
                 .error(function(data, textStatus, jqXHR) {
                     if (name != 'generic') {
                         macroname = 'generic';
@@ -426,6 +431,49 @@ data;
                 swap("", treePage, '#tree');
             }
         });
+
+        var footerUri = LFW_CONFIG['uris']['pages'] + '?space=' + space +
+                '&name=' + 'footer';
+        var footerPage = '#/' + space + '/footer';
+
+        var toggleFooter = function(visible) {
+            if (visible){
+                $("#footercustomised").show(0);
+                $("#content").addClass("span-19");
+                $("#toolbar").addClass("span-20");
+                $("#main").addClass("span-20");
+            } else {
+                $("#footercustomised").hide(0);
+                $("#content").removeClass("span-19");
+                $("#toolbar").removeClass("span-20");
+                $("#main").removeClass("span-20");
+            }
+        };
+        $.ajax({
+            url: footerUri,
+            success: function(data) {
+                var content = data['content'];
+                if(!content || !content.length || content.length === 0) {
+                    content = "";
+                }
+
+                console.log('Footer source: ' + content);
+                rendered = renderWiki(content);
+                console.log('Footer rendered: ' + rendered);
+                if (rendered !== ""){
+                    toggleFooter(true);
+                } else {
+                    toggleFooter(false);
+                }
+                swap(rendered, footerPage, '#footercustomised');
+            },
+            //cache: false,
+            dataType: 'json',
+            error: function(xhr, text, exc) {
+                toggleFooter(false);
+                swap("", footerPage, '#footercustomised');
+            }
+        });
     };
     var getAppName = function () {
         if( ! _appName ) {
@@ -449,8 +497,8 @@ data;
 
     var setPage = function(page) {
         _page = page;
-    },
-        getPage = function() {
+    };
+    var getPage = function() {
         return _page;
     };
     var setQuery = function(query) {
@@ -495,6 +543,18 @@ data;
         }
         return $('<div/>').html(value).text();
     };
+        
+    var addHelpButton = function(url, width, height)
+    {
+        width = (width || 600)
+        height = (height || 800)
+        var left = screen.width - width;
+        
+        //Strip quotes
+        url = String(url).replace(/^('|")+|('|")+$/g, '');
+        script = 'window.open("' + url + '", "_blank", "toolbar=0, location=0, menubar=0, left=' + left + ', width=' + width + ', height=' + height + '");return false;';
+        return "<div class='macro-helpbutton'><a href='" + url + "' onclick='" + script + "'><img src='img/help.png' border='0'></img><a/></div>";
+    }
 
     var renderWiki = function(mdstring) {
         mdstring = mdstring || '';
@@ -508,18 +568,25 @@ data;
             if (paramstring){
                 paramstring = paramstring.substr(1);
                 paramstring = "," + paramstring;
+                helpurl = null;
                 var params = new Object();
                 var pieces = paramstring.split(/,\s*(\w+)\s*=\s*/);
                 for (var i = 1; i < pieces.length; i+=2)
                 {
                     var key = pieces[i];
                     var param = pieces[i+1];
-                    params[key] = param;
+                    if (key == "help")
+                        helpurl = param
+                    else
+                        params[key] = param;
                 }
                 result += " params='" + htmlEncode($.toJSON(params)) + "'";
             }
             body = body || '';
-            result += ">" + htmlEncode(body.trim()) + "\n</div>";
+            if (helpurl)
+                result += " helpurl = " +  helpurl;
+
+            result += " >" + htmlEncode(body.trim()) + "\n</div>";
             return result;
         };
 
@@ -612,7 +679,7 @@ data;
     }
 
     var addCssId = function(id) {
-        console.log('adding cdd with id: ' + id);
+        console.log('adding css with id: ' + id);
         if (!inArray(id, csses)) {
             csses.push(id);
             return true;
@@ -1036,13 +1103,12 @@ $(function() {
 
     $('#spinner')
         .ajaxStart(function() {
-            $(this).show();
+            $("html").css("cursor", "wait");
         })
         .ajaxStop(function() {
-            $(this).hide();
+            $("html").css('cursor', 'default');
         })
         .hide();
-
 
 });
 

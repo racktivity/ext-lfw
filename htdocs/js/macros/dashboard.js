@@ -158,23 +158,23 @@ $(function() {
             that.menu.hide();
         });
         // if refresh param is set, prepare refresh callback
-        var params = $.evalJSON(object.params)
-        console.log(object.params)
+        var params = $.evalJSON(object.params);
+        console.log(object.params);
         if (params.refresh) {
-            console.log('refresh param set to ' + params.refresh)
-            var rSec = params.refresh * 1000
+            console.log('refresh param set to ' + params.refresh);
+            var rSec = params.refresh * 1000;
             if (rSec) {
-                this._interval = window.setInterval(function () { 
+                this._interval = window.setInterval(function () {
                      if ($('#' + that.fullId)[0]) {
-                         console.log('refresh interval ' + that.fullId)
+                         console.log('refresh interval ' + that.fullId);
                          that.refresh();
                      } else {
-                         console.log('refresh interval cleaned ' + that.fullId)
-                         window.clearInterval(that._interval)
+                         console.log('refresh interval cleaned ' + that.fullId);
+                         window.clearInterval(that._interval);
                      }
-                   }, rSec)
+                   }, rSec);
             }
-        } 
+        }
     }
 
     // Toggle the collapse
@@ -215,8 +215,7 @@ $(function() {
     // Show the options
     Widget.prototype.showOptions = function() {
         var that = this,
-            wizard = (LFW_DASHBOARD.widgetTypesByName[this.options.widgettype].wizard ?
-                LFW_DASHBOARD.widgetTypesByName[this.options.widgettype].wizard : "general");
+            wizard = LFW_DASHBOARD.widgetTypesByName[this.options.widgettype].wizard || "general";
 
         function update(object) {
             object = $.parseJSON(object);
@@ -241,29 +240,28 @@ $(function() {
         JSWizards.launch("appserver/rest/ui/wizard", "widgets", wizard, $.toJSON(args), update);
     };
 
-    // Show the options
+    // Refresh the widget
     Widget.prototype.refresh = function() {
         var widgetId = this.fullId,
             pOld = '-old',
-            pNew = '-new'
-        console.log('called refresh of widget ' + widgetId)
+            pNew = '-new';
+        console.log('called refresh of widget ' + widgetId);
         function realRefresh(e,info) {
-            console.log('start refresh of widget ' + widgetId  + ' ' + info.name)
+            console.log('start refresh of widget ' + widgetId  + ' ' + info.name);
             if (!info.error && info.options.subsequentmacros) {
-                console.log('refresh delay requested, waiting for subsequent event')
+                console.log('refresh delay requested, waiting for subsequent event');
                 return;
             }
-	     $('#'+widgetId+pNew).removeClass('portlet-refresh').attr('id','')
-			.unbind('macro-render-finish')
-	     $('#'+widgetId+pOld).remove()
-            console.log('done refresh of widget ' + widgetId)
+            $('#'+widgetId+pNew).removeClass('portlet-refresh').attr('id', '').unbind('macro-render-finish');
+            $('#'+widgetId+pOld).remove();
+            console.log('done refresh of widget ' + widgetId);
         }
-        var oldContent = $('#'+widgetId+" .portlet-content")[0]
-        oldContent.id = widgetId+pOld
-        var newContent = $('<div>')
+        var oldContent = $('#' + widgetId + " .portlet-content")[0];
+        oldContent.id = widgetId + pOld;
+        var newContent = $('<div>');
         newContent.attr('id', widgetId+pNew).addClass('portlet-content').addClass('portlet-refresh')
                 .appendTo($('#'+widgetId))
-                .bind('macro-render-finish', realRefresh)
+                .bind('macro-render-finish', realRefresh);
         var data = $.tmpl('plugin.dashboard.widgetcontent', this.options);
         this.parent.parent.opts.swap(data, newContent, false, newContent);
     };
@@ -301,6 +299,7 @@ $(function() {
         this.jq = dashboard.jq.find(".columns #" + this.fullId);
 
         // Make the widgets moveable
+        var that = this;
         this.jq.sortable({
             handle: ".portlet-header",
             forceHelperSize: true,
@@ -323,7 +322,6 @@ $(function() {
         this.setWidth(width);
 
         // Sort the widgets by order first
-        var that = this;
         this._widgets.sort(function(w1, w2) {
             if (w1.order !== w2.order) {
                 return w1.order > w2.order;
@@ -552,7 +550,7 @@ $(function() {
                     type = LFW_DASHBOARD.widgetTypes[i];
 
                     // Search name
-                    if (contains(type.label ? type.label : type.name, types)) {
+                    if (contains(type.label || type.name, types)) {
                         widgets.push(type);
                     }
                 }
@@ -564,7 +562,7 @@ $(function() {
                     display.append("<div id='widget-" + type.name + "' class='widgettype'>" +
                         (type.image ? "<img src='" + type.image + "' />" : "<img src='img/pixel.gif' />") +
                         "<button class='add'><span class='ui-button-text'>Pick me</span></button>" +
-                        "<h3>" + (type.label ? type.label : type.name) + "</h3><p>" + (type.description ? type.description : "No description") +
+                        "<h3>" + (type.label || type.name) + "</h3><p>" + (type.description || "No description") +
                         "<br /><a href=\"" + type.documentationUrl + "\" target=\"doc\">Documentation</a></p></div>");
                 }
 
@@ -580,8 +578,7 @@ $(function() {
                         }
                     }
 
-                    var wizard = (LFW_DASHBOARD.widgetTypesByName[type].wizard ?
-                        LFW_DASHBOARD.widgetTypesByName[type].wizard : "general");
+                    var wizard = LFW_DASHBOARD.widgetTypesByName[type].wizard || "general";
 
                     function add(object) { // Add the widget
                         object = $.parseJSON(object);
@@ -599,12 +596,13 @@ $(function() {
         // Update types
         search = widgetStore.find(".search");
         var typeContainer = widgetStore.find(".types"),
-            type;
+            type,
+            i;
         typeContainer.empty();
         typeContainer.append("<li title=''>All (" + LFW_DASHBOARD.widgetTypes.length + ")</li>");
         for (i = 0; i < LFW_DASHBOARD.widgetTypes.length; ++i) {
             type = LFW_DASHBOARD.widgetTypes[i];
-            typeContainer.append("<li title='" + (type.label ? type.label : type.name) +"'>" + (type.label ? type.label : type.name) + "</li>");
+            typeContainer.append("<li title='" + (type.label || type.name) +"'>" + (type.label || type.name) + "</li>");
         }
         // Make em clickable
         typeContainer.find("li").click(function(event) {

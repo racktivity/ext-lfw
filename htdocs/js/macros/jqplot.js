@@ -11,6 +11,7 @@ var render = function(options) {
     var width = data_dict.width || 700;
     var chart_data = data_dict.chart_data;
     var renderer = data_dict.renderer;
+	var rendererOptions = $.extend({}, data_dict.rendererOptions);
     var renderer_dependency;
 
     if (renderer){
@@ -31,7 +32,9 @@ var render = function(options) {
 
         var series;
         if (renderer){
-             series = { series:[{renderer:eval(renderer)}]};
+             series = { series:[{renderer:eval(renderer),
+								 rendererOptions: rendererOptions}],
+			            };
         }
         $.jqplot.config.enablePlugins = true;
         plot1 = $.jqplot(chart_div, chart_data, series);

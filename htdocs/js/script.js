@@ -439,14 +439,8 @@ data;
         var toggleFooter = function(visible) {
             if (visible){
                 $("#footercustomised").show(0);
-                $("#content").addClass("span-19");
-                $("#toolbar").addClass("span-20");
-                $("#main").addClass("span-20");
             } else {
                 $("#footercustomised").hide(0);
-                $("#content").removeClass("span-19");
-                $("#toolbar").removeClass("span-20");
-                $("#main").removeClass("span-20");
             }
         };
         $.ajax({
@@ -565,10 +559,10 @@ data;
                 return fullmatch;
             }
             var result = (start?start:"") + '\n<div class="macro macro_' + macroname + '"';
+            var helpurl = null;
             if (paramstring){
                 paramstring = paramstring.substr(1);
                 paramstring = "," + paramstring;
-                helpurl = null;
                 var params = new Object();
                 var pieces = paramstring.split(/,\s*(\w+)\s*=\s*/);
                 for (var i = 1; i < pieces.length; i+=2)

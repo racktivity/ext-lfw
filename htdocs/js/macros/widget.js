@@ -4,14 +4,19 @@
 
 var render = function(options) {
     var $this = $(this);
-    var params = $.extend({title: '', width: '', height: '', toggle: true}, options.params);
+    var params = $.extend({title: '',
+                           width: '',
+                           height: '',
+                           toggle: 'true',
+                           closed: 'false'}, options.params);
 
     var body = $("<div>", {'class': 'widget-body'});
 
 
     var titlebar = $("<div>", {'class': 'widget-titlebar'})
         .append($("<div>", {'class': 'widget-title'}).text(params.title));
-    if (params.toggle && params.toggle !== "false") {
+        
+    if ($.parseJSON(params.toggle)) {
         titlebar.append($("<div>", {'class': 'widget-collapse ui-icon ui-icon-circle-minus'})
             .click(function() {
                 var btn = $(this);
@@ -31,10 +36,13 @@ var render = function(options) {
         .css('height', params.height);
 
     body.append(titlebar).append(content);
-
     options.addCss({'id': 'widget', 'tag': 'link', 'params': {'rel': 'stylesheet', 'href': 'css/macros/widget.css'}});
     $this.empty();
     options.swap(body, undefined, true);
+    
+    if ($.parseJSON(params.closed)) {
+        titlebar.find(".widget-collapse").click();
+    }
 };
 
 register(render);

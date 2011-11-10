@@ -11,6 +11,7 @@ var render = function(options) {
     var width = data_dict.width || 700;
     var chart_data = data_dict.chart_data;
     var renderer = data_dict.renderer;
+    var showTicks = data_dict.showTicks;
 	var rendererOptions = $.extend({}, data_dict.rendererOptions);
     var renderer_dependency;
 
@@ -30,14 +31,14 @@ var render = function(options) {
 
     var cb = function(){
 
-        var series;
+        var opts = {seriesDefaults: {markerOptions: {show: showTicks}}};
         if (renderer){
-             series = { series:[{renderer:eval(renderer),
+             $.extend(opts, { series:[{renderer:eval(renderer),
 								 rendererOptions: rendererOptions}],
-			            };
+			            });
         }
         $.jqplot.config.enablePlugins = true;
-        plot1 = $.jqplot(chart_div, chart_data, series);
+        plot1 = $.jqplot(chart_div, chart_data, opts);
     };
 
     var dependencies = ["/static/lfw/js/libs/jqplot/src/jquery.jqplot.js",

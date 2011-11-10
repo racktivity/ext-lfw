@@ -59,7 +59,7 @@ var render = function(options) {
      '/static/lfw/js/libs/jqplot/src/jqplot.shadowRenderer.js',
      '/static/lfw/js/libs/jqplot/src/jqplot.shapeRenderer.js',
      '/static/lfw/js/libs/jqplot/src/jqplot.sprintf.js',
-     '/static/lfw/js/libs/jqplot/src/plugins/jqplot.pointLabels.js',
+     //'/static/lfw/js/libs/jqplot/src/plugins/jqplot.pointLabels.js',
      '/static/lfw/js/libs/jqplot/src/jsdate.js',
      "/static/lfw/js/libs/jqplot/src/jqplot.themeEngine.js"];
 

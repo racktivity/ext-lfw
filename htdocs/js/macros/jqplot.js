@@ -10,17 +10,14 @@ var render = function(options) {
     var height = data_dict.height || 700;
     var width = data_dict.width || 700;
     var chart_data = data_dict.chart_data;
-    var seriesDefaults = data_dict.seriesDefaults;
-    var axesDefaults = data_dict.axesDefaults;
-    var axes = data_dict.axes;
     var renderer = data_dict.renderer;
 	var rendererOptions = $.extend({}, data_dict.rendererOptions);
-    var renderer_dependency = [];
-    
+    var renderer_dependency;
+
     if (renderer){
         var renderer_name = renderer.replace("$.jqplot.", "");
         renderer_name = renderer_name.charAt(0).toLowerCase().concat(renderer_name.slice(1));
-        renderer_dependency.push("/static/lfw/js/libs/jqplot/src/plugins/jqplot.renderer_name.js".replace("renderer_name", renderer_name));
+        renderer_dependency = "/static/lfw/js/libs/jqplot/src/plugins/jqplot.renderer_name.js".replace("renderer_name", renderer_name)
     }
 
     console.log("redered_path : " + renderer_dependency);
@@ -32,17 +29,15 @@ var render = function(options) {
     var chart_div = getID();
 
     var cb = function(){
-        
-        var opt = {seriesDefaults: seriesDefaults,
-                   axesDefaults: axesDefaults,
-                   axes: axes};
+
+        var series;
         if (renderer){
-             $.extend(opt,{ series:[{renderer:eval(renderer),
-                                    rendererOptions: rendererOptions}],
-                            });
+             series = { series:[{renderer:eval(renderer),
+								 rendererOptions: rendererOptions}],
+			            };
         }
         $.jqplot.config.enablePlugins = true;
-        plot1 = $.jqplot(chart_div, chart_data, opt);
+        plot1 = $.jqplot(chart_div, chart_data, series);
     };
 
     var dependencies = ["/static/lfw/js/libs/jqplot/src/jquery.jqplot.js",
@@ -59,12 +54,11 @@ var render = function(options) {
      '/static/lfw/js/libs/jqplot/src/jqplot.shadowRenderer.js',
      '/static/lfw/js/libs/jqplot/src/jqplot.shapeRenderer.js',
      '/static/lfw/js/libs/jqplot/src/jqplot.sprintf.js',
-     //'/static/lfw/js/libs/jqplot/src/plugins/jqplot.pointLabels.js',
      '/static/lfw/js/libs/jqplot/src/jsdate.js',
      "/static/lfw/js/libs/jqplot/src/jqplot.themeEngine.js"];
 
     if (renderer_dependency){
-        dependencies.concat(renderer_dependency);
+        dependencies.push(renderer_dependency);
     }
 
 

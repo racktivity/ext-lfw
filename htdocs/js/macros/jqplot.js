@@ -12,6 +12,8 @@ var render = function(options) {
     var chart_data = data_dict.chart_data;
     var renderer = data_dict.renderer;
     var showTicks = data_dict.showTicks;
+    var lineWidth = data_dict.lineWidth;
+    var axesMin = data_dict.axesMin;
 	var rendererOptions = $.extend({}, data_dict.rendererOptions);
     var renderer_dependency;
 
@@ -31,7 +33,9 @@ var render = function(options) {
 
     var cb = function(){
 
-        var opts = {seriesDefaults: {markerOptions: {show: showTicks}}};
+        var opts = {axesDefaults:{min: axesMin},
+                    seriesDefaults: {lineWidth: lineWidth,
+                                    markerOptions: {show: showTicks}}};
         if (renderer){
              $.extend(opts, { series:[{renderer:eval(renderer),
 								 rendererOptions: rendererOptions}],

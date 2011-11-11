@@ -66,8 +66,10 @@ var render = function(options) {
         dependencies.push(renderer_dependency);
     }
 
-
-    $.template(TEMPLATE_NAME, '<div><div id="${chart_div}" style="height:${height}px;width:${width}px; "></div></div>');
+    width =  isNaN(Number(width)) ? width: width + "px";
+    height = isNaN(Number(height)) ? height: height + "px";
+    
+    $.template(TEMPLATE_NAME, '<div><div id="${chart_div}" style="height:${height};width:${width}; "></div></div>');
     $.tmpl(TEMPLATE_NAME, {chart_div:chart_div, height:height, width:width}).appendTo($this);
 
     options.addCss({'id': 'jqplot', 'tag': 'link', 'params': {'rel': 'stylesheet', 'href': 'js/libs/jqplot/src/jquery.jqplot.css'}});

@@ -883,7 +883,7 @@ data;
 
 
         var context = this;
-
+        swap("<div class='loading-bar'></div>", '#/' + space + '/' + page);
         $.ajax({
             url: pageUri,
             success: function(data) {
@@ -1095,14 +1095,14 @@ $(function() {
             source: []
         });
 
-    $('#spinner')
+    $('html')
         .ajaxStart(function() {
             $("html").css("cursor", "wait");
         })
         .ajaxStop(function() {
             $("html").css('cursor', 'default');
-        })
-        .hide();
+        });
+        //.hide();
 
 
 });

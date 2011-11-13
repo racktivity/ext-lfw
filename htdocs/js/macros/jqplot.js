@@ -15,6 +15,10 @@ var render = function(options) {
     var lineWidth = data_dict.lineWidth;
     var axesMin = data_dict.axesMin;
 	var rendererOptions = $.extend({}, data_dict.rendererOptions);
+    var xticks = data_dict.xticks || [];
+    var yticks = data_dict.yticks || [];
+    var xtickformat = data_dict.xtickformat || '';
+    var ytickformat = data_dict.ytickformat || '';
     var renderer_dependency;
 
     if (renderer){
@@ -32,8 +36,11 @@ var render = function(options) {
     var chart_div = getID();
 
     var cb = function(){
-
         var opts = {axesDefaults:{min: axesMin},
+                    axes:{xaxis:{ticks: xticks,
+                                 tickOptions:{formatString: xtickformat}},
+                          yaxis:{ticks: yticks,
+                                 tickOptions:{formatString: ytickformat}}},
                     seriesDefaults: {lineWidth: lineWidth,
                                     markerOptions: {show: showTicks}}};
         if (renderer){

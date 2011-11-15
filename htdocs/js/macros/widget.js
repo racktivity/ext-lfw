@@ -14,7 +14,7 @@ var render = function(options) {
 
 
     var titlebar = $("<div>", {'class': 'widget-titlebar'})
-        .append($("<div>", {'class': 'widget-title'}).text(params.title));
+        .append($("<div>", {'class': 'widget-title'}).text($.language(params.title)));
         
     if ($.parseJSON(params.toggle)) {
         titlebar.append($("<div>", {'class': 'widget-collapse ui-icon ui-icon-circle-minus'})

@@ -537,68 +537,69 @@ data;
         }
         return $('<div/>').html(value).text();
     };
-        
+
     var addHelpButton = function(url, width, height)
     {
         width = (width || 600)
         height = (height || 800)
         var left = screen.width - width;
-        
+
         //Strip quotes
         url = String(url).replace(/^('|")+|('|")+$/g, '');
         script = 'window.open("' + url + '", "_blank", "toolbar=0, location=0, menubar=0, left=' + left + ', width=' + width + ', height=' + height + '");return false;';
         return "<div class='macro-helpbutton'><a href='" + url + "' onclick='" + script + "'><img src='img/help.png' border='0'></img><a/></div>";
     }
 
-    var renderWiki = function(mdstring) {
-        mdstring = mdstring || '';
-        var regex = /\n?(..)?\[\[(\w+)(:[^\]]+)?\]\]([.\s\S]*?[\s\S])??(\[\[\/\2\]\])/g;
-        var regex2 = /\n?(..)?\[\[(\w+)(:[^\]]+)?\/\]\]/g;
-        var replacefunc = function(fullmatch, start, macroname, paramstring, body){
-            if (start == "  "){
+    var replaceMacros = function(mdstring) {
+        var regex = /\n?(..)?(?:\[\[(\w+)(:[^\]]+)?\/\]\])|(?:\[\[(\w+)(:[^\]]+)?\]\]([.\s\S]*?[\s\S])??(?:\[\[\/\4\]\]))/g;
+        //               ^1          ^2   ^3                       ^4   ^5            ^6
+        // new func has to match both self closed (2=macroname1, 3=paramstring1)
+        // or full (4=macroname2, 5=paramstring2, 6=body2)
+        var replacefunc = function(fullmatch, start, macroname1, paramstring1, macroname2, paramstring2, body2){
+            if (start === "  "){
                 return fullmatch;
             }
-            var result = (start?start:"") + '\n<div class="macro macro_' + macroname + '"';
-            var helpurl = null;
+            var macroname,paramstring,body;
+            if (macroname1) {
+                macroname = macroname1;
+                paramstring = paramstring1;
+                body = "";
+            } else {
+                macroname = macroname2;
+                paramstring = paramstring2;
+                body = body2;
+            }
+            result = (start || "") + '\n<div class="macro macro_' + macroname + '"';
             if (paramstring){
                 paramstring = paramstring.substr(1);
                 paramstring = "," + paramstring;
-                var params = new Object();
-                var pieces = paramstring.split(/,\s*(\w+)\s*=\s*/);
-                for (var i = 1; i < pieces.length; i+=2)
-                {
+                var params = {};
+                var pieces = paramstring.split(/,\s*(\w+)\s*=\s*/),
+                    i;
+                for (i = 1; i < pieces.length; i += 2) {
                     var key = pieces[i];
                     var param = pieces[i+1];
-                    if (key == "help")
-                        helpurl = param
-                    else
-                        params[key] = param;
+                    params[key] = param;
                 }
-                result += " params='" + htmlEncode($.toJSON(params)) + "'";
+                result += " params='" + Utils.htmlEncode($.toJSON(params)) + "'";
             }
-            body = body || '';
-            if (helpurl)
-                result += " helpurl = " +  helpurl;
-
-            result += " >" + htmlEncode(body.trim()) + "\n</div>";
+            result += ">" + Utils.htmlEncode(body.trim()) + "\n</div>";
             return result;
         };
+        mdstring = mdstring.replace(regex,replacefunc);
+        return mdstring;
+    };
 
-        mdstring = mdstring.replace(regex ,
-            function(fullmatch, start, macroname, paramstring, body, _){
-                return replacefunc(fullmatch, start, macroname, paramstring, body);
-            });
-        mdstring = mdstring.replace(regex2 ,
-            function(fullmatch, start, macroname, paramstring){
-                return replacefunc(fullmatch, start, macroname, paramstring, null);
-            });
 
+    var replaceLinks = function(mdstring) {
         // Allow anchors to space and page
         // These regexes are taking from the Showdown source
         // See https://github.com/coreyti/showdown/blob/master/src/showdown.js for more information
         // Specifically function _StripLinkDefinitions and _DoAnchors
-        var simpleAnchorRegex = /(\[((?:\[[^\]]*\]|[^\[\]])*)\]\([ \t]*()<?(.*?)>?[ \t]*((['"])(.*?)\6[ \t]*)?\))/g;
-        var linkDefinitionsRegex = /^[ ]{0,3}\[(.+)\]:[ \t]*\n?[ \t]*<?(\S+?)>?[ \t]*\n?[ \t]*(?:(\n*)["(](.+?)[")][ \t]*)?(?:\n+|\Z)/gm;
+        var simpleAnchorRegex =
+              /(\[((?:\[[^\]]*\]|[^\[\]])*)\]\([ \t]*()<?(.*?)>?[ \t]*((['"])(.*?)\6[ \t]*)?\))/g,
+            linkDefinitionsRegex =
+              /^[ ]{0,3}\[(.+)\]:[ \t]*\n?[ \t]*<?(\S+?)>?[ \t]*\n?[ \t]*(?:(\n*)["(](.+?)[")][ \t]*)?(?:\n+|\Z)/gm;
         var replaceLink = function(url) {
             if (!url.length) {
                 return url;
@@ -616,13 +617,23 @@ data;
         };
 
         mdstring = mdstring.replace(simpleAnchorRegex, function(fullMatch, m1, m2, m3, url, title) {
-            title = (title ? title : "")
+            title = (title || "");
             return fullMatch.replace(new RegExp("\\(\\s*" + url + "\\s*" + title + "\\s*\\)"),
                 "(" + replaceLink(url) + " " + title + ")");
         });
         mdstring = mdstring.replace(linkDefinitionsRegex, function(fullMatch, m1, url) {
             return fullMatch.replace(url, replaceLink(url));
         });
+
+        return mdstring;
+    };
+
+    var renderWiki = function(mdstring) {
+        mdstring = mdstring || '';
+
+        mdstring = replaceMacros(mdstring);
+
+        mdstring = replaceLinks(mdstring);
 
         var compiler = new Showdown.converter();
         var result = compiler.makeHtml(mdstring);

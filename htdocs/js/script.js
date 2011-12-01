@@ -551,8 +551,8 @@ data;
     }
 
     var replaceMacros = function(mdstring) {
-        var regex = /\n?(..)?(?:\[\[(\w+)(:[^\]]+)?\/\]\])|(?:\[\[(\w+)(:[^\]]+)?\]\]([.\s\S]*?[\s\S])??(?:\[\[\/\4\]\]))/g;
-        //               ^1          ^2   ^3                       ^4   ^5            ^6
+        var regex = /\n?(..)?(?:(?:\[\[(\w+)(:[^\]]+)?\/\]\])|(?:\[\[(\w+)(:[^\]]+)?\]\]([.\s\S]*?[\s\S])??(?:\[\[\/\4\]\])))/g;
+        //               ^1             ^2   ^3                       ^4   ^5            ^6
         // new func has to match both self closed (2=macroname1, 3=paramstring1)
         // or full (4=macroname2, 5=paramstring2, 6=body2)
         var replacefunc = function(fullmatch, start, macroname1, paramstring1, macroname2, paramstring2, body2){
@@ -567,9 +567,9 @@ data;
             } else {
                 macroname = macroname2;
                 paramstring = paramstring2;
-                body = body2;
+                body = body2 || "";
             }
-            result = (start || "") + '\n<div class="macro macro_' + macroname + '"';
+            var result = (start || "") + '\n<div class="macro macro_' + macroname + '"';
             if (paramstring){
                 paramstring = paramstring.substr(1);
                 paramstring = "," + paramstring;

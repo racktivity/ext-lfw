@@ -201,13 +201,23 @@ $(function() {
             resizable: false,
             height: "auto",
             modal: true,
-            buttons: {
-                "Cancel": function() { $(this).dialog("close"); },
-                "Delete": function() {
-                    that.parent.removeWidget(that);
-                    $(this).dialog("close");
+            buttons: [
+                {
+                    text: "Delete",
+                    click: function() {
+                        that.parent.removeWidget(that);
+                        $(this).dialog("close");
+                    },
+                    className: 'positive'
+                },
+                {
+                    text: "Cancel",
+                    click: function() {
+                        $(this).dialog("close");
+                    },
+                    className: 'negative'
                 }
-            },
+            ],
             close: function() { $(this).remove(); }
         });
     };

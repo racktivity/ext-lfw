@@ -257,7 +257,7 @@ class Alkira:
 
         return self.connection.page.findAsView(filter, 'ui_view_page_list')
 
-    def listChildPages(self, space, name = None):
+    def listChildPagesInfo(self, space, name=None):
         """
         Lists child pages of page "name"
 
@@ -277,9 +277,11 @@ class Alkira:
         else:
             filter.add('ui_view_page_list', 'parent', None, True)
 
-        query = self.connection.page.findAsView(filter, 'ui_view_page_list')
-        return list(name["name"] for name in query)
-
+        return self.connection.page.findAsView(filter, 'ui_view_page_list')
+        
+    def listChildPages(self, space, name = None):
+        return list(info["name"] for info in self.listChildPagesInfo(space, name))
+    
     def spaceExists(self, name):
         """
         Checks whether a space exists or not

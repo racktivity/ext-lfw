@@ -1108,12 +1108,13 @@ $(function() {
 
     $('html')
         .ajaxStart(function() {
+            $('#spinner').show();
             $("html").css("cursor", "wait");
         })
         .ajaxStop(function() {
+            $('#spinner').hide();
             $("html").css('cursor', 'default');
         });
-        //.hide();
 
 
 });

@@ -24,10 +24,10 @@ def main(q, i, p, params, tags):
 
     service = params['service']
     space = params['space']
+    space = space.replace(',', "','")
     id = params['id']
     lazyload = params['lazyload']
 
-    space = service.alkira.getSpace(space)
     where = ""
     if id == 0:
         where = "and pagelist.parent is null"
@@ -37,8 +37,9 @@ def main(q, i, p, params, tags):
         sql1 = """
             SELECT DISTINCT pagelist.guid
             FROM ONLY ui_page.ui_view_page_list as pagelist
-            WHERE pagelist.space ='%(space)s' and pagelist.name = '%(id)s';
-            """ % {'space': space.guid, 'id': id}
+            JOIN ui_space.ui_view_space_list as spacelist on spacelist.guid = pagelist.space
+            WHERE spacelist.name in ('%(space)s') and pagelist.name = '%(id)s';
+            """ % {'space': space, 'id': id}
 
         parent_guid_result = service.connection.page.query(sql1)
         parent_guid = parent_guid_result[0]['guid']
@@ -50,11 +51,14 @@ def main(q, i, p, params, tags):
             pagelist.parent,
             pagelist.name,
             pagelist.title,
-            pagelist.order
-            FROM ONLY ui_page.ui_view_page_list as pagelist
-            WHERE pagelist.space = '%(space)s'
-            ORDER BY pagelist.order, pagelist.title;
-        """ % {'space': space.guid}
+            pagelist.order,
+            spacelist.order,
+            spacelist.name as spacename
+            FROM ONLY ui_page.ui_view_page_list as pagelist 
+            JOIN ui_space.ui_view_space_list as spacelist on spacelist.guid = pagelist.space
+            WHERE space.name in ('%(space)s')
+            ORDER BY spacelist.order,pagelist.order, pagelist.title;
+        """ % {'space': space}
     else:
         sql = """
         SELECT DISTINCT pagelist.guid,
@@ -62,10 +66,14 @@ def main(q, i, p, params, tags):
                 pagelist.name,
                 pagelist.title,
                 pagelist.order,
+                spacelist.order,
+                spacelist.name as spacename,
                 (select count(guid) FROM ui_page.ui_view_page_list WHERE ui_page.ui_view_page_list.parent = pagelist.guid) as nrofkids
                 FROM ONLY ui_page.ui_view_page_list as pagelist
-                WHERE pagelist.space = '%(space)s' %(where)s ORDER BY pagelist.order, pagelist.title;
-        """ % {'space': space.guid, 'where': where}
+                JOIN ui_space.ui_view_space_list as spacelist on spacelist.guid = pagelist.space
+                WHERE spacelist.name in ('%(space)s') %(where)s 
+                ORDER BY spacelist.order,pagelist.order, pagelist.title;
+        """ % {'space': space, 'where': where}
 
     result = service.connection.page.query(sql)
     data = list()
@@ -86,7 +94,7 @@ def main(q, i, p, params, tags):
         #Get child nodes of each parent
         for rootnode in rootnodes:
             childnodes = _constructChildren(parents, rootnode['guid'], space.name, nodesmap)
-            nodedata = makeNode(rootnode['title'], '#/%s/%s' % (space.name, node['name']), childnodes)
+            nodedata = makeNode(rootnode['title'], '#/%s/%s' % (node['spacename'], node['name']), childnodes)
             data.append(nodedata)
         
     else:
@@ -98,7 +106,7 @@ def main(q, i, p, params, tags):
             state = 'closed' if 'nrofkids' in node and node['nrofkids'] > 0 else 'leaf'
             nodedata = {'data': {'title': node['title'],
                                  'type': 'link',
-                                 'attr': {'href': '#/%s/%s' % (space.name, node['name'])},
+                                 'attr': {'href': '#/%s/%s' % (node['spacename'], node['name'])},
                                  'children':[]
                                  },
                         'attr': {

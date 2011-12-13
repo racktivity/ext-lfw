@@ -581,9 +581,9 @@ data;
                     var param = pieces[i+1];
                     params[key] = param;
                 }
-                result += " params='" + Utils.htmlEncode($.toJSON(params)) + "'";
+                result += " params='" + htmlEncode($.toJSON(params)) + "'";
             }
-            result += ">" + Utils.htmlEncode(body.trim()) + "\n</div>";
+            result += ">" + htmlEncode(body.trim()) + "\n</div>";
             return result;
         };
         mdstring = mdstring.replace(regex,replacefunc);

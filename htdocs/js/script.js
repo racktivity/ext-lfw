@@ -829,7 +829,7 @@ data;
                args['tags'] = this.params['q'];
            }
            else if(type === 'fulltext') {
-               args['text'] = this.params['q'];
+               args['text'] = this.params['q'].replace(/\+/g, ' ').trim();
            }
            else {
                throw new Error('Invalid query type');

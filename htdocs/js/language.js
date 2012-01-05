@@ -74,6 +74,7 @@
         }
         
         var options = {package: package,
+                       forceload: false,
                       locale: guessLocale()};
         
         if (typeof settings === "string"){
@@ -84,7 +85,7 @@
         
         var packagekey = options.package + "-" + options.locale;
         
-        if (packagekey in cache) {
+        if (packagekey in cache && !options.forceload) {
             return query(key, cache[packagekey]);
         } else {
             //download the package into the cache

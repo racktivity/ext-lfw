@@ -10,7 +10,8 @@ var render = function(options) {
                            toggle: 'true',
                            closed: 'false'}, options.params);
 
-    var body = $("<div>", {'class': 'widget-body'});
+    var body = $("<div>", {'class': 'widget-body'})
+                .css('width', params.width);
 
 
     var titlebar = $("<div>", {'class': 'widget-titlebar'})
@@ -32,7 +33,6 @@ var render = function(options) {
 
     var content = $("<div>", {'class': 'widget-content'})
         .html(options.renderWiki(options.body))
-        .css('width', params.width)
         .css('height', params.height);
 
     body.append(titlebar).append(content);

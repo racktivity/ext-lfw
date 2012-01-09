@@ -460,8 +460,13 @@ class Alkira:
                         self._moveFile(oldfile, tofile)
                     if _isdir(olddir):
                         self._moveDir(olddir, dir)
+                content = """@metadata title=%s
+@metadata tags=%s
+%s""" % (page.title,
+         page.tags if page.tags else "",
+         page.content)
 
-                _write(file, page.content)
+                _write(file, content)
             else:
                 if not _isdir(dir):
                     q.system.fs.createDir(dir)

@@ -243,6 +243,6 @@ var render = function(options) {
 
     options.addCss({'id': 'rgraphmacro', 'tag': 'style', 'params': '.node { cursor: pointer; padding: 0em 0.3em }'});
 
-    options.addDependency(callBack, ["/static/lfw/js/libs/Jit-2.0.0b/jit.js"]);
+    options.addDependency(callBack, ["js/libs/Jit-2.0.0b/jit.js"]);
 };
 register(render);

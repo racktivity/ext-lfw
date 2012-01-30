@@ -25,7 +25,7 @@ var render = function(options) {
     if (renderer) {
         var renderer_name = renderer.replace("$.jqplot.", "");
         renderer_name = renderer_name.charAt(0).toLowerCase().concat(renderer_name.slice(1));
-        renderer_dependency = "/static/lfw/js/libs/jqplot/src/plugins/jqplot." + renderer_name + ".js";
+        renderer_dependency = "js/libs/jqplot/src/plugins/jqplot." + renderer_name + ".js";
     }
 
     console.log("redered_path : " + renderer_dependency);
@@ -64,22 +64,22 @@ var render = function(options) {
         $.jqplot(chart_div, chart_data, opts);
     };
 
-    var dependencies = ["/static/lfw/js/libs/jqplot/src/jquery.jqplot.js",
-     "/static/lfw/js/libs/jqplot/src/jqplot.core.js",
-     "/static/lfw/js/libs/jqplot/src/jqplot.linearTickGenerator.js",
-     '/static/lfw/js/libs/jqplot/src/jqplot.linearAxisRenderer.js',
-     '/static/lfw/js/libs/jqplot/src/jqplot.axisTickRenderer.js',
-     '/static/lfw/js/libs/jqplot/src/jqplot.axisLabelRenderer.js',
-     '/static/lfw/js/libs/jqplot/src/jqplot.tableLegendRenderer.js',
-     '/static/lfw/js/libs/jqplot/src/jqplot.lineRenderer.js',
-     '/static/lfw/js/libs/jqplot/src/jqplot.markerRenderer.js',
-     '/static/lfw/js/libs/jqplot/src/jqplot.divTitleRenderer.js',
-     '/static/lfw/js/libs/jqplot/src/jqplot.canvasGridRenderer.js',
-     '/static/lfw/js/libs/jqplot/src/jqplot.shadowRenderer.js',
-     '/static/lfw/js/libs/jqplot/src/jqplot.shapeRenderer.js',
-     '/static/lfw/js/libs/jqplot/src/jqplot.sprintf.js',
-     '/static/lfw/js/libs/jqplot/src/jsdate.js',
-     "/static/lfw/js/libs/jqplot/src/jqplot.themeEngine.js"];
+    var dependencies = ["js/libs/jqplot/src/jquery.jqplot.js",
+     "js/libs/jqplot/src/jqplot.core.js",
+     "js/libs/jqplot/src/jqplot.linearTickGenerator.js",
+     'js/libs/jqplot/src/jqplot.linearAxisRenderer.js',
+     'js/libs/jqplot/src/jqplot.axisTickRenderer.js',
+     'js/libs/jqplot/src/jqplot.axisLabelRenderer.js',
+     'js/libs/jqplot/src/jqplot.tableLegendRenderer.js',
+     'js/libs/jqplot/src/jqplot.lineRenderer.js',
+     'js/libs/jqplot/src/jqplot.markerRenderer.js',
+     'js/libs/jqplot/src/jqplot.divTitleRenderer.js',
+     'js/libs/jqplot/src/jqplot.canvasGridRenderer.js',
+     'js/libs/jqplot/src/jqplot.shadowRenderer.js',
+     'js/libs/jqplot/src/jqplot.shapeRenderer.js',
+     'js/libs/jqplot/src/jqplot.sprintf.js',
+     'js/libs/jqplot/src/jsdate.js',
+     "js/libs/jqplot/src/jqplot.themeEngine.js"];
 
     if (renderer_dependency){
         dependencies.push(renderer_dependency);

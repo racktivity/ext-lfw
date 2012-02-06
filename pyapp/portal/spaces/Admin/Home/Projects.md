@@ -25,9 +25,9 @@
     </tbody>
 </table>
 
-<link rel=StyleSheet href="/static/lfw/js/libs/jstree/themes/classic/style.css" type="text/css" />
-<script language="javascript" src="/static/lfw/js/libs/jstree/jquery.hotkeys.js"/>
-<script language="javascript" src="/static/lfw/js/libs/jstree/jquery.jstree.js"/>
+<link rel="stylesheet" href="js/libs/jstree/themes/classic/style.css" type="text/css" />
+<script language="javascript" src="js/libs/jstree/jquery.hotkeys.js"/>
+<script language="javascript" src="js/libs/jstree/jquery.jstree.js"/>
 
 <script>
 $(document).ready(function() {
@@ -69,8 +69,8 @@ $(document).ready(function() {
                             select_limit: 1,
                         },
                         types: {
-                            types: { project: {icon: {image: '/static/lfw/img/editor/project.png'}},
-                                     file: {icon: {image: '/static/lfw/img/editor/file.png'}},
+                            types: { project: {icon: {image: 'img/editor/project.png'}},
+                                     file: {icon: {image: 'img/editor/file.png'}},
                                      default: {}}
                         },
                         contextmenu: {

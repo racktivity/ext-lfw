@@ -40,13 +40,13 @@ var render = function(options) {
     };
 
     options.addDependency(cb,
-            ['/static/jswizards/ext/jquery-ui.min.js',
-             '/static/jswizards/js/jswizards.js',
-             '/static/jswizards/ext/jquery.floatbox.1.0.8.js',
-             '/static/jswizards/ext/jquery.ui.datetimepicker.js']);
-    options.addCss({'id': 'jquery-ui', 'tag': 'link', 'params': {'rel': 'stylesheet', 'href': '/static/jswizards/ext/jquery-ui.css'}});
-    options.addCss({'id': 'floatbox-wizard', 'tag': 'link', 'params': {'rel': 'stylesheet', 'href': '/static/jswizards/ext/joshuaclayton-blueprint-css-c20e981/blueprint/screen.css'}});
-        options.addCss({'id': 'floatbox-wizard-btn', 'tag': 'link', 'params': {'rel': 'stylesheet', 'href': '/static/jswizards/ext/joshuaclayton-blueprint-css-c20e981/blueprint/plugins/buttons/screen.css'}});
-    options.addCss({'id': 'wizardaction', 'tag': 'link', 'params': {'rel': 'stylesheet', 'href': '/static/jswizards/style/screen.css'}});
+            ['jswizards/ext/jquery-ui.min.js',
+             'jswizards/js/jswizards.js',
+             'jswizards/ext/jquery.floatbox.1.0.8.js',
+             'jswizards/ext/jquery.ui.datetimepicker.js']);
+    options.addCss({'id': 'jquery-ui', 'tag': 'link', 'params': {'rel': 'stylesheet', 'href': 'jswizards/ext/jquery-ui.css'}});
+    options.addCss({'id': 'floatbox-wizard', 'tag': 'link', 'params': {'rel': 'stylesheet', 'href': 'jswizards/ext/joshuaclayton-blueprint-css-c20e981/blueprint/screen.css'}});
+        options.addCss({'id': 'floatbox-wizard-btn', 'tag': 'link', 'params': {'rel': 'stylesheet', 'href': 'jswizards/ext/joshuaclayton-blueprint-css-c20e981/blueprint/plugins/buttons/screen.css'}});
+    options.addCss({'id': 'wizardaction', 'tag': 'link', 'params': {'rel': 'stylesheet', 'href': 'jswizards/style/screen.css'}});
 };
 register(render);

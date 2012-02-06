@@ -201,7 +201,7 @@ var render = function(options) {
 
     };
 
-    var dependencies = ["/static/lfw/js/libs/protovis-3.2/protovis-d3.2.js"];
+    var dependencies = ["js/libs/protovis-3.2/protovis-d3.2.js"];
 
     options.addDependency(cb, dependencies, true);
 };

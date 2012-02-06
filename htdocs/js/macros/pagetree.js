@@ -10,7 +10,7 @@ var render = function(options) {
     var root = options.params.root || 0;
     var lazyload = options.params.lazyload || true;
 
-    options.addCss({'id': 'pagetree', 'tag': 'link', 'params': {'rel': 'stylesheet', 'href': '/static/lfw/js/libs/jstree/themes/classic/style.css'}});
+    options.addCss({'id': 'pagetree', 'tag': 'link', 'params': {'rel': 'stylesheet', 'href': 'js/libs/jstree/themes/classic/style.css'}});
 
     var cb = function(){
 
@@ -36,7 +36,7 @@ var render = function(options) {
 
     }
 
-    options.addDependency(cb, ["/static/lfw/js/libs/jstree/jquery.cookie.js", "/static/lfw/js/libs/jstree/jquery.hotkeys.js", "/static/lfw/js/libs/jstree/jquery.jstree.js"]);
+    options.addDependency(cb, ["js/libs/jstree/jquery.cookie.js", "js/libs/jstree/jquery.hotkeys.js", "js/libs/jstree/jquery.jstree.js"]);
 };
 
 register(render);

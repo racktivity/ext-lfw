@@ -10,7 +10,7 @@ class LocalAuthBackend(authbackend.AuthBackend):
     def verifyUserIdentity(self, login, password):
         if self.config.checkSection(login) and self.config.checkParam(login, "password"):
             md5 = hashlib.md5()
-            md5.update(password)
+            md5.update(str(password))
 
             return self.config.getValue(login, "password") == md5.hexdigest()
 
@@ -21,7 +21,7 @@ class LocalAuthBackend(authbackend.AuthBackend):
             q.errorconditionhandler.raiseError("User %s already exists in the backend." % userinfo["login"])
 
         md5 = hashlib.md5()
-        md5.update(userinfo["password"])
+        md5.update(str(userinfo["password"]))
 
         self.config.addSection(userinfo["login"])
         self.config.addParam(userinfo["login"], "password", md5.hexdigest())

@@ -14,6 +14,16 @@ import time
 ADMINSPACE = "Admin"
 IDESPACE = "IDE"
 
+def toStr(value):
+    if isinstance(value, unicode):
+        value = value.encode('utf-8')
+    return value
+
+def toUnicode(value):
+    if isinstance(value, str):
+        value = value.decode('utf-8')
+    return value
+
 class Alkira:
     def __init__(self, api=None):
         """
@@ -432,7 +442,8 @@ class Alkira:
 
         self.connection.space.delete(space.guid)
         spacefile = 's_' + space.name
-        self.deletePage(ADMINSPACE, spacefile)
+        if self.pageExists(ADMINSPACE, spacefile):
+            self.deletePage(ADMINSPACE, spacefile)
         q.system.fs.removeDirTree(self._getDir(space.name))
 
     def _syncPageToDisk(self, space, page, oldpagename=None):
@@ -442,30 +453,31 @@ class Alkira:
         _isdir = q.system.fs.isDir
         _write = q.system.fs.writeFile
 
-        dir = self._getDir(space)
+        dir = toUnicode(self._getDir(space))
         upper = dir
         for i, level in enumerate(crumbs):
-            name = level['name']
+            name = toStr(level['name'])
             filename = name + ".md"
+            dir = toStr(dir)
             file = _join(dir, filename)
             dir = _join(dir, name)
+            dir = toUnicode(dir)
 
             if i == len(crumbs) - 1:
                 if oldpagename:
-                    oldfile = _join(upper, oldpagename + ".md")
-                    olddir = _join(upper, oldpagename)
-                    tofile = file
+                    oldfile = toUnicode(_join(upper, oldpagename + ".md"))
+                    olddir = toUnicode(_join(upper, oldpagename))
+                    tofile = toUnicode(file)
 
                     if _isfile(oldfile):
                         self._moveFile(oldfile, tofile)
                     if _isdir(olddir):
                         self._moveDir(olddir, dir)
-                content = """@metadata title=%s
-@metadata tags=%s
-%s""" % (page.title,
-         page.tags if page.tags else "",
-         page.content)
-
+                content = """@metadata title=%(title)s
+@metadata tags=%(title)s
+%(content)s""" % { 'title': toStr(page.title),
+                   'tags': toStr(page.tags if page.tags else ""),
+                   'content': toStr(page.content)}
                 _write(file, content)
             else:
                 if not _isdir(dir):
@@ -478,12 +490,15 @@ class Alkira:
         _isfile = q.system.fs.isFile
         _isdir = q.system.fs.isDir
 
-        dir = self._getDir(space)
+        dir = toUnicode(self._getDir(space))
         for i, level in enumerate(crumbs):
+            dir = toStr(dir)
             name = level['name']
             filename = name + ".md"
             file = _join(dir, filename)
             dir = _join(dir, name)
+            #file operators require unicode
+            dir = toUnicode(dir)
 
             if i == len(crumbs) - 1:
                 if _isdir(dir):
@@ -549,11 +564,11 @@ class Alkira:
         if name == ADMINSPACE:
             return
 
-        q.system.fs.createDir(self._getDir(name))
+        q.system.fs.createDir(self._getDir(toUnicode(name)))
 
         #create a space page under the default admin space
         spacefile = 's_' + name
-        spacectnt = p.core.codemanagement.api.getSpacePage(name)
+        spacectnt = p.core.codemanagement.api.getSpacePage(toStr(name))
         if createHomePage:
             self.createPage(name, "Home", content="", order=10000, title="Home", tagsList=tagsList)
         self.createPage(ADMINSPACE, spacefile, spacectnt, title=name, parent="Spaces")
@@ -637,7 +652,7 @@ class Alkira:
         tags = set(tagsList)
         tags.add('space:%s' % space.name)
         tags.add('page:%s' % name)
-        page.tags = ' '.join(tags)
+        page.tags = ' '.join([ toStr(x) for x in tags])
 
         if parent:
             parent_page = self.getPage(space.guid, parent)
@@ -1118,11 +1133,11 @@ class Alkira:
 
         #make the first space is the Admin Space
         portal_spaces = sorted(portal_spaces, lambda x,y: -1 if x.endswith("/" + ADMINSPACE) else 1)
-
+        existingspaces = [ toStr(x) for x in self.listSpaces() ]
         for folder in portal_spaces:
             space = folder.split(os.sep)[-1]
             spaceguid = None
-            if space not in self.listSpaces():
+            if space not in existingspaces:
                 #create space
                 self.createSpace(space, createHomePage=False)
 
@@ -1140,7 +1155,7 @@ class Alkira:
                 createPage(page_file[0])
                 return
 
-            folder_paths = q.system.fs.listDirsInDir(folder)
+            folder_paths = q.system.fs.listDirsInDir(toUnicode(folder))
             main_files = q.system.fs.listFilesInDir(folder, filter='*.md')
 
             for each_file in main_files:

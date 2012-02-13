@@ -14,15 +14,7 @@ import time
 ADMINSPACE = "Admin"
 IDESPACE = "IDE"
 
-def toStr(value):
-    if isinstance(value, unicode):
-        value = value.encode('utf-8')
-    return value
-
-def toUnicode(value):
-    if isinstance(value, str):
-        value = value.decode('utf-8')
-    return value
+toStr = q.tools.text.toStr
 
 class Alkira:
     def __init__(self, api=None):
@@ -453,21 +445,20 @@ class Alkira:
         _isdir = q.system.fs.isDir
         _write = q.system.fs.writeFile
 
-        dir = toUnicode(self._getDir(space))
+        dir = self._getDir(space)
         upper = dir
         for i, level in enumerate(crumbs):
-            name = toStr(level['name'])
+            name = level['name']
             filename = name + ".md"
-            dir = toStr(dir)
+            dir = dir
             file = _join(dir, filename)
             dir = _join(dir, name)
-            dir = toUnicode(dir)
 
             if i == len(crumbs) - 1:
                 if oldpagename:
-                    oldfile = toUnicode(_join(upper, oldpagename + ".md"))
-                    olddir = toUnicode(_join(upper, oldpagename))
-                    tofile = toUnicode(file)
+                    oldfile = _join(upper, oldpagename + ".md")
+                    olddir = _join(upper, oldpagename)
+                    tofile = file
 
                     if _isfile(oldfile):
                         self._moveFile(oldfile, tofile)
@@ -490,15 +481,12 @@ class Alkira:
         _isfile = q.system.fs.isFile
         _isdir = q.system.fs.isDir
 
-        dir = toUnicode(self._getDir(space))
+        dir = self._getDir(space)
         for i, level in enumerate(crumbs):
-            dir = toStr(dir)
             name = level['name']
             filename = name + ".md"
             file = _join(dir, filename)
             dir = _join(dir, name)
-            #file operators require unicode
-            dir = toUnicode(dir)
 
             if i == len(crumbs) - 1:
                 if _isdir(dir):
@@ -564,7 +552,7 @@ class Alkira:
         if name == ADMINSPACE:
             return
 
-        q.system.fs.createDir(self._getDir(toUnicode(name)))
+        q.system.fs.createDir(self._getDir(name))
 
         #create a space page under the default admin space
         spacefile = 's_' + name
@@ -1155,7 +1143,7 @@ class Alkira:
                 createPage(page_file[0])
                 return
 
-            folder_paths = q.system.fs.listDirsInDir(toUnicode(folder))
+            folder_paths = q.system.fs.listDirsInDir(folder)
             main_files = q.system.fs.listFilesInDir(folder, filter='*.md')
 
             for each_file in main_files:

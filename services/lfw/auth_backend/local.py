@@ -45,7 +45,7 @@ class LocalAuthBackend(authbackend.AuthBackend):
 
         if "password" in userinfo:
             md5 = hashlib.md5()
-            md5.update(userinfo["password"])
+            md5.update(str(userinfo["password"]))
             self.config.setParam(login, "password", md5.hexdigest())
         return True
 

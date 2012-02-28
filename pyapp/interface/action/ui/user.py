@@ -30,7 +30,7 @@ class user:
         @raise e:                In case an error occurred, exception is raised
         """
 
-    def find(self, login="", name="", jobguid="", executionparams=None):
+    def find(self, login="", name="", exact_properties=None, jobguid="", executionparams=None):
         """
         Returns a list of user objects which met the find criteria.
 
@@ -38,8 +38,14 @@ class user:
         @security administrators
         @authorize =
 
+        @param login:                  login of the user
+        @type login:                   string
+
         @param name:                   name of the user
         @type name:                    string
+
+        @param exact_properties:       a list containing the names of parameters for which we search for an exact match
+        @type exact_properties:        list
 
         @param jobguid:                guid of the job if available else empty string
         @type jobguid:                 guid

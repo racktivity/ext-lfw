@@ -473,6 +473,7 @@ class Request(dict):
         url_items = [(to_utf8(k), to_utf8(v)) for k, v in url_items if k != 'oauth_signature' ]
         items.extend(url_items)
 
+        items = list(set(items))
         items.sort()
         encoded_str = urllib.urlencode(items)
         # Encode signature parameters per Oauth Core 1.0 protocol

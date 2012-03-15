@@ -27,6 +27,12 @@ class Alkira:
 
         self.connection = api.model.ui
         self.api = api
+        self.sync = True
+        cfgpath = q.system.fs.joinPaths(api._app_path, "cfg", "alkira.cfg")
+        if q.system.fs.isFile(cfgpath):
+            cfg = q.tools.inifile.open(cfgpath)
+            if cfg.checkParam("main", "sync"):
+                self.sync = cfg.getBooleanValue("main", "sync")
 
     def _callAuthService(self, method, oauthInfo, **args):
         data = {}
@@ -436,9 +442,14 @@ class Alkira:
         spacefile = 's_' + space.name
         if self.pageExists(ADMINSPACE, spacefile):
             self.deletePage(ADMINSPACE, spacefile)
-        q.system.fs.removeDirTree(self._getDir(space.name))
+        
+        if self.sync:
+            q.system.fs.removeDirTree(self._getDir(space.name))
 
     def _syncPageToDisk(self, space, page, oldpagename=None):
+        if not self.sync:
+            return
+        
         crumbs = self._breadcrumbs(page)
         _join = q.system.fs.joinPaths
         _isfile = q.system.fs.isFile
@@ -477,6 +488,8 @@ class Alkira:
             upper = dir
 
     def _syncPageDelete(self, space, crumbs):
+        if not self.sync:
+            return
         _join = q.system.fs.joinPaths
         _isfile = q.system.fs.isFile
         _isdir = q.system.fs.isDir
@@ -552,7 +565,8 @@ class Alkira:
         if name == ADMINSPACE:
             return
 
-        q.system.fs.createDir(self._getDir(name))
+        if self.sync:
+            q.system.fs.createDir(self._getDir(name))
 
         #create a space page under the default admin space
         spacefile = 's_' + name
@@ -732,8 +746,9 @@ class Alkira:
             self.updatePage(space = ADMINSPACE, old_name = oldspacefile, name=newspacefile, content=p.core.codemanagement.api.getSpacePage(newspacefile))
 
             #sync file system
-            self._moveDir(self._getDir(oldname),
-                          self._getDir(newname))
+            if self.sync:
+                self._moveDir(self._getDir(oldname),
+                              self._getDir(newname))
 
         return space
 

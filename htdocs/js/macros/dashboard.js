@@ -262,6 +262,12 @@ $(function() {
                 console.log('refresh delay requested, waiting for subsequent event');
                 return;
             }
+            if (info.error) {
+                console.log('there was an error on refresh, keeping the old data');
+                $('#'+widgetId+pNew).remove();
+                $('#'+widgetId+pOld).attr('id', '').addClass('refresh-error');
+                return;
+            }
             $('#'+widgetId+pNew).removeClass('portlet-refresh').attr('id', '').unbind('macro-render-finish');
             $('#'+widgetId+pOld).remove();
             console.log('done refresh of widget ' + widgetId);

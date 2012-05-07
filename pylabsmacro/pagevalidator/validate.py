@@ -12,7 +12,7 @@ PYMACROS_GPATH = q.system.fs.joinPaths(q.dirs.baseDir, "lib", "python", "site-pa
 
 def isExternalLink(linkparts):
     if linkparts[0] in ("ftp:", "ftps:"):
-       return True
+        return True
     if linkparts[0] in ("http:", "https:"):
         if linkparts[-1] == "#":
             return True
@@ -140,14 +140,14 @@ def main(q, i, p, params, tags):
         else:
             spaces = list(item.strip() for item in tags["spaces"].split(","))
     if "showvalid" in tags:
-		showValid = (tags["showvalid"].lower() == "true")
+        showValid = (tags["showvalid"].lower() == "true")
     #
     if pages or spaces:
         result = getInvalidLinks(appname, spaces, pages, showValid = showValid)
     else:
         result = getPageReport(client, tags["space"], tags["page"], True, showValid = showValid)
-    html = "<TABLE><TR><TD>Page</TD><TD>URL</TD><TD>Status</TD></TR>\n"
-    row = "<TR><TD>%s</TD><TD>%s</TD><TD>%s</TD><TR>\n"
+    html = "<TABLE><TR><TD>Page</TD><TD>URL</TD><TD>Status</TD></TR>"
+    row = "<TR><TD>%s</TD><TD>%s</TD><TD>%s</TD></TR>"
     for item in result:
         parenturl = "/%s/#/%s"%(appname, item[0])
         if item[1] == "link":
@@ -161,4 +161,6 @@ def main(q, i, p, params, tags):
                 "OK" if item[3] else "MISSING"
             )
     html += "</TABLE>"
+    html = html.replace('\n#', '\n\#')
+    html = html.replace('\n', '')    
     params['result'] = "%s"%html

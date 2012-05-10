@@ -24,7 +24,7 @@ class group:
         @raise e:                In case an error occurred, exception is raised
         """
 
-    def find(self, name="", jobguid="", executionparams=None):
+    def find(self, name="", exact_properties="", jobguid="", executionparams=None):
         """
         Returns a list of group objects which met the find criteria.
 
@@ -35,6 +35,9 @@ class group:
 
         @param name:                   name of the group
         @type name:                    string
+
+        @param exact_properties:       list of column names for which it should perform an exact match
+        @type exact_properties:        list
 
         @param jobguid:                guid of the job if available else empty string
         @type jobguid:                 guid

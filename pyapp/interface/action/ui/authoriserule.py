@@ -30,7 +30,7 @@ class authoriserule:
         @raise e:                In case an error occurred, exception is raised
         """
 
-    def find(self, groupguid="", function="", context="", jobguid="", executionparams=None):
+    def find(self, groupguids="", function="", context="", exact_properties="", jobguid="", executionparams=None):
         """
         Returns a list of authoriserule objects which met the find criteria.
 
@@ -47,6 +47,9 @@ class authoriserule:
 
         @param context:                context of the authorise rule
         @type context:                 string
+
+        @param exact_properties:       list of column names for which it should perform an exact match
+        @type exact_properties:        list
 
         @param jobguid:                guid of the job if available else empty string
         @type jobguid:                 guid

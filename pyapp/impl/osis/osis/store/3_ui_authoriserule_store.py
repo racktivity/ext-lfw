@@ -1,6 +1,7 @@
 __author__ = 'Incubaid'
 
-import string, json
+import string
+from alkira.serialize import json_print_dict
 
 def main(q, i, p, params, tags):
     osis = p.application.getOsisConnection(p.api.appname)
@@ -9,7 +10,7 @@ def main(q, i, p, params, tags):
     values = {
         'groupguids': ";" + string.join(rootobject.groupguids, ";") + ";" if rootobject.groupguids else "",
         'function': rootobject.function,
-        'context': json.dumps(rootobject.context._dict)
+        'context': json_print_dict(rootobject.context._dict)
     }
     osis.viewSave(params['domain'], params['rootobjecttype'], viewname, rootobject.guid, rootobject.version, values)
 

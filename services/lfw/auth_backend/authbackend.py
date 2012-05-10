@@ -1,6 +1,6 @@
 from osis.store.OsisDB import OsisDB
 from pylabs import p, q
-import json
+from alkira.serialize import json_print_dict
 
 PUBLIC_GROUP = "Public Group"
 ADMIN_GROUP = "Admins"
@@ -63,7 +63,7 @@ class AuthBackend(object):
         searchfilter = self.osis.getFilterObject()
         searchfilter.add("ui_view_authoriserule_list", "groupguids", ";" + group + ";", False)
         searchfilter.add("ui_view_authoriserule_list", "function", functionname, True)
-        searchfilter.add("ui_view_authoriserule_list", "context", json.dumps(context), True)
+        searchfilter.add("ui_view_authoriserule_list", "context", json_print_dict(context), True)
         return self.osis.objectsFind("ui", "authoriserule", searchfilter)
 
     def _ruleExists(self, group, functionname, context):
@@ -200,7 +200,7 @@ class AuthBackend(object):
             searchfilter = self.osis.getFilterObject()
             searchfilter.add("ui_view_authoriserule_list", "groupguids", ";" + groupguid + ";", False)
             searchfilter.add("ui_view_authoriserule_list", "function", functionname, True)
-            searchfilter.add("ui_view_authoriserule_list", "context", json.dumps(context), True)
+            searchfilter.add("ui_view_authoriserule_list", "context", json_print_dict(context), True)
             return bool(self.osis.objectsFind("ui", "authoriserule", searchfilter))
 
         for groupguid in groups:

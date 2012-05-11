@@ -27,7 +27,8 @@ var render = function(options) {
             "themes" : {
                "theme" : "classic",
             },
-            "plugins": ["themes", "json_data", "cookies", "ui"]
+            "plugins": ["themes", "json_data", "cookies", "ui"],
+            "cookies": {"save_selected": false}
         })
         .bind("select_node.jstree", function (e, data) {
             var href = data.rslt.obj.children("a").attr("href");

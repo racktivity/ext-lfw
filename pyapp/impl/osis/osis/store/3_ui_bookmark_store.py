@@ -1,7 +1,5 @@
-__author__ = 'Incubaid'
+__author__ = 'Racktivity'
 
-import string
-from alkira.serialize import json_print_dict
 from osis.store import OsisConnection
 
 def main(q, i, p, params, tags):
@@ -9,11 +7,11 @@ def main(q, i, p, params, tags):
     viewname = OsisConnection.getTableName(domain = params['domain'], objType = params['rootobjecttype'])
     rootobject = params['rootobject']
     values = {
-        'groupguids': ";" + string.join(rootobject.groupguids, ";") + ";" if rootobject.groupguids else "",
-        'function': rootobject.function,
-        'context': json_print_dict(rootobject.context._dict)
+        'name': rootobject.name,
+        'url': rootobject.url,
+        'order': rootobject.order
     }
     osis.viewSave(params['domain'], params['rootobjecttype'], viewname, rootobject.guid, rootobject.version, values)
 
 def match(q, i, params, tags):
-    return params['rootobjecttype'] == 'authoriserule' and params['domain'] == 'ui'
+    return params['rootobjecttype'] == 'bookmark' and params['domain'] == 'ui'

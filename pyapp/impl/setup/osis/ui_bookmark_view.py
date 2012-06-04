@@ -1,4 +1,4 @@
-__author__ = 'Incubaid'
+__author__ = 'Racktivity'
 __tags__ = 'setup'
 __priority__= 3
 
@@ -6,7 +6,7 @@ from osis.store.OsisDB import OsisDB
 from osis.store import OsisConnection
 
 def main(q, i, params, tags):
-    rootobject = '_index'
+    rootobject = 'bookmark'
     domain = "ui"
     appname = params['appname']
     scheme_name = OsisConnection.getSchemeName(domain = domain, objType = rootobject)
@@ -16,12 +16,8 @@ def main(q, i, params, tags):
         view = connection.viewCreate(domain, rootobject, view_name)
         view.setCol('name', q.enumerators.OsisType.STRING, False)
         view.setCol('url', q.enumerators.OsisType.STRING, False)
-        view.setCol('content', q.enumerators.OsisType.TEXT, True)
-        view.setCol('tags', q.enumerators.OsisType.STRING, True)
-        view.setCol('description', q.enumerators.OsisType.STRING, True)
+        view.setCol('order', q.enumerators.OsisType.INTEGER, False)
         connection.viewAdd(view)
 
-        indexes = ['content', 'tags']
-        for field in indexes:
-            context = {'schema': scheme_name, 'view': view_name, 'field': field}
-            connection.runQuery("CREATE INDEX %(view)s_%(field)s ON %(schema)s.%(view)s USING hash (%(field)s)" % context)
+        context = {'schema': scheme_name, 'view': view_name, 'field': 'name'}
+        connection.runQuery("CREATE INDEX %(view)s_%(field)s ON %(schema)s.%(view)s (%(field)s)" % context)

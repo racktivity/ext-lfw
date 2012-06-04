@@ -2,8 +2,11 @@ __author__ = 'Incubaid'
 __tags__ = 'authorize'
 __priority__ = 3
 
-import xmlrpclib, httplib
+import copy, xmlrpclib, httplib
 from osis.store.OsisDB import OsisDB
+from osis.store import OsisConnection
+
+from racktivity import views
 
 class TimeoutHTTPConnection(httplib.HTTPConnection):
     def connect(self):
@@ -46,12 +49,12 @@ getAppserverConfig.config = None
 
 def isLocalRequest(request):
     clientIp = None
-    for header in request._request.requestHeaders.getAllRawHeaders():
+    for header in request._request.requestHeaders.getAllRawHeaders(): #pylint: disable=W0212
         if header[0] == "X-Forwarded-For":
             clientIp = header[1][0]
 
     if not clientIp:
-        clientIp = request._request.getClientIP()
+        clientIp = request._request.getClientIP() #pylint: disable=W0212
     return clientIp == "localhost" or clientIp == "127.0.0.1"
 
 def isAdminOrIdeSpace(params):
@@ -63,9 +66,34 @@ def isAdminOrIdeSpace(params):
         return True
     return False
 
-def main(q, i, p, params, tags):
-    request = params["request"]
+def getAllArguments(params):
+    arguments = copy.copy(params["kwargs"])
 
+    #add default args
+    args, _, _, defaultArgs = getattr(params["service"], params["methodname"]).argspec
+
+    if defaultArgs:
+        for i in xrange(0, len(defaultArgs)):
+            argName = args[-i - 1]
+            if not argName in arguments:
+                arguments[argName] = defaultArgs[i]
+
+    return arguments
+
+def getParamValue(arguments, paramName):
+    if paramName in arguments:
+        arg = arguments[paramName]
+        return arg if arg is not None else ""
+    elif not paramName:
+        return ""
+    elif paramName[0] == '@':
+        return paramName[1:]
+    else:
+        return None
+
+def main(q, i, p, params, tags): #pylint: disable=W0613
+    request = params["request"]
+    userTable = OsisConnection.getTableName(domain = 'ui', objType = 'user')
     if not request.username:
         params["result"] = False
     else:
@@ -85,23 +113,44 @@ def main(q, i, p, params, tags):
 
             conn = OsisDB().getConnection(p.api.appname)
             searchfilter = conn.getFilterObject()
-            searchfilter.add("ui_view_user_list", "login", request.username, True)
-            users = conn.objectsFindAsView("ui", "user", searchfilter, "ui_view_user_list")
+            searchfilter.add(userTable, "login", request.username, True)
+            users = conn.objectsFindAsView("ui", "user", searchfilter, userTable)
 
             if users and len(users) == 1:
                 user = users[0]
-                groups = filter(None, user["groupguids"].split(";"))
+                groups = filter(None, user["groupguids"].split(";")) #pylint: disable=W0141
 
                 appconfig = getAppserverConfig(q, p)
                 appserverUrl = "http://%s:%d/RPC2" % (appconfig["main"]["xmlrpc_ip"], int(appconfig["main"]["xmlrpc_port"]))
 
-                # we only parse the name in kwargs
+                # we only parse the name in kwargs and the default values
+                arguments = getAllArguments(params)
                 context = {}
                 authInfo = params["criteria"]
                 if "authorizeParams" in authInfo:
                     for key, value in authInfo["authorizeParams"].iteritems():
-                        if value in params["kwargs"]:
-                            context[key] = params["kwargs"][value]
+                        if isinstance(value, list):
+                            contextValues = list()
+                            for val in value:
+                                contextValue = getParamValue(arguments, val)
+                                if contextValue is not None:
+                                    contextValues.append(contextValue)
+                            if contextValues:
+                                context[key] = contextValues
+                            else:
+                                # param not found, bailing out
+                                params["result"] = False
+                                request._request.setResponseCode(412) #pylint: disable=W0212
+                                return
+                        else:
+                            contextValue = getParamValue(arguments, value)
+                            if contextValue is not None:
+                                context[key] = contextValue
+                            else:
+                                # param not found, bailing out
+                                params["result"] = False
+                                request._request.setResponseCode(412) #pylint: disable=W0212
+                                return
 
                 funcName = None
                 if "authorizeRule" in authInfo:
@@ -111,6 +160,30 @@ def main(q, i, p, params, tags):
                     appserver = TimeoutServerProxy(appserverUrl, 2)
                     params["result"] = appserver.ui.auth.isAuthorised(groups, funcName, context)
 
+                    ## @TODO recheck this piece of code
+                    if not params["result"]:
+                        extra = context.get('extra', dict())
+                        if isinstance(extra, dict) and extra.get('crosscheck', None):
+                            #this means that we should check for special permissions, like managing an outlet of a device
+                            if context['wizard'] in ("powermodule_powerOffPowerPort", "powermodule_powerCyclePowerPort", "powermodule_powerOnPowerPort"):
+                                view = views.Views()
+                                #we deduce the deviceguid from the calls params
+                                outletGuid = '%s_%s' % (context['extra']['powermoduleguid'], context['extra']['sequence'])
+                                devices = view.listConnectedDevices(outletGuid=outletGuid)
+                                if devices:
+                                    deviceGuid = devices[0]['deviceguid']
+                                    authoriseruleTable = OsisConnection.getTableName(domain = 'ui', objType = 'authoriserule')
+                                    #we see if the current user has rights for starting the fake wizard: "manage device"
+                                    for groupguid in groups:
+                                        searchfilter = conn.getFilterObject()
+                                        searchfilter.add(authoriseruleTable, "groupguids", groupguid)
+                                        searchfilter.add(authoriseruleTable, "function", "manage device")
+                                        searchfilter.add(authoriseruleTable, "context",  deviceGuid)
+                                        dbRules = conn.objectsFindAsView("ui", "authoriserule", searchfilter, authoriseruleTable)
+                                        if dbRules:
+                                            params["result"] = True
+                                            break
+
     #set the http response to 405 when we failed
     if params["result"] == False:
-        request._request.setResponseCode(405)
+        request._request.setResponseCode(405) #pylint: disable=W0212

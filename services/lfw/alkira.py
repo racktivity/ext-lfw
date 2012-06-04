@@ -1,4 +1,7 @@
+#pylint: disable=E1101
 from pylabs import q, p
+from osis.store import OsisConnection
+from pg import escape_string
 
 import os
 import urllib
@@ -11,10 +14,38 @@ import json
 import ast
 import time
 
+# HACK - to be removed
+# Used for locking access to create page function in order to prevent creation of duplicate pages
+from racktivity import locklib
+
+#
+# This piece of code is used to associate the rootobject with the right osis view
+#
+osisViewsMap = {
+    '_index'       : { 'tableName': '', 'schemeName': '', 'table': '' },
+    'authoriserule': { 'tableName': '', 'schemeName': '', 'table': '' },
+    'bookmark'     : { 'tableName': '', 'schemeName': '', 'table': '' },
+    'config'       : { 'tableName': '', 'schemeName': '', 'table': '' },
+    'group'        : { 'tableName': '', 'schemeName': '', 'table': '' },
+    'page'         : { 'tableName': '', 'schemeName': '', 'table': '' },
+    'project'      : { 'tableName': '', 'schemeName': '', 'table': '' },
+    'space'        : { 'tableName': '', 'schemeName': '', 'table': '' },
+    'user'         : { 'tableName': '', 'schemeName': '', 'table': '' }
+}
+
+def getOsisViewsMap():
+    if not osisViewsMap['page']['table']:
+        for objType, info in osisViewsMap.iteritems():
+            info['tableName'] = OsisConnection.getTableName(domain='ui', objType=objType)
+            info['schemeName'] = OsisConnection.getSchemeName(domain='ui', objType=objType)
+            info['table'] = OsisConnection.getTable(domain='ui', objType=objType)
+
+    return osisViewsMap
+
+
+
 ADMINSPACE = "Admin"
 IDESPACE = "IDE"
-
-toStr = q.tools.text.toStr
 
 class Alkira:
     def __init__(self, api=None):
@@ -27,12 +58,7 @@ class Alkira:
 
         self.connection = api.model.ui
         self.api = api
-        self.sync = True
-        cfgpath = q.system.fs.joinPaths(api._app_path, "cfg", "alkira.cfg")
-        if q.system.fs.isFile(cfgpath):
-            cfg = q.tools.inifile.open(cfgpath)
-            if cfg.checkParam("main", "sync"):
-                self.sync = cfg.getBooleanValue("main", "sync")
+        self.osisViewsMap = getOsisViewsMap()
 
     def _callAuthService(self, method, oauthInfo, **args):
         data = {}
@@ -84,51 +110,54 @@ class Alkira:
 
     def _getPageInfo(self, space, name):
         page_filter = self.connection.page.getFilterObject()
-        page_filter.add('ui_view_page_list', 'name', name, True)
-        page_filter.add('ui_view_page_list', 'space', space, True)
-        page_info = self.connection.page.findAsView(page_filter, 'ui_view_page_list')
+        pageTable = self.osisViewsMap['page']['tableName']
+        page_filter.add(pageTable, 'name', name, True)
+        page_filter.add(pageTable, 'space', space, True)
+        page_info = self.connection.page.findAsView(page_filter, pageTable)
         return page_info
 
     def _getSpaceGuid(self, space):
         if isinstance(space, basestring):
-            if q.basetype.guid.check(space):
+            if q.basetype.guid.check(space): #pylint: disable=E1103
                 return space
             else:
                 spaces = self._getSpaceInfo(space)
                 if not spaces:
                     q.errorconditionhandler.raiseError("Space %s does not exist." % space)
                 return spaces[0]['guid']
-        elif isinstance(space, self.connection.space._ROOTOBJECTTYPE):
+        elif isinstance(space, self.connection.space._ROOTOBJECTTYPE): #pylint: disable=W0212
             return space.guid
 
     def _getProjectGuid(self, project):
         if isinstance(project, basestring):
-            if q.basetype.guid.check(project):
+            if q.basetype.guid.check(project): #pylint: disable=E1103
                 return project
             else:
                 projects = self._getProjectInfo(project)
                 if not projects:
                     q.errorconditionhandler.raiseError("Project %s does not exist." % project)
                 return projects[0]['guid']
-        elif isinstance(project, self.connection.project._ROOTOBJECTTYPE):
+        elif isinstance(project, self.connection.project._ROOTOBJECTTYPE): #pylint: disable=W0212
             return project.guid
 
     def _getSpaceInfo(self, name=None):
-        filter = self.connection.space.getFilterObject()
+        _filter = self.connection.space.getFilterObject()
+        spaceTable = self.osisViewsMap['space']['tableName']
         if name:
-            filter.add('ui_view_space_list', 'name', name, True)
-        space = self.connection.space.findAsView(filter, 'ui_view_space_list')
+            _filter.add(spaceTable, 'name', name, True)
+        space = self.connection.space.findAsView(_filter, spaceTable)
         return space
 
     def _getProjectInfo(self, name=None):
-        filter = self.connection.project.getFilterObject()
+        _filter = self.connection.project.getFilterObject()
+        projectTable = self.osisViewsMap['project']['tableName']
         if name:
-            filter.add('ui_view_project_list', 'name', name, True)
-        project = self.connection.project.findAsView(filter, 'ui_view_project_list')
+            _filter.add(projectTable, 'name', name, True)
+        project = self.connection.project.findAsView(_filter, projectTable)
         return project
 
     def _getParentGUIDS(self, guid_list):
-        parent_list = []
+        parent_list = list()
         for guid in guid_list:
             page = self.connection.page.get(guid)
             if page.parent:
@@ -152,17 +181,42 @@ class Alkira:
             return None
         return ext
 
+    def _removeJsHtmlMd(self, data):
+        # Remove Js Code enclosed in <script> tags:
+        removeJS = re.compile(r"""<script.*>.*</script>""", re.DOTALL)
+        data = removeJS.sub('', data)
+
+        # Remove Js Code enclosed in [[script]] tags:
+        removeJsFromMd = re.compile(r"""\[\[script.*\]\].*\[\[/script\]\]""", re.DOTALL)
+        data = removeJsFromMd.sub('', data)
+
+        # Remove all mark-down tags:
+        removeMD = re.compile(r"""(\[\[.*\]\].*\[\[/.*\]\])|\[\[.*/\]\]""", re.DOTALL)
+        data = removeMD.sub('', data)
+
+        # Remove all HTML tags:
+        removeHTML = re.compile(r"""<.*>""")
+        data = removeHTML.sub('', data)
+
+        # Remove trailing spaces:
+        removeSpaces = re.compile(r"""\s*$""")
+        data = removeSpaces.sub('', data)
+
+        # Replace all newline characters with whitespaces:
+        replaceNl = re.compile(r"""\n""")
+        return replaceNl.sub(' ', data)
+
     #rename doesn't work accross different mount points but has higher performance, so we implemented this move functions
     def _moveFile(self, filePath, new_name):
         try:
             q.system.fs.renameFile(filePath, new_name)
-        except:
+        except: #pylint: disable=W0702
             q.system.fs.moveFile(filePath, new_name)
 
     def _moveDir(self, filePath, new_name):
         try:
             q.system.fs.renameDir(filePath, new_name)
-        except:
+        except: #pylint: disable=W0702
             q.system.fs.moveDir(filePath, new_name)
 
     def listPages(self, space=None):
@@ -171,8 +225,21 @@ class Alkira:
 
         @param space: The name, guid or space object of the space.
         """
-        return map(lambda i: i['name'],
-                   self.listPageInfo(space))
+        return map(lambda i: i['name'], self.listPageInfo(space)) #pylint: disable=W0141
+
+    def listFilteredTitles(self, space=None, term=None):
+        """
+        Lists pages in a certain space, filtering title with term.
+
+        @param space: The name, guid or space object of the space.
+        @param term: string to filter titles.
+        """
+        ret = list()
+        pages = self.listPageInfo(space)
+        for page in pages:
+            if page['title'].lower().find(term.lower()) != -1:
+                ret.append(page['title'])
+        return ret
 
     def countPages(self, space=None):
         where = ''
@@ -180,29 +247,85 @@ class Alkira:
             space = self._getSpaceGuid(space)
             where = "where space='%s'" % space
 
-        return self.connection.page.query("SELECT count(guid) from ui_page.ui_view_page_list %s;" % where)[0]['count']
+        return self.connection.page.query("SELECT count(guid) from %s %s;" % (self.osisViewsMap['page']['table'], where))[0]['count']
 
-    def search(self, text=None, tags=None):
-        # ignore tags for now
+    def _splitSearchString(self, text):
+        wordList = list()
 
-        if not any([text, tags]):
-            return []
+        # First find all phrases enclosed in double quotes:
+        phrasesList = re.findall("\".*?\"", text)
+        for phrase in phrasesList:
+            wordList.append(phrase[1:-1])
 
-        sql_select = '"index"."name", "index".url'
-        sql_from = 'ui__index.global_index_view as "index"'
-        sql_where = ['1=1']
+        # Remove all previously detected phrases from the text and the remaining
+        # double quotes, then split the remaining text into words:
+        text = re.sub("\".*?\"", " ", text)
+        text = re.sub("\"", "", text)
+        wordList.extend(text.split())
 
-        if tags:
-            tags = urllib.unquote_plus(tags)
-            tags = tags.strip(', ')
-            sql_where.append('"index".tags LIKE \'%%%s%%\'' %  tags)
+        return wordList
 
-        if text:
-            sql_where.append('"index".content LIKE \'%%%s%%\'' % text)
+    def search(self, text=None, tags=None, title=None, query=None, qtype=None):
+        CONTENT_MAX_LENGTH = 100
+
+        sql_select = '"index"."name", "index".url, "index".content, "index".description'
+        sql_from = '%s as "index"' % self.osisViewsMap['_index']['table']
+        sql_where = list()
+
+        # new way of handling search request brings type to determine
+        # how to search
+        if qtype == 'simple':
+            query = str(query)
+
+            if not query:
+                return list()
+
+            # Replace \x07 characters back with double quotes since the enclosed double quotes
+            # are removed in the applicationserver if they are not encoded like this:
+            query = query.replace('\x07', '"')
+
+            # Search string is considered a phrase if enclosed in double quotes,
+            # otherwise each word from the string will be searched:
+            query = urllib.unquote_plus(query).lower()
+            wordList = self._splitSearchString(query)
+            for word in wordList:
+                word = escape_string(word)
+                # Each word should be found in at least one of those three db fields:
+                sql_where.append("""(lower("index".content) LIKE \'%%%s%%\'
+                                    OR lower("index".tags) LIKE \'%%%s%%\'
+                                    OR lower("index".name) LIKE \'%%%s%%\')
+                                 """ % (word, word, word))
+
+        else:
+            # here we go with extended search that also can work as old-style search (no type)
+            text = str(text)
+            if not any([text, tags, title]):
+                return list()
+
+            if tags:
+                tags = urllib.unquote_plus(tags)
+                tags = escape_string(tags.strip(', '))
+                sql_where.append('lower("index".tags) LIKE \'%%%s%%\'' %  tags.lower())
+
+            if text:
+                sql_where.append('lower("index".content) LIKE \'%%%s%%\'' % text.lower())
+            if title:
+                sql_where.append('lower("index".name) LIKE \'%%%s%%\'' % title.lower())
 
         query = 'SELECT %s FROM %s WHERE %s' % (sql_select, sql_from, ' AND '.join(sql_where))
 
-        result = self.connection._index.query(query)
+        result = self.connection._index.query(query) #pylint: disable=W0212
+
+        # If description is present then use it, otherwise use page content:
+        for item in result:
+            if item['description'] != None:
+                item['content'] = item['description']
+            elif item['content'] != None:
+                # Get rid of the HTML/mark-down tags and JS code:
+                item['content'] = self._removeJsHtmlMd(item['content'])
+                if len(item['content']) > CONTENT_MAX_LENGTH:
+                    item['content'] = item['content'][:CONTENT_MAX_LENGTH] + '...'
+            del item['description']
 
         return result
 
@@ -210,8 +333,7 @@ class Alkira:
         """
         List all projects
         """
-        return map(lambda item: item["name"],
-                   self.listProjectInfo())
+        return map(lambda item: item["name"], self.listProjectInfo()) #pylint: disable=W0141
 
     def listProjectInfo(self, name=None):
         """
@@ -223,8 +345,7 @@ class Alkira:
         """
         Lists all the spaces.
         """
-        return map(lambda item: item["name"],
-                   self.listSpaceInfo())
+        return map(lambda item: item["name"], self.listSpaceInfo()) #pylint: disable=W0141
 
     def listSpaceInfo(self, name=None):
         """
@@ -258,14 +379,15 @@ class Alkira:
 
         @param space: The name, guid or space object of the space.
         """
-        filter = self.connection.page.getFilterObject()
+        _filter = self.connection.page.getFilterObject()
         if space:
             space = self._getSpaceGuid(space)
-            filter.add('ui_view_page_list', 'space', space, True)
+            pageTable = self.osisViewsMap['page']['tableName']
+            _filter.add(pageTable, 'space', space, True)
 
-        return self.connection.page.findAsView(filter, 'ui_view_page_list')
+        return self.connection.page.findAsView(_filter, pageTable)
 
-    def listChildPagesInfo(self, space, name=None):
+    def listChildPages(self, space, name = None):
         """
         Lists child pages of page "name"
 
@@ -276,20 +398,19 @@ class Alkira:
         @param name: The name of the parent page.
         """
         space = self._getSpaceGuid(space)
-        filter = self.connection.page.getFilterObject()
-        filter.add('ui_view_page_list', 'space', space, True)
+        pageTable = self.osisViewsMap['page']['tableName']
+        filterObj = self.connection.page.getFilterObject()
+        filterObj.add(pageTable, 'space', space, True)
         #Get page guid
         if name:
             guid = self._getPageInfo(space, name)[0]["guid"]
-            filter.add('ui_view_page_list', 'parent', guid, True)
+            filterObj.add(pageTable, 'parent', guid, True)
         else:
-            filter.add('ui_view_page_list', 'parent', None, True)
+            filterObj.add(pageTable, 'parent', None, True)
 
-        return self.connection.page.findAsView(filter, 'ui_view_page_list')
-        
-    def listChildPages(self, space, name = None):
-        return list(info["name"] for info in self.listChildPagesInfo(space, name))
-    
+        query = self.connection.page.findAsView(filterObj, pageTable)
+        return list(name["name"] for name in query)
+
     def spaceExists(self, name):
         """
         Checks whether a space exists or not
@@ -328,35 +449,36 @@ class Alkira:
         else:
             return False
 
-    def pageFind(self, name='', space='', category='', parent='', tags='', order=None, title='', exact_properties=None):
+    def pageFind(self, name='', space='', category='', parent='', tags='', order=None, title='', exact_properties=None): #pylint: disable=W0613
         filterObject = self.connection.page.getFilterObject()
         exact_properties = exact_properties or ()
 
         space = self._getSpaceGuid(space) if space else ''
-
+        pageTable = self.osisViewsMap['page']['tableName']
         frame = inspect.currentframe()
-        args, _, _, values = inspect.getargvalues(frame)
+        _, _, _, values = inspect.getargvalues(frame)
 
         properties = ('name', 'space', 'category', 'parent', 'tags', 'order', 'title')
         for property_name, value in values.iteritems():
             if property_name in properties and not value in (None, ''):
                 exact = property_name in exact_properties
-                filterObject.add('ui_view_page_list', property_name, value, exactMatch=exact)
+                filterObject.add(pageTable, property_name, value, exactMatch=exact)
 
         return self.connection.page.find(filterObject)
 
-    def userFind(self, name='', exact_properties=None):
+    def userFind(self, name='', exact_properties=None): #pylint: disable=W0613
+        pageTable = self.osisViewsMap['page']['tableName']
         filterObject = self.connection.user.getFilterObject()
         exact_properties = exact_properties or ()
 
         frame = inspect.currentframe()
-        args, _, _, values = inspect.getargvalues(frame)
+        _, _, _, values = inspect.getargvalues(frame)
 
         properties = ('name')
         for property_name, value in values.iteritems():
             if property_name in properties and not value in (None, ''):
                 exact = property_name in exact_properties
-                filterObject.add('ui_view_page_list', property_name, value, exactMatch=exact)
+                filterObject.add(pageTable, property_name, value, exactMatch=exact)
 
         return self.connection.user.find(filterObject)
 
@@ -366,7 +488,7 @@ class Alkira:
 
         @param project: The project name, or guid
         """
-        if isinstance(project, self.connection.project._ROOTOBJECTTYPE):
+        if isinstance(project, self.connection.project._ROOTOBJECTTYPE): #pylint: disable=W0212
             return project
 
         guid = self._getProjectGuid(project)
@@ -378,7 +500,7 @@ class Alkira:
 
         @param name: The space name, or guid
         """
-        if isinstance(space, self.connection.space._ROOTOBJECTTYPE):
+        if isinstance(space, self.connection.space._ROOTOBJECTTYPE): #pylint: disable=W0212
             return space
 
         space = self._getSpaceGuid(space)
@@ -440,79 +562,115 @@ class Alkira:
 
         self.connection.space.delete(space.guid)
         spacefile = 's_' + space.name
-        if self.pageExists(ADMINSPACE, spacefile):
-            self.deletePage(ADMINSPACE, spacefile)
-        
-        if self.sync:
-            q.system.fs.removeDirTree(self._getDir(space.name))
+        self.deletePage(ADMINSPACE, spacefile)
+        q.system.fs.removeDirTree(self._getDir(space.name))
 
-    def _syncPageToDisk(self, space, page, oldpagename=None):
-        if not self.sync:
-            return
-        
+    def _syncPageToDisk(self, space, page, oldpagename=None, oldPageObject = None):
+        """
+        this method writes the content's page to disk
+        the parameter oldPageObject is only used when a page is updated
+        @params space : string that represents the space name:, example View
+        @type   space : string
+        @params page  : object page
+        @type   page  : object
+        @params oldpagename : string that represents the page name(this is currently a guid)
+        @type   oldpagename : string
+        @params oldPageObject : object that represents the old page, in case of updating a page
+        @type   oldPageObject : object
+        """
+
+        olddir = None
+        oldfile = None
+        if oldPageObject:
+            if page.parent != oldPageObject.parent:
+                oldfile  = self.getPageLocation(space, oldPageObject)
+                basedir  = q.system.fs.getDirName(oldfile)
+                basename = q.system.fs.getBaseName(oldfile)
+                olddir   = q.system.fs.joinPaths(basedir, os.path.splitext(basename)[0])
+            else:
+                oldPageObject = None
+
         crumbs = self._breadcrumbs(page)
         _join = q.system.fs.joinPaths
         _isfile = q.system.fs.isFile
         _isdir = q.system.fs.isDir
         _write = q.system.fs.writeFile
 
-        dir = self._getDir(space)
-        upper = dir
+        _dir = self._getDir(space)
+        upper = _dir
         for i, level in enumerate(crumbs):
             name = level['name']
             filename = name + ".md"
-            dir = dir
-            file = _join(dir, filename)
-            dir = _join(dir, name)
+            _file = _join(_dir, filename)
+            _dir = _join(_dir, name)
 
             if i == len(crumbs) - 1:
-                if oldpagename:
+                if oldpagename and not oldPageObject:
                     oldfile = _join(upper, oldpagename + ".md")
                     olddir = _join(upper, oldpagename)
-                    tofile = file
 
+                if olddir:
                     if _isfile(oldfile):
-                        self._moveFile(oldfile, tofile)
+                        self._moveFile(oldfile, _file)
                     if _isdir(olddir):
-                        self._moveDir(olddir, dir)
-                content = """@metadata title=%(title)s
-@metadata tags=%(title)s
-%(content)s""" % { 'title': toStr(page.title),
-                   'tags': toStr(page.tags if page.tags else ""),
-                   'content': toStr(page.content)}
-                _write(file, content)
-            else:
-                if not _isdir(dir):
-                    q.system.fs.createDir(dir)
+                        self._moveDir(olddir, _dir)
 
-            upper = dir
+                _write(_file, page.content)
+            else:
+                if not _isdir(_dir):
+                    q.system.fs.createDir(_dir)
+
+            upper = _dir
+
+    def getPageLocation(self, space, page):
+        """
+        this method returns the absoulte file path of a page
+        @params space : string that represents the space name:, example View
+        @type   space : string
+        @params page  : object page
+        @type   page  : object
+        """
+
+        crumbs = self._breadcrumbs(page)
+        _join = q.system.fs.joinPaths
+        _isfile = q.system.fs.isFile
+        _isdir = q.system.fs.isDir
+        _write = q.system.fs.writeFile
+
+        _dir = self._getDir(space)
+        for level in crumbs:
+            name = level['name']
+            filename = name + ".md"
+            _file = _join(_dir, filename)
+            _dir = _join(_dir, name)
+
+        return _file
 
     def _syncPageDelete(self, space, crumbs):
-        if not self.sync:
-            return
         _join = q.system.fs.joinPaths
         _isfile = q.system.fs.isFile
         _isdir = q.system.fs.isDir
 
-        dir = self._getDir(space)
+        _dir = self._getDir(space)
         for i, level in enumerate(crumbs):
             name = level['name']
             filename = name + ".md"
-            file = _join(dir, filename)
-            dir = _join(dir, name)
+            _file = _join(_dir, filename)
+            _dir = _join(_dir, name)
 
             if i == len(crumbs) - 1:
-                if _isdir(dir):
-                    q.system.fs.removeDirTree(dir)
-                if _isfile(file):
-                    q.system.fs.removeFile(file)
+                if _isdir(_dir):
+                    q.system.fs.removeDirTree(_dir)
+                if _isfile(_file):
+                    q.system.fs.removeFile(_file)
 
     def _deletePage(self, space, page):
         def deleterecursive(guid):
-            filter = self.connection.page.getFilterObject()
-            filter.add("ui_view_page_list", "parent", guid, True)
+            pageTable = self.osisViewsMap['page']['tableName']
+            _filter = self.connection.page.getFilterObject()
+            _filter.add(pageTable, "parent", guid, True)
 
-            for chguid in self.connection.page.find(filter):
+            for chguid in self.connection.page.find(_filter):
                 deleterecursive(chguid)
 
             self.connection.page.delete(guid)
@@ -522,11 +680,6 @@ class Alkira:
         self._syncPageDelete(space, crumbs)
 
     def deletePageByGUID(self, guid):
-        """
-        Delete a page by guid
-
-        @param guid: page guid
-        """
         """
         Deletes a page and its chlidren (recursively).
 
@@ -541,7 +694,7 @@ class Alkira:
         page = self.getPage(space, name)
         self._deletePage(space, page)
 
-    def createSpace(self, name, tagsList=[], repository="", repo_username="", repo_password="", order=None, createHomePage=True):
+    def createSpace(self, name, tagsList=list(), repository="", repo_username="", repo_password="", order=None, createHomePage=True):
         if self.spaceExists(name):
             q.errorconditionhandler.raiseError("Space %s already exists." % name)
 
@@ -565,19 +718,19 @@ class Alkira:
         if name == ADMINSPACE:
             return
 
-        if self.sync:
-            q.system.fs.createDir(self._getDir(name))
+        q.system.fs.createDir(self._getDir(name))
 
         #create a space page under the default admin space
         spacefile = 's_' + name
-        spacectnt = p.core.codemanagement.api.getSpacePage(toStr(name))
+        spacectnt = p.core.codemanagement.api.getSpacePage(name)
         if createHomePage:
             self.createPage(name, "Home", content="", order=10000, title="Home", tagsList=tagsList)
-        self.createPage(ADMINSPACE, spacefile, spacectnt, title=name, parent="Spaces")
+        description = "%s management page" % name
+        self.createPage(ADMINSPACE, spacefile, spacectnt, title=name, parent="Spaces", description=description)
 
         return space
 
-    def createProject(self, name, path, tagsList=[]):
+    def createProject(self, name, path, tagsList=list()):
         """
         Create a new project
 
@@ -617,7 +770,7 @@ class Alkira:
         return project
 
     def _breadcrumbs(self, page):
-        breadcrumbs = []
+        breadcrumbs = list()
         parent = page
         while parent:
             breadcrumbs.append({'guid': parent.guid,
@@ -631,8 +784,8 @@ class Alkira:
     def breadcrumbs(self, space, name):
         return self._breadcrumbs(self.getPage(space, name))
 
-    def _createPage(self, space, name, content, order=None, title=None, tagsList=[], category='portal',
-                   parent=None, filename=None, contentIsFilePath=False, pagetype="md"):
+    def _createPage(self, space, name, content, title=None, tagsList=list(), category='portal',
+                   parent=None, filename=None, contentIsFilePath=False, pagetype="md", description = None, order=None):
 
         space = self.getSpace(space)
         if self.pageExists(space.guid, name):
@@ -640,21 +793,24 @@ class Alkira:
 
         page = self.connection.page.new()
         params = {"name":name, "pagetype": pagetype, "space":space.guid, "category":category,
-                  "title": title, "order": order, "filename":filename,
+                  "title": title, "filename":filename, "description": description,
                   "content":q.system.fs.fileGetContents(content) if contentIsFilePath else content
                  }
         for key in params:
             if params[key] != None:
                 setattr(page, key, params[key])
+
         page.creationdate = str(time.time())
 
-        if not order:
+        try:
+            page.order = int(order)
+        except: #pylint: disable=W0702
             page.order = 10000
 
         tags = set(tagsList)
         tags.add('space:%s' % space.name)
         tags.add('page:%s' % name)
-        page.tags = ' '.join([ toStr(x) for x in tags])
+        page.tags = ' '.join(tags)
 
         if parent:
             parent_page = self.getPage(space.guid, parent)
@@ -664,8 +820,8 @@ class Alkira:
 
         return page
 
-    def createPage(self, space, name, content, order=None, title=None, tagsList=[], category='portal',
-                   parent=None, filename=None, contentIsFilePath=False, pagetype="md"):
+    def createPage(self, space, name, content, order=None, title=None, tagsList=list(), category='portal',
+                   parent=None, filename=None, contentIsFilePath=False, pagetype="md", description = None):
         """
         Creates a new page.
 
@@ -699,13 +855,27 @@ class Alkira:
         @type filename: string
         @param filename: used by import directory script to store original file path
         """
-        space = self.getSpace(space)
-        page = self._createPage(space=space, name=name, content=content,
-                         order=order, title=title, tagsList=tagsList, category=category,
-                         parent=parent, filename=filename, contentIsFilePath=contentIsFilePath,
-                         pagetype=pagetype)
 
-        self._syncPageToDisk(space.name, page)
+        # HACK to prevent race conditions causing creation of pages with the same name in DB:
+        lock = '%s_%s' % (space, name)
+        exceptionText = "The page is already about to be created."
+        try:
+            locklib.aquire_lock(exceptionText, lock)
+        except locklib.isLockedException:
+            q.logger.log(exceptionText)
+            return
+
+        try:
+            space = self.getSpace(space)
+            page = self._createPage(space=space, name=name, content=content,
+                             order=order, title=title, tagsList=tagsList, category=category,
+                             parent=parent, filename=filename, contentIsFilePath=contentIsFilePath,
+                             pagetype=pagetype, description = description)
+
+            self._syncPageToDisk(space.name, page)
+        finally:
+            locklib.release_lock(lock)
+
         return page
 
     def updateSpace(self, space, newname=None, tagslist=None, repository=None, repo_username=None, repo_password=None, order=None):
@@ -714,7 +884,7 @@ class Alkira:
         # Allow the modification of the order attribute for Admin and IDE spaces:
         if (space.name == ADMINSPACE or space.name == IDESPACE) and (newname or tagslist or repository or repo_username or repo_password):
             raise ValueError("You can only modify the order for %s space" %space.name)
-        
+
         oldname = space.name
 
         if newname != None and newname != oldname:
@@ -743,23 +913,24 @@ class Alkira:
             #rename space page.
             newspacefile = 's_' + newname
             oldspacefile = 's_' + oldname
-            self.updatePage(space = ADMINSPACE, old_name = oldspacefile, name=newspacefile, content=p.core.codemanagement.api.getSpacePage(newspacefile))
+            description = '%s management page' % newname
+            self.updatePage(space = ADMINSPACE, old_name = oldspacefile, name=newspacefile, content=p.core.codemanagement.api.getSpacePage(newname),
+                title=newname, description=description)
 
             #sync file system
-            if self.sync:
-                self._moveDir(self._getDir(oldname),
-                              self._getDir(newname))
+            self._moveDir(self._getDir(oldname),
+                          self._getDir(newname))
 
         return space
 
-    def _updatePage(self, space, old_name, name=None, tagsList=None, content=None,
+    def _updatePage(self, space, old_name, name=None, tagsList=None, content=None, description = None,
                    order=None, title=None, parent=None, category=None, pagetype=None, filename=None, contentIsFilePath=False):
 
         space = self.getSpace(space)
         page = self.getPage(space.guid, old_name)
 
         params = {"name": name, "pagetype": pagetype, "category":category,
-                  "title": title, "order": order, "filename":filename,
+                  "title": title, "order": order, "filename":filename, "description": description,
                   "content":q.system.fs.fileGetContents(content) if contentIsFilePath else content
                   }
 
@@ -780,7 +951,7 @@ class Alkira:
         return page
 
     def updatePage(self, space, old_name, name=None, tagsList=None, content=None,
-                   order=None, title=None, parent=None, category=None, pagetype=None, filename=None, contentIsFilePath=False):
+                   order=None, title=None, parent=None, category=None, pagetype=None, filename=None, contentIsFilePath=False, description=None):
         """
         Updates an existing page.
 
@@ -821,30 +992,45 @@ class Alkira:
         @param filename: used by import directory script to store original file path
         """
 
-        space = self.getSpace(space)
-        page = self._updatePage(space=space, old_name=old_name, name=name, tagsList=tagsList, content=content,
-                         order=order, title=title, parent=parent, category=category,
-                         pagetype=pagetype, filename=filename, contentIsFilePath=contentIsFilePath)
+        # HACK to prevent race conditions causing creation of pages with the same name in DB:
+        lock = '%s_%s' % (space, old_name)
+        exceptionText = "The page is already about to be updated."
+        try:
+            locklib.aquire_lock(exceptionText, lock)
+        except locklib.isLockedException:
+            q.logger.log(exceptionText)
+            return
 
+        try:
+            space = self.getSpace(space)
+            if parent:
+                oldPageObject = self.getPage(space.guid, old_name) #this we need if we change parent
+            else:
+                oldPageObject = None
 
-        self._syncPageToDisk(space.name, page, old_name)
-
+            page = self._updatePage(space=space, old_name=old_name, name=name, tagsList=tagsList, content=content,
+                             order=order, title=title, parent=parent, category=category,
+                             pagetype=pagetype, filename=filename, contentIsFilePath=contentIsFilePath, description=description)
+            self._syncPageToDisk(space.name, page, old_name, oldPageObject)
+        finally:
+            locklib.release_lock(lock)
         return page
 
     def findMacroConfig(self, space="", page="", macro="", configId=None, username=None, exact_properties=None):
+        configTable = self.osisViewsMap['config']['tableName']
         configFilter = self.connection.config.getFilterObject()
         exact_properties = exact_properties or ()
         if space:
             space = self._getSpaceGuid(space)
-            configFilter.add('ui_view_config_list', 'space', space, 'space' in exact_properties)
+            configFilter.add(configTable, 'space', space, 'space' in exact_properties)
             if page:
-                configFilter.add('ui_view_config_list', 'page', self._getPageInfo(space, page)[0]['guid'],
+                configFilter.add(configTable, 'page', self._getPageInfo(space, page)[0]['guid'],
                     'page' in exact_properties)
-        configFilter.add('ui_view_config_list', 'macro', macro, 'macro' in exact_properties)
-        configFilter.add('ui_view_config_list', 'username', username, 'username' in exact_properties)
+        configFilter.add(configTable, 'macro', macro, 'macro' in exact_properties)
+        configFilter.add(configTable, 'username', username, 'username' in exact_properties)
         if configId:
-            configFilter.add('ui_view_config_list', 'configid', configId, 'configid' in exact_properties)
-        return self.connection.config.findAsView(configFilter, 'ui_view_config_list')
+            configFilter.add(configTable, 'configid', configId, 'configid' in exact_properties)
+        return self.connection.config.findAsView(configFilter, configTable)
 
     def getMacroConfig(self, space, page, macro, configId=None, username=None):
         username = username.lower() if username else None
@@ -874,13 +1060,13 @@ class Alkira:
         self.connection.config.save(config)
 
     def importSpace(self, space, filename, cleanImport = False):
-        join = q.system.fs.joinPaths
-        import tarfile
+        import tarfile #pylint: disable=W0404
         def filterFiler(filename):
             return (filename.startswith("/") or filename.startswith(".."))
+        join = q.system.fs.joinPaths
         q.logger.log('importing file %s for space %s' % (filename, space), 5)
         tarFile = tarfile.open(filename)
-        invalidlinks = filter(filterFiler, tarFile.getnames())
+        invalidlinks = filter(filterFiler, tarFile.getnames()) #pylint: disable=W0141
         if invalidlinks:
             #Prepare error message
             if len(invalidlinks) > 15:
@@ -897,34 +1083,84 @@ class Alkira:
         self.syncPortal(space=space)
 
     def exportSpace(self, space, filename):
+        import tarfile #pylint: disable=W0404
         join = q.system.fs.joinPaths
         def buildTree(client, path, space, pagenams = None):
             if not pagenams:
                 pagenams = client.listChildPages(space)
-
             for pagename in pagenams:
-                chidpages = client.listChildPages(space, pagename)
-                pagepath = join(path, pagename)
-                q.system.fs.createDir(pagepath)
-                if chidpages:
-                    buildTree(client, pagepath, space, chidpages)
+                childpages = client.listChildPages(space, pagename)
+                if childpages:
+                    pagepath = join(path, pagename)
+                    q.system.fs.createDir(pagepath)
+                    buildTree(client, pagepath, space, childpages)
                 page = client.getPage(space, pagename)
-                filename = join(pagepath, pagename + ".md")
-                fpage = open(filename, "w")
-                fpage.write("@metadata title = %s\n"%page.title)
-                fpage.write("@metadata order = %s\n"%page.order)
-                fpage.write("@metadata tagstring = %s\n"%str(page.tags))
+                filename = join(path, pagename + ".md")
+                fpage = open(filename, "a")
+                fpage.truncate(0)
+
+                if page.tags:
+                    fpage.write("@metadata tagstring = %s\n" % str(page.tags))
+
+                for metadataItem in ('order', 'title', 'description'):
+                    metadata = getattr(page, metadataItem)
+                    if metadata:
+                        fpage.write('@metadata %s = %s\n' % (metadataItem, metadata))
+
                 fpage.write(page.content)
                 fpage.close()
 
         q.logger.log('exporting space %s to file %s' % (space, filename), 5)
         tempdir = join(q.dirs.tmpDir, space)
+        q.system.fs.createDir(tempdir)
         buildTree(self, tempdir, space)
-        import tarfile
         tarFile = tarfile.open(filename, mode="w|gz")
         tarFile.add(tempdir, "")
         tarFile.close()
         q.system.fs.removeDirTree(tempdir)
+
+    def exportPage(self, space, filename, spacesRoot = None):
+        """
+        this method writes the page on the disk, with metadata and regular content
+        @params space: string to represent the space name
+        @type space: string
+        @params filename: string to represent the file name
+        @type filename: string
+        @params spacesRoot: string to help construct the folder path(together with the path of file relative to the parent of the space)
+                            where to write the file, if None overwrite existing file
+                            example: space = 'View', filename='florin', spacesRoot = 'root', the final destination will be: /root/View/florin.md
+        @type spacesRoot: string
+        """
+
+        spaceobject = self.getSpace(space)
+        spaceguid = spaceobject.guid
+        page_info = self.pageFind(name = filename, space = spaceguid, exact_properties=("name", "space"))
+        if len(page_info) > 1:
+            raise ValueError('Multiple pages found!')
+
+        pageObject = self.getPage(space, filename)
+        filePath = self.getPageLocation(space, pageObject)
+        if spacesRoot:
+            filePath = os.path.relpath(filePath, os.path.dirname(self._getDir(space)))
+            filePath = os.path.join(spacesRoot, filePath)
+        q.system.fs.createDir(os.path.dirname(filePath))
+
+        #we write the metadata, and also the content of the page
+        metadataDict = {}
+        head = '@metadata'
+        metadataDict['title']       = '%s title=%s\n' % (head, pageObject.title) if pageObject.title != None else ""
+        metadataDict['description'] = '%s description=%s\n' % (head, pageObject.description) if pageObject.description != None else ""
+        metadataDict['tagstring']   = '%s tagstring=%s\n' % (head, pageObject.tags) if pageObject.tags != None else ""
+        metadataDict['order']       = '%s order=%s\n' % (head, pageObject.order) if pageObject.order != None else ""
+        pageContent = pageObject.content if pageObject.content != None else ""
+
+        finalContent = str()
+        for metadata in metadataDict:
+            finalContent = '%s%s' % (finalContent, metadataDict[metadata])
+        finalContent = '%s\n%s' % (finalContent, pageContent)
+
+        q.system.fs.writeFile(filePath, finalContent)
+
 
     def hgCheckInfo(self, space, repository, repo_username, repo_password):
         if space.repository.url != repository or space.repository.username != repo_username or \
@@ -936,15 +1172,15 @@ class Alkira:
         return False
 
     def createRepoUrl(self, repo):
-        from urlparse import urlsplit, urlunsplit
+        from urlparse import urlsplit, urlunsplit #pylint: disable=W0404
         url = urlsplit(repo.url)
-        return urlunsplit((url.scheme, "%s:%s@%s" % (repo.username, repo.password, url.netloc), url.path, url.query,
-            url.fragment))
+        return urlunsplit((url.scheme, "%s:%s@%s" % (repo.username, repo.password, url.netloc), url.path, url.query, url.fragment)) #pylint: disable=E1103
 
     def hgPushSpace(self, space, repository, repo_username, repo_password=None):
         if not repository:
             return "Please give a repository to push to."
-
+        join = q.system.fs.joinPaths
+        tempdir = join(q.dirs.tmpDir, space) #here we clone the repo
         spaceInfo = self.getSpace(space)
 
         #check if we need to update the repo in osis
@@ -956,23 +1192,30 @@ class Alkira:
 
         q.logger.log('pushing space %s to %s' % (spaceInfo.name, spaceInfo.repository.url), 5)
 
-        hg = q.clients.mercurial.getclient(self._getDir(spaceInfo.name), repoUrl)
+        #we clone the repo
+        hg = q.clients.mercurial.getclient(tempdir, repoUrl)
+        #we copy the space in the same dir as where we cloned the repo
+        spaceDir = self._getDir(space)
+        q.system.fs.copyDirTree(spaceDir, tempdir)
 
         #check if we already have the latest version
-        retval, msg = hg._hgCmdExecutor("incoming", source=hg.getUrl(), die=False, autoCheckFix=False)
+        retval, msg = hg._hgCmdExecutor("incoming", source=hg.getUrl(), die=False, autoCheckFix=False) #pylint: disable=W0212
         if retval == 1 and "no changes found" in msg: #no changes we can push
             #set the username for the commit
-            hg._ui.environ["HGUSER"] = spaceInfo.repository.username
+            hg._ui.environ["HGUSER"] = spaceInfo.repository.username #pylint: disable=W0212
             hg.addremove('Add new files, and drop deleted files')
             hg.pushcommit("automated commit by Alkira", addRemoveUntrackedFiles=True)
+            q.system.fs.removeDirTree(tempdir)
             return True
         else:
+            q.system.fs.removeDirTree(tempdir)
             return False
 
     def hgPullSpace(self, space, repository, repo_username, repo_password=None, dontSync=False):
         if not repository:
             return "Please give a repository to pull from."
 
+        join = q.system.fs.joinPaths
         spaceInfo = self.getSpace(space)
 
         #check if we need to update the repo in osis
@@ -992,7 +1235,7 @@ class Alkira:
 
         hg = q.clients.mercurial.getclient(repoDir, repoUrl, cleandir=cleandir)
         hg.pullupdate()
-
+        q.system.fs.removeDirTree(join(repoDir, '.hg'))
         #resync pages for space
         if not dontSync:
             self.syncPortal(space=spaceInfo.name)
@@ -1000,28 +1243,29 @@ class Alkira:
         return True
 
     def getitems(self, prop, space=None, term=None):
-        SQL_PAGES = 'SELECT DISTINCT ui_page.ui_view_page_list.%(prop)s FROM ui_page.ui_view_page_list %(space_criteria)s'
-        SQL_PAGES_FILTER = 'SELECT DISTINCT ui_page.ui_view_page_list.%(prop)s FROM ui_page.ui_view_page_list WHERE ui_page.ui_view_page_list.%(prop)s LIKE \'%(term)s%%\'  %(space_criteria)s'
-        SQL_PAGE_TAGS = 'SELECT DISTINCT ui_page.ui_view_page_list.%(prop)s FROM ui_page.ui_view_page_list WHERE ui_page.ui_view_page_list.space=\'%(space)s\''
-        SQL_PAGE_TAGS_FILTER = 'SELECT DISTINCT ui_page.ui_view_page_list.%(prop)s FROM ui_page.ui_view_page_list WHERE ui_page.ui_view_page_list.space=\'%(space)s\' AND ui_page.ui_view_page_list.%(prop)s LIKE \'%%%(term)s%%\''
+        pageTable = self.osisViewsMap['page']['table']
+        SQL_PAGES = 'SELECT DISTINCT %(pageTable)s.%(prop)s FROM %(pageTable)s %(space_criteria)s'
+        SQL_PAGES_FILTER = 'SELECT DISTINCT %(pageTable)s.%(prop)s FROM %(pageTable)s WHERE %(pageTable)s.%(prop)s LIKE \'%(term)s%%\'  %(space_criteria)s'
+        SQL_PAGE_TAGS = 'SELECT DISTINCT %(pageTable)s.%(prop)s FROM %(pageTable)s WHERE %(pageTable)s.space=\'%(space)s\''
+        SQL_PAGE_TAGS_FILTER = 'SELECT DISTINCT %(pageTable)s.%(prop)s FROM %(pageTable)s WHERE %(pageTable)s.space=\'%(space)s\' AND %(pageTable)s.%(prop)s LIKE \'%%%(term)s%%\''
 
         if space:
             space = self.getSpace(space)
         t = term.split(', ')[-1] if term else ''
 
-        d = {'prop': prop, 'space': space.guid, 'term': t}
+        d = {'prop': prop, 'space': space.guid, 'term': t, 'pageTable' : pageTable}
         if prop in ('tags',):
             sql = SQL_PAGE_TAGS_FILTER % d if t else SQL_PAGE_TAGS % d
         else:
             if t:
-                d['space_criteria'] = 'AND ui_view_page_list.space = \'%s\'' % space.guid if space else ''
+                d['space_criteria'] = 'AND %s.space = \'%s\'' % (self.osisViewsMap['page']['tableName'], space.guid if space else '')
                 sql = SQL_PAGES_FILTER % d
             else:
-                d['space_criteria'] = 'WHERE ui_view_page_list.space = \'%s\'' % space.guid if space else ''
+                d['space_criteria'] = 'WHERE %s.space = \'%s\'' % (self.osisViewsMap['page']['tableName'], space.guid if space else '')
                 sql = SQL_PAGES % d
 
         qr = self.connection.page.query(sql)
-        result = map(lambda _: _[prop], qr)
+        result = map(lambda _: _[prop], qr) #pylint: disable=W0141
         return result
 
     def syncPortal(self, path=None, space=None, page=None, cleanup=None):
@@ -1033,7 +1277,7 @@ class Alkira:
         def pageDuplicate(page):
             page_name = q.system.fs.getBaseName(page)
             if page_name in page_occured:
-                q.errorconditionhandler.raiseError("Another page with the name '%s' already exists on this space. Will NOT create/update the following page (%s)"%(page_name, page))
+                q.errorconditionhandler.raiseError("Another page with the name '%s' already exists on this space. Will NOT create/update the following page (%s)"% (page_name, page))
             else:
                 page_occured.append(page_name)
 
@@ -1073,24 +1317,49 @@ class Alkira:
             # Setting content and metadata
             page_content_dict = filterContent(content)
             content = page_content_dict.get('content', 'Page is empty.')
-            title = page_content_dict.get('title', name)
-            order = int(page_content_dict.get('order', '10000'))
 
-            # Creating and setting tags
-            tags = page_content_dict.get('tagstring', "").split(" ")
-            tags = set(tags)
-            tags.add('space:%s' % space)
-            tags.add('page:%s' % name)
+            #if the page get's updated, then leave the metadata to be the one from the disk or to be None values, so that the values from the database are preserved
+            if len(page_info) == 1:
+                title = page_content_dict.get('title')
+                order = page_content_dict.get('order')
+                order = int(order) if order else None
+                description = page_content_dict.get('description')
+                tags = page_content_dict.get('tagstring')
+                if tags:
+                    tags = tags.split(" ")
+                    tags = set(tags)
+                    keys = list()
+                    for tag in tags:
+                        if tag.find(':') != -1:
+                            keys.append(tag.split(':')[0])
+
+                    if 'space' not in keys:
+                        tags.add('space:%s' % space)
+
+                    if 'page' not in keys:
+                        tags.add('page:%s' % name)
+
+                    for tag in re.sub('((?=[A-Z][a-z])|(?<=[a-z])(?=[A-Z]))', ' ', name).strip().split(' '):
+                        tags.add(tag)
+
+            else:
+                title = page_content_dict.get('title', name)
+                order = int(page_content_dict.get('order', '10000'))
+                description = page_content_dict.get('description')
+                # Creating and setting tags
+                tags = page_content_dict.get('tagstring', "").split(" ")
+                tags = set(tags)
+                tags.add('space:%s' % space)
+                tags.add('page:%s' % name)
+                for tag in re.sub('((?=[A-Z][a-z])|(?<=[a-z])(?=[A-Z]))', ' ', name).strip().split(' '):
+                    tags.add(tag)
 
             if name == "Home" and spaceobject.name != "Admin":
                 self.updateSpace(spaceobject.name, order=int(page_content_dict.get('spaceorder', '1000')))
 
-            for tag in re.sub('((?=[A-Z][a-z])|(?<=[a-z])(?=[A-Z]))', ' ', name).strip().split(' '):
-                tags.add(tag)
+            save_page(space=space, name=name, content=content, order=order, title=title, tagsList=tags, category='portal', parent=parent, description = description)
 
-            save_page(space=space, name=name, content=content, order=order, title=title, tagsList=tags, category='portal', parent=parent)
-
-        def alkiraTree(folder_paths, root_parent=None):
+        def alkiraTree(folder_paths, root_parent=None): #pylint: disable=W0613
             for folder_path in folder_paths:
                 base_name = q.system.fs.getBaseName(folder_path)
 
@@ -1135,12 +1404,12 @@ class Alkira:
             portal_spaces = q.system.fs.listDirsInDir(md_path)
 
         #make the first space is the Admin Space
-        portal_spaces = sorted(portal_spaces, lambda x,y: -1 if x.endswith("/" + ADMINSPACE) else 1)
-        existingspaces = [ toStr(x) for x in self.listSpaces() ]
+        portal_spaces = sorted(portal_spaces, lambda x, y: -1 if x.endswith("/" + ADMINSPACE) else 1)
+
         for folder in portal_spaces:
             space = folder.split(os.sep)[-1]
             spaceguid = None
-            if space not in existingspaces:
+            if space not in self.listSpaces():
                 #create space
                 self.createSpace(space, createHomePage=False)
 
@@ -1149,7 +1418,7 @@ class Alkira:
 
             q.console.echo('Syncing space: %s' % space)
 
-            page_occured = []
+            page_occured = list()
 
             if page:
                 page_file = q.system.fs.walk(folder, 1, '%s.md' % page)
@@ -1167,24 +1436,25 @@ class Alkira:
             alkiraTree(folder_paths)
 
     def _getUserInfo(self, login=None):
+        userTable = self.osisViewsMap['user']['tableName']
         searchfilter = self.connection.user.getFilterObject()
         if login:
-            searchfilter.add('ui_view_user_list', 'login', login, True)
-        user = self.connection.user.findAsView(searchfilter, 'ui_view_user_list')
+            searchfilter.add(userTable, 'login', login, True)
+        user = self.connection.user.findAsView(searchfilter, userTable)
         return user
 
     def listUsers(self, login=None):
-        return map(lambda item: item["login"], self.listUserInfo(login))
+        return map(lambda item: item["login"], self.listUserInfo(login)) #pylint: disable=W0141
 
     def listUserInfo(self, login=None):
         return self._getUserInfo(login)
 
     def listUsersInfo(self):
-        usersInfo = []
+        usersInfo = list()
         users = self._getUserInfo()
         for user in users:
-            usersInfo.append({"name": user["name"], "guid": user["guid"], \
-                "groups": filter(None, user["groupguids"].split(";"))})
+            usersInfo.append({"name": user["name"], "guid": user["guid"],
+                "groups": filter(None, user["groupguids"].split(";"))}) #pylint: disable=W0141
         return usersInfo
 
     def createUser(self, login, name=None, password=None, oauthInfo=None):
@@ -1214,11 +1484,12 @@ class Alkira:
         return self.connection.user.get(user_info[0]['guid'])
 
     def getUserGroups(self, name):
+        userTable = self.osisViewsMap['user']['tableName']
         searchfilter = self.connection.user.getFilterObject()
-        searchfilter.add('ui_view_user_list', 'login', name, True)
-        user = self.connection.user.findAsView(searchfilter, 'ui_view_user_list')
+        searchfilter.add(userTable, 'login', name, True)
+        user = self.connection.user.findAsView(searchfilter, userTable)
         if user and len(user) == 1:
-            return filter(None, user[0]["groupguids"].split(";"))
+            return filter(None, user[0]["groupguids"].split(";")) #pylint: disable=W0141
 
     def addUserToGroup(self, userguid, groupguid, oauthInfo=None):
         return self._callAuthService("addUserToGroup", oauthInfo, userid=userguid, usergroupid=groupguid)
@@ -1231,10 +1502,11 @@ class Alkira:
         return self._callAuthService("createUsergroup", oauthInfo, usergroupinfo=groupInfo)
 
     def _getGroupInfo(self, name=None):
+        groupTable = self.osisViewsMap['group']['tableName']
         searchfilter = self.connection.group.getFilterObject()
         if name:
-            searchfilter.add('ui_view_group_list', 'name', name, True)
-        group = self.connection.group.findAsView(searchfilter, 'ui_view_group_list')
+            searchfilter.add(groupTable, 'name', name, True)
+        group = self.connection.group.findAsView(searchfilter, groupTable)
         return group
 
     def deleteGroup(self, groupguid, oauthInfo=None):
@@ -1247,49 +1519,50 @@ class Alkira:
         return group.guid
 
     def listGroupsInfo(self):
-        groupsInfo = []
+        groupsInfo = list()
         groups = self._getGroupInfo()
         for group in groups:
             groupsInfo.append({"name": group["name"], "guid": group["guid"]})
         return groupsInfo
 
     def listGroups(self, name):
-        return map(lambda item: item["name"], self._getGroupInfo(name))
+        return map(lambda item: item["name"], self._getGroupInfo(name)) #pylint: disable=W0141
 
     def assignRule(self, groupguids, function, context, oauthInfo=None):
         return self._callAuthService("authorise", oauthInfo, groups=groupguids, functionname=function, context=context)
 
     def _getRuleInfo(self, groupguid=None, function=None, context=None):
+        authoriseruleTable = self.osisViewsMap['authoriserule']['tableName']
         searchfilter = self.connection.authoriserule.getFilterObject()
         if groupguid:
-            searchfilter.add('ui_view_authoriserule_list', 'groupguids', ";" + groupguid + ";", False)
+            searchfilter.add(authoriseruleTable, 'groupguids', ";" + groupguid + ";", False)
         if function:
-            searchfilter.add('ui_view_authoriserule_list', 'function', function, True)
+            searchfilter.add(authoriseruleTable, 'function', function, True)
         if context:
-            searchfilter.add('ui_view_authoriserule_list', 'context', context, True)
-        rule = self.connection.authoriserule.findAsView(searchfilter, 'ui_view_authoriserule_list')
+            searchfilter.add(authoriseruleTable, 'context', context, True)
+        rule = self.connection.authoriserule.findAsView(searchfilter, authoriseruleTable)
         return rule
 
     def revokeRule(self, groupguids, function, context, oauthInfo=None):
-        return self._callAuthService("unAuthorise", oauthInfo, groups=groupguids, functionname=function, \
+        return self._callAuthService("unAuthorise", oauthInfo, groups=groupguids, functionname=function,
             context=context)
 
     def listRulesInfo(self):
-        rulesInfo = []
+        rulesInfo = list()
         rules = self._getRuleInfo()
         for rule in rules:
-            rulesInfo.append({"name": rule["guid"], "guid": rule["guid"], \
-                "groups": filter(None, rule["groupguids"].split(";")), \
+            rulesInfo.append({"name": rule["guid"], "guid": rule["guid"],
+                "groups": filter(None, rule["groupguids"].split(";")),  #pylint: disable=W0141
                 "function": rule["function"], "context": rule["context"]})
         return rulesInfo
 
     def createDefaultRules(self):
         try:
             adminGuid = self.createUser("admin", "Admin User", "admin")
-        except:
+        except: #pylint: disable=W0702
             return
 
-        import sys
+        import sys #pylint: disable=W0404
         sys.path.insert(0, os.path.join(os.path.dirname(__file__), "auth_backend"))
         authbackend = __import__("authbackend", level=1)
 
@@ -1304,7 +1577,7 @@ class Alkira:
         def assignRuleTryCatch(groups, function, context):
             try:
                 self.assignRule(groups, function, context)
-            except:
+            except: #pylint: disable=W0702
                 pass
 
         def assignRules(rules):
@@ -1326,12 +1599,48 @@ class Alkira:
                     assignRuleTryCatch([developersGuid], rule["authorizeRule"], {})
 
 
-        from lfw import LFWService
+        from lfw import LFWService #pylint: disable=F0401
         assignRules(LFWService.getAuthorizedFunctions())
 
-        from authservice import AuthService
+        from authservice import AuthService #pylint: disable=F0401
         assignRules(AuthService.getAuthorizedFunctions())
 
-        from ide import ide
+        from ide import ide #pylint: disable=F0401
         assignRules(ide.getAuthorizedFunctions())
 
+    def createBookmark(self, name, url, order=99):
+        bookmark = self.connection.bookmark.new()
+        bookmark.name = name
+        bookmark.url = url
+        bookmark.order = order
+        self.connection.bookmark.save(bookmark)
+        return bookmark
+
+    def updateBookmark(self, bookmarkguid, name=None, url=None, order=None):
+        if not any((name, url, order)):
+            return
+
+        bookmark = self.connection.bookmark.get(bookmarkguid)
+        if name:
+            bookmark.name = name
+        if url:
+            bookmark.url = url
+        if order != None:
+            bookmark.order = order
+
+        self.connection.bookmark.save(bookmark)
+        return bookmark
+
+    def deleteBookmark(self, bookmarkguid):
+        self.connection.bookmark.delete(bookmarkguid)
+
+    def listBookmarks(self):
+        bookmarkTable = self.osisViewsMap['bookmark']['tableName']
+        _filter = self.connection.bookmark.getFilterObject()
+        bookmarks = self.connection.bookmark.findAsView(_filter, bookmarkTable)
+
+        def byOrder(x, y):
+            return cmp(x["order"], y["order"])
+
+        bookmarks.sort(byOrder)
+        return bookmarks

@@ -4,6 +4,9 @@ def main(q, i, p, params, tags):
     q.logger.log('Creating page %s/%s' % (params['space'], params['name']), 1)
     alkira = Alkira(p.api)
     parent = alkira.getPageByGUID(params["parent"]).name if params['parent'] else None
+    for key in params:
+        if type(params[key]) == unicode:
+            params[key] = params[key].encode('utf-8')
     page = alkira.createPage(space=params['space'],
                       name=params['name'],
                       content=params['content'],
@@ -11,9 +14,10 @@ def main(q, i, p, params, tags):
                       title=params['title'] if params['title'] else params['name'],
                       tagsList=params.get('tags', '').split(" ") if params['tags'] else [],
                       category=params['category'],
-                      parent=parent)
-                      
+                      parent=parent,
+                      description=params['description'])
+
     params['result'] = page.guid
-    
+
 def match(q, i, p, params, tags):
     return True

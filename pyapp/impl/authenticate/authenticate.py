@@ -21,7 +21,7 @@ class HelperServer(oauth.Server):
         self.config = config
 
     def getTokenAttributesFromStore(self, tokenKey):
-        client = self.q.clients.arakoon.getClient(self.p.api.appname)
+        client = self.q.clients.arakoon.getPoolClient(self.p.api.appname)
         if not client.exists(key=tokenKey):
             return False
         return client.get(tokenKey)
@@ -37,7 +37,7 @@ class HelperServer(oauth.Server):
         return
 
     def renewToken(self, tokenKey, token):
-        client = self.q.clients.arakoon.getClient(self.p.api.appname)
+        client = self.q.clients.arakoon.getPoolClient(self.p.api.appname)
         validhours = float(self.config["oauth"]["hoursvalid"])
         validuntil = (datetime.now() +timedelta(hours=validhours)).strftime("%s")
         client.set(key=tokenKey, value=str({'validuntil': validuntil, 'tokensecret': token['tokensecret'] }))

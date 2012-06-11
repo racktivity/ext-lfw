@@ -29,7 +29,7 @@ class TimeoutServerProxy(xmlrpclib.ServerProxy):
 
 class OAuthService(object):
     def __init__(self):
-        self.arakoon_client = q.clients.arakoon.getClient(p.api.appname)
+        self.arakoon_client = q.clients.arakoon.getPoolClient(p.api.appname)
         config = q.tools.inifile.open(q.system.fs.joinPaths(q.dirs.pyAppsDir, p.api.appname, "cfg", "auth.cfg"))
         self.config = config.getFileAsDict()
 

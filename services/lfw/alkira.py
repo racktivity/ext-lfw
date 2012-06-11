@@ -74,7 +74,7 @@ class Alkira:
         httpMethod = "POST"
 
         if oauthInfo and "token" in oauthInfo and "username" in oauthInfo:
-            arakoon = q.clients.arakoon.getClient(self.api.appname)
+            arakoon = q.clients.arakoon.getPoolClient(self.api.appname)
             if arakoon.exists(key=oauthInfo["token"]):
                 tokenAttributes = arakoon.get(oauthInfo["token"])
                 if tokenAttributes:

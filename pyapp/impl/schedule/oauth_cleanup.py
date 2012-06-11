@@ -4,7 +4,7 @@ __author__ = 'incubaid'
 import ast, time
 
 def main(q, i, p, params, tags):
-    arakoon_client = q.clients.arakoon.getClient(p.api.appname)
+    arakoon_client = q.clients.arakoon.getPoolClient(p.api.appname)
     deleteList = []
     try:
         tokens = arakoon_client.range(beginKey="token_$(", beginKeyIncluded=True, endKey="tokeo", endKeyIncluded=False)

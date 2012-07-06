@@ -149,7 +149,8 @@ class ide(object):
         fullpath = q.system.fs.joinPaths(apppath, id)
         fullpath = os.path.relpath(fullpath)
 
-        for directory in q.system.fs.listDirsInDir(fullpath):
+        dirList = sorted(q.system.fs.listDirsInDir(fullpath))
+        for directory in dirList:
             name = q.system.fs.getBaseName(directory)
             dirid = os.path.relpath(q.system.fs.joinPaths(id, name))
             results.append({"state": "closed" if closed(directory) else "leaf",

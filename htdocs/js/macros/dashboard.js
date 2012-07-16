@@ -576,7 +576,7 @@ $(function() {
                 for (i = 0; i < widgets.length; ++i) {
                     type = widgets[i];
                     display.append("<div id='widget-" + type.name + "' class='widgettype'>" +
-                        (type.image ? "<img src='" + type.image + "' />" : "<img src='img/pixel.gif' />") +
+                        (type.image ? "<img class='add' src='" + type.image + "' />" : "<img src='img/pixel.gif' />") +
                         "<button class='add'><span class='ui-button-text'>Pick me</span></button>" +
                         "<h3>" + (type.label || type.name) + "</h3><p>" + (type.description || "No description") +
                         "<br /><a href=\"" + type.documentationUrl + "\" target=\"doc\">Documentation</a></p></div>");

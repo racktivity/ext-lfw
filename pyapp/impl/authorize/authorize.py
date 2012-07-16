@@ -6,7 +6,7 @@ import copy, xmlrpclib, httplib
 from osis.store.OsisDB import OsisDB
 from osis.store import OsisConnection
 
-from racktivity import views
+from racktivity.authorization import RacktivityAuthorizationCrossChecker
 
 class TimeoutHTTPConnection(httplib.HTTPConnection):
     def connect(self):
@@ -160,29 +160,16 @@ def main(q, i, p, params, tags): #pylint: disable=W0613
                     appserver = TimeoutServerProxy(appserverUrl, 2)
                     params["result"] = appserver.ui.auth.isAuthorised(groups, funcName, context)
 
-                    ## @TODO recheck this piece of code
                     if not params["result"]:
-                        extra = context.get('extra', dict())
-                        if isinstance(extra, dict) and extra.get('crosscheck', None):
-                            #this means that we should check for special permissions, like managing an outlet of a device
-                            if context['wizard'] in ("powermodule_powerOffPowerPort", "powermodule_powerCyclePowerPort", "powermodule_powerOnPowerPort"):
-                                view = views.Views()
-                                #we deduce the deviceguid from the calls params
-                                outletGuid = '%s_%s' % (context['extra']['powermoduleguid'], context['extra']['sequence'])
-                                devices = view.listConnectedDevices(outletGuid=outletGuid)
-                                if devices:
-                                    deviceGuid = devices[0]['deviceguid']
-                                    authoriseruleTable = OsisConnection.getTableName(domain = 'ui', objType = 'authoriserule')
-                                    #we see if the current user has rights for starting the fake wizard: "manage device"
-                                    for groupguid in groups:
-                                        searchfilter = conn.getFilterObject()
-                                        searchfilter.add(authoriseruleTable, "groupguids", groupguid)
-                                        searchfilter.add(authoriseruleTable, "function", "manage device")
-                                        searchfilter.add(authoriseruleTable, "context",  deviceGuid)
-                                        dbRules = conn.objectsFindAsView("ui", "authoriserule", searchfilter, authoriseruleTable)
-                                        if dbRules:
-                                            params["result"] = True
-                                            break
+                        ## Check if we can crosscheck with another wizard
+                        authCrossChecker = RacktivityAuthorizationCrossChecker()
+                        oldWizard = context.get('wizard')
+                        if oldWizard and oldWizard in authCrossChecker.AUTHORIZATION_CROSSCHECK_MAP:
+                            newWizard, crosscheckFunction = authCrossChecker.AUTHORIZATION_CROSSCHECK_MAP[oldWizard]
+                            newContext = crosscheckFunction(newWizard, context)
+                            if newContext:
+                                q.logger.log("Rechecking authorization for user %s with new context %s" % (request.username, str(newContext)), 3)
+                                params["result"] = appserver.ui.auth.isAuthorised(groups, funcName, newContext)
 
     #set the http response to 405 when we failed
     if params["result"] == False:

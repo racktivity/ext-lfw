@@ -135,7 +135,9 @@ var render = function(options) {
             viewrecords: false,
             caption: caption,
             width: width,
-            height: height
+            height: height,
+            scrollOffset : 0,
+            forceFit: true
           });
           $("#sqlgrid")[0].addJSONData(data);
     }
@@ -162,11 +164,11 @@ var render = function(options) {
         getData();
     }
 
-    options.addCss({'id': 'sqlgrid1', 'tag': 'link', 'params': {'rel': 'stylesheet', 'href': 'js/libs/jquery.jqGrid-4.0.0/src/css/ui.jqgrid.css'}});
-    options.addCss({'id': 'sqlgrid2', 'tag': 'link', 'params': {'rel': 'stylesheet', 'href': 'js/libs/jquery.jqGrid-4.0.0/src/css/ui.multiselect.css'}});
-    options.addDependency(cb, ["js/libs/jquery.jqGrid-4.0.0/src/i18n/grid.locale-en.js", 
-        "js/libs/jquery.jqGrid-4.0.0/js/jquery.jqGrid.min.js",
-        "js/libs/jquery.jqGrid-4.0.0/src/jqModal.js", 
-        "js/libs/jquery.jqGrid-4.0.0/src/jqDnR.js"]);
+    options.addCss({'id': 'sqlgrid1', 'tag': 'link', 'params': {'rel': 'stylesheet', 'href': 'js/libs/jquery.jqGrid-4.4.0/src/css/ui.jqgrid.css'}});
+    options.addCss({'id': 'sqlgrid2', 'tag': 'link', 'params': {'rel': 'stylesheet', 'href': 'js/libs/jquery.jqGrid-4.4.0/src/css/ui.multiselect.css'}});
+    options.addDependency(cb, ["js/libs/jquery.jqGrid-4.4.0/src/i18n/grid.locale-en.js", 
+        "js/libs/jquery.jqGrid-4.4.0/js/jquery.jqGrid.min.js",
+        "js/libs/jquery.jqGrid-4.4.0/src/jqModal.js", 
+        "js/libs/jquery.jqGrid-4.4.0/src/jqDnR.js"]);
 }
 register(render);

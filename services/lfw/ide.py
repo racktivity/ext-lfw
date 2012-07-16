@@ -1,10 +1,11 @@
+#pylint: disable=E1101
 from pylabs import q, p
-from alkira import Alkira
+from alkira import Alkira, getOsisViewsMap
 import os
 import hashlib
 from osis.store.OsisDB import OsisDB
+from osis.store import OsisConnection
 import itertools
-import sys
 
 GUIDMAP = [8, 4, 4, 4, 12]
 EXTENSIONS = (".py", ".html", ".js", ".txt", ".md", ".cfg", "")
@@ -20,10 +21,8 @@ TASKLETS = ['impl/action',
             'impl/ui/form',
             'impl/ui/wizard']
 
-
-
 class ide(object):
-    def __init__(self, tasklets=[]):
+    def __init__(self, tasklets=list()):
         basedir = os.path.join(q.dirs.pyAppsDir, p.api.appname)
         self._authenticate = q.taskletengine.get(os.path.join(basedir, 'impl', 'authenticate'))
         self._authorize = q.taskletengine.get(os.path.join(basedir, 'impl', 'authorize'))
@@ -31,6 +30,7 @@ class ide(object):
         self.tasklets = tasklets
         self.alkira = Alkira(p.api)
         self.connection = OsisDB().getConnection(p.api.appname)
+        self.osisViewsMap = getOsisViewsMap()
 
     @staticmethod
     def getAuthorizedFunctions():
@@ -46,7 +46,7 @@ class ide(object):
         return functions
 
     def checkAuthentication(self, request, domain, service, methodname, args, kwargs):
-        q.logger.log("HEADERS from ide.checkAuthentication %s" % str(request._request.requestHeaders))
+        q.logger.log("HEADERS from ide.checkAuthentication %s" % str(request._request.requestHeaders)) #pylint:disable=W0212
         tags = ('authenticate',)
         params = dict()
         params['request'] = request
@@ -73,16 +73,16 @@ class ide(object):
         self._authorize.execute(params, tags=tags)
         return params.get('result', False)
 
-    def _resolveID(self, id):
+    def _resolveID(self, id): #pylint: disable=W0622
         pieces = id.split(os.path.sep)
         project = self.alkira.getProject(pieces.pop(0))
-        return project, q.system.fs.joinPaths(*pieces) if pieces else ""
+        return project, q.system.fs.joinPaths(*pieces) if pieces else "" #pylint: disable=W0142
 
     def _getID(self, project, path):
         projectpath = q.system.fs.joinPaths(q.dirs.pyAppsDir, p.api.appname, project.path)
-        id = path.replace(projectpath, "")
-        id = id.lstrip("/")
-        return q.system.fs.joinPaths(project.name, id)
+        _id = path.replace(projectpath, "")
+        _id = _id.lstrip("/")
+        return q.system.fs.joinPaths(project.name, _id)
 
     def _hasChildren(self, path):
         return bool(q.system.fs.walk(path, return_folders=1))
@@ -90,13 +90,13 @@ class ide(object):
     def _getProjectPath(self, project):
         return q.system.fs.joinPaths(q.dirs.pyAppsDir, p.api.appname, project.path)
 
-    def _IDtoGUID(self, id):
-        md5 = hashlib.md5(id)
-        hash = md5.hexdigest()
+    def _IDtoGUID(self, id): #pylint: disable=W0622
+        md5 = hashlib.md5(id) #pylint: disable=E1101
+        _hash = md5.hexdigest()
         parts = []
         li = 0
         for i in GUIDMAP:
-            part = hash[li:li + i]
+            part = _hash[li:li + i]
             if len(part) != i:
                 part += "0" * (i - len(part))
             parts.append(part)
@@ -104,28 +104,30 @@ class ide(object):
 
         return "-".join(parts)
 
-    def _filter(self, file):
+    def _filter(self, file): #pylint: disable=W0622
         return os.path.splitext(file)[1] in EXTENSIONS
 
-    def _updateFileIndex(self, id, content):
+    def _updateFileIndex(self, id, content): #pylint: disable=W0622
         guid = self._IDtoGUID(id)
         name = q.system.fs.getBaseName(id)
-        self.connection.viewSave("ui", "_index", "global_index_view", guid, guid, {'name': name,
-                                                                                   'content': content,
-                                                                                   'url': 'ide://%s' % id})
+        tableName = OsisConnection.getTableName('ui', '_index')
+        self.connection.viewSave("ui", "_index", tableName, guid, guid, {'name': name,
+                                                                         'content': content,
+                                                                         'url': 'ide://%s' % id})
 
-    def _updateDirIndex(self, id):
+    def _updateDirIndex(self, id): #pylint: disable=W0622
         project, relativepath = self._resolveID(id)
         fullpath = q.system.fs.joinPaths(self._getProjectPath(project), relativepath)
-        for file in q.system.fs.walk(fullpath, 1):
-            if not self._filter(file):
+        for f in q.system.fs.walk(fullpath, 1):
+            if not self._filter(f):
                 continue
-            self._updateFileIndex(self._getID(project, file), q.system.fs.fileGetContents(file))
+            self._updateFileIndex(self._getID(project, f), q.system.fs.fileGetContents(f))
 
 
-    def _deleteIndex(self, id):
+    def _deleteIndex(self, id): #pylint: disable=W0622
         url = "ide://%s" % id
-        self.connection.runQuery("delete from ui__index.global_index_view where url LIKE '%s%%'" % url)
+        _indexTable = self.osisViewsMap['_index']['table']
+        self.connection.runQuery("delete from %s where url LIKE '%s%%'" % (_indexTable, url))
 
     def _touchTasklets(self, project, relativepath):
         fullpath = q.system.fs.joinPaths(self._getProjectPath(project), relativepath)
@@ -136,7 +138,7 @@ class ide(object):
                 break
 
     @q.manage.applicationserver.expose_authorized(defaultGroups=["admin", "developer"], authorizeParams={}, authorizeRule="use project")
-    def getProjectNode(self, id="."):
+    def getProjectNode(self, id="."): #pylint: disable=W0622
         results = []
         if not id:
             raise RuntimeError("Invalid ID")
@@ -147,10 +149,11 @@ class ide(object):
         fullpath = q.system.fs.joinPaths(apppath, id)
         fullpath = os.path.relpath(fullpath)
 
-        for dir in q.system.fs.listDirsInDir(fullpath):
-            name = q.system.fs.getBaseName(dir)
+        dirList = sorted(q.system.fs.listDirsInDir(fullpath))
+        for directory in dirList:
+            name = q.system.fs.getBaseName(directory)
             dirid = os.path.relpath(q.system.fs.joinPaths(id, name))
-            results.append({"state": "closed" if closed(dir) else "leaf",
+            results.append({"state": "closed" if closed(directory) else "leaf",
                             "data": name,
                             "attr": {"id": dirid}})
 
@@ -171,7 +174,7 @@ class ide(object):
         return self.alkira.listProjectInfo()
 
     @q.manage.applicationserver.expose_authorized(defaultGroups=["admin", "developer"], authorizeParams={}, authorizeRule="use project")
-    def getNode(self, id="."):
+    def getNode(self, id="."): #pylint: disable=W0622
 
         results = []
         if not id:
@@ -192,38 +195,38 @@ class ide(object):
         fullpath = q.system.fs.joinPaths(projectpath, relativepath)
 
         if q.system.fs.isDir(fullpath):
-            for dir in q.system.fs.listDirsInDir(fullpath):
-                dirname = q.system.fs.getBaseName(dir)
-                results.append({"state": "closed" if self._hasChildren(dir) else "leaf",
+            for directory in q.system.fs.listDirsInDir(fullpath):
+                dirname = q.system.fs.getBaseName(directory)
+                results.append({"state": "closed" if self._hasChildren(directory) else "leaf",
                                 "data": dirname,
-                                "attr": {"id": self._getID(project, dir)}})
-            
+                                "attr": {"id": self._getID(project, directory)}})
+
             results = sorted(results, key=lambda i: i['data'])
-            
+
             files = []
-            for file in q.system.fs.listFilesInDir(fullpath):
-                filename = q.system.fs.getBaseName(file)
+            for f in q.system.fs.listFilesInDir(fullpath):
+                filename = q.system.fs.getBaseName(f)
                 if not self._filter(filename):
                     continue
                 files.append({"state": "leaf",
                                 "data": filename,
-                                "attr": {"id": self._getID(project, file),
+                                "attr": {"id": self._getID(project, f),
                                          "rel": "file",
                                          "title":filename}})
-            
+
             files = sorted(files, key=lambda i: i['data'])
             results += files
-        
+
         return results
 
     @q.manage.applicationserver.expose_authorized(defaultGroups=["admin", "developer"], authorizeParams={}, authorizeRule="use project")
-    def getFile(self, id):
+    def getFile(self, id): #pylint: disable=W0622
         project, relativepath = self._resolveID(id)
         filepath = q.system.fs.joinPaths(self._getProjectPath(project), relativepath)
         return q.system.fs.fileGetContents(filepath)
 
     @q.manage.applicationserver.expose_authorized(defaultGroups=["admin", "developer"], authorizeParams={}, authorizeRule="use project")
-    def setFile(self, id, content):
+    def setFile(self, id, content): #pylint: disable=W0622
         project, relativepath = self._resolveID(id)
         filepath = q.system.fs.joinPaths(self._getProjectPath(project), relativepath)
         q.system.fs.writeFile(filepath, content)
@@ -231,7 +234,7 @@ class ide(object):
         self._touchTasklets(project, relativepath)
 
     @q.manage.applicationserver.expose_authorized(defaultGroups=["admin", "developer"], authorizeParams={}, authorizeRule="use project")
-    def newFile(self, id):
+    def newFile(self, id): #pylint: disable=W0622
         project, relativepath = self._resolveID(id)
         filepath = q.system.fs.joinPaths(self._getProjectPath(project), relativepath)
         if q.system.fs.exists(filepath):
@@ -239,7 +242,7 @@ class ide(object):
         return q.system.fs.writeFile(filepath, "")
 
     @q.manage.applicationserver.expose_authorized(defaultGroups=["admin", "developer"], authorizeParams={}, authorizeRule="use project")
-    def newDir(self, id):
+    def newDir(self, id): #pylint: disable=W0622
         project, relativepath = self._resolveID(id)
         dirpath = q.system.fs.joinPaths(self._getProjectPath(project), relativepath)
         if q.system.fs.exists(dirpath):
@@ -247,7 +250,7 @@ class ide(object):
         return q.system.fs.createDir(dirpath)
 
     @q.manage.applicationserver.expose_authorized(defaultGroups=["admin", "developer"], authorizeParams={}, authorizeRule="use project")
-    def delete(self, id):
+    def delete(self, id): #pylint: disable=W0622
         project, relativepath = self._resolveID(id)
         path = q.system.fs.joinPaths(self._getProjectPath(project), relativepath)
         if q.system.fs.isFile(path):
@@ -258,7 +261,7 @@ class ide(object):
         self._touchTasklets(project, relativepath)
 
     @q.manage.applicationserver.expose_authorized(defaultGroups=["admin", "developer"], authorizeParams={}, authorizeRule="use project")
-    def rename(self, id, name):
+    def rename(self, id, name): #pylint: disable=W0622
         project, relativepath = self._resolveID(id)
 
         path = q.system.fs.joinPaths(self._getProjectPath(project), relativepath)

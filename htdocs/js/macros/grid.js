@@ -64,13 +64,13 @@ var render = function(options) {
     }
 
     options.addCss({'id': 'sqlgrid1', 'tag': 'link', 'params':
-        {'rel': 'stylesheet', 'href': 'js/libs/jquery.jqGrid-4.0.0/src/css/ui.jqgrid.css'}});
+        {'rel': 'stylesheet', 'href': 'js/libs/jquery.jqGrid-4.4.0/src/css/ui.jqgrid.css'}});
     options.addCss({'id': 'sqlgrid2', 'tag': 'link', 'params':
-        {'rel': 'stylesheet', 'href': 'js/libs/jquery.jqGrid-4.0.0/src/css/ui.multiselect.css'}});
-    options.addDependency(createGrid, ["js/libs/jquery.jqGrid-4.0.0/src/i18n/grid.locale-en.js",
-        "js/libs/jquery.jqGrid-4.0.0/js/jquery.jqGrid.min.js",
-        "js/libs/jquery.jqGrid-4.0.0/src/jqModal.js",
-        "js/libs/jquery.jqGrid-4.0.0/src/jqDnR.js"], true);
+        {'rel': 'stylesheet', 'href': 'js/libs/jquery.jqGrid-4.4.0/src/css/ui.multiselect.css'}});
+    options.addDependency(createGrid, ["js/libs/jquery.jqGrid-4.4.0/src/i18n/grid.locale-en.js",
+        "js/libs/jquery.jqGrid-4.4.0/js/jquery.jqGrid.min.js",
+        "js/libs/jquery.jqGrid-4.4.0/src/jqModal.js",
+        "js/libs/jquery.jqGrid-4.4.0/src/jqDnR.js"], true);
 };
 
 register(render);

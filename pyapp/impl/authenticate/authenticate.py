@@ -9,6 +9,8 @@ import time
 from datetime import datetime, timedelta
 from alkira import oauthservice
 
+REALM = "alkira"
+
 class HelperServer(oauth.Server):
     def __init__(self, q, p, config):
         oauth.Server.__init__(self)
@@ -53,7 +55,7 @@ class HelperServer(oauth.Server):
 
 def _getHeaders(request, q):
     headers = dict()
-    for header in request._request.requestHeaders.getAllRawHeaders():
+    for header in request._request.requestHeaders.getAllRawHeaders(): #pylint: disable=W0212
         headers[header[0]] = header[1][0]
     q.logger.log("HEADERS "+ str(headers), 5)
     return headers
@@ -76,14 +78,36 @@ def getConfig(q, p):
     return getConfig.config
 getConfig.config = None
 
-def main(q, i, p, params, tags):
+def main(q, i, p, params, tags): #pylint: disable=W0613
     request = params["request"]
     headers = _getHeaders(request, q)
-    if headers.has_key('Authorization') and headers['Authorization'].find('OAuth realm="alkira"') >= 0:
-        config = config = getConfig(q, p)
+    parameters = request._request.args #pylint: disable=W0212
+
+    #convert our params dict to a normal dict
+    for key, value in parameters.iteritems():
+        #
+        # twisted stores all values in lists to allow multiple arguments with the same key
+        # as the appserver doesn't support it we move them back to a normal argument
+        # we need this for OAuth as well as it can't handle lists of arguments
+        #
+        if isinstance(value, list):
+            parameters[key] = value[0] if value else ""
+
+    inHeaders = headers.has_key('Authorization') and headers['Authorization'].find('OAuth realm="%s"' % REALM) >= 0
+    inParameters = parameters.has_key("realm") and parameters["realm"] == REALM
+
+    if inHeaders or inParameters:
+        config = getConfig(q, p)
         helperServer = HelperServer(q, p, config)
-        oAuthHeaders = _getAuthHeaders(headers, q)
-        tokenkey = oAuthHeaders['oauth_token']
+
+        oauthInfo = None
+        if inHeaders:
+            oauthInfo = _getAuthHeaders(headers, q)
+        else:
+            parameters.pop("realm") #remove realm as we don't want it in our list
+            oauthInfo = parameters
+
+        tokenkey = oauthInfo['oauth_token']
         tokenAttributes = helperServer.getTokenAttributesFromStore(tokenkey)
         if tokenAttributes:
             tokenAttributes = ast.literal_eval(tokenAttributes)
@@ -109,29 +133,29 @@ def main(q, i, p, params, tags):
                     q.logger.log("Renewing the token in the OSIS store", 3)
                     helperServer.renewToken(tokenkey, tokenAttributes)
 
-                helperServer.consumer = oauth.Consumer(oAuthHeaders['oauth_consumer_key'], '')
+                helperServer.consumer = oauth.Consumer(oauthInfo['oauth_consumer_key'], '')
                 helperServer.access_token = oauth.Token(tokenkey, tokensecret)
+
                 ## <dirty hack> because of reverse proxy in client
-                path = request._request.uri
+                path = request._request.path #pylint: disable=W0212
 
                 # Take the substring of path, starting from the first '/' (ignoring the first character)
                 index = path.find("/", 1)
                 if index > 0:
                     path = path[index:]
-                httpUrl = "http://alkira%s" % (path)
+                httpUrl = "http://%s%s" % (REALM, path)
                 ## </dirty hack>
-                parameters = request._request.args
 
-                oauthRequest = oauth.Request.from_request(request._request.method, httpUrl, headers=headers,
+                oauthRequest = oauth.Request.from_request(request._request.method, httpUrl, headers=headers, #pylint: disable=W0212
                     parameters=parameters)
                 params["result"] = helperServer.checkAccessToken(oauthRequest, httpUrl)
 
                 #set the username so this can be used in the authorize tasklet
-                request.username = oAuthHeaders['oauth_consumer_key']
+                request.username = oauthInfo['oauth_consumer_key']
     else:
         request.username = "anonymous"
         params["result"] = True
 
     #set the http response to 403 when we failed
     if params["result"] == False:
-        request._request.setResponseCode(403)
+        request._request.setResponseCode(403) #pylint: disable=W0212

@@ -73,7 +73,7 @@ def main(q, i, p, params, tags): #pylint: disable=W0613
                 pagelist.order,
                 spacelist.order,
                 spacelist.name as spacename,
-                (select count(guid) FROM ui_page.ui_view_page_list WHERE ui_page.ui_view_page_list.parent = pagelist.guid) as nrofkids
+                (select count(guid) FROM %(pageTable)s WHERE %(pageTable)s.parent = pagelist.guid) as nrofkids
                 FROM ONLY %(pageTable)s as pagelist
                 JOIN %(spaceTable)s as spacelist on spacelist.guid = pagelist.space
                 WHERE spacelist.name in ('%(space)s') %(where)s

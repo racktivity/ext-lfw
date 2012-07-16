@@ -1,6 +1,9 @@
-import uuid, oauth2, httplib, xmlrpclib
+import uuid, oauth2, httplib, xmlrpclib, sqlalchemy
 from pylabs import q, p
 from datetime import datetime, timedelta
+
+TABLE_NAME = "oauth_token"
+TABLE_SCHEMA = "ui"
 
 class TimeoutHTTPConnection(httplib.HTTPConnection):
     def connect(self):
@@ -29,7 +32,17 @@ class TimeoutServerProxy(xmlrpclib.ServerProxy):
 
 class OAuthService(object):
     def __init__(self):
-        self.arakoon_client = q.clients.arakoon.getPoolClient(p.api.appname)
+        self.osis = p.application.getOsisConnection(p.api.appname)
+
+        self.token_table = sqlalchemy.Table(TABLE_NAME, self.osis._sqlalchemy_metadata,
+            sqlalchemy.Column("key", sqlalchemy.String(60), primary_key=True, nullable=False),
+            sqlalchemy.Column("value", sqlalchemy.String(100)),
+            schema=TABLE_SCHEMA
+        )
+
+        if not self.token_table.exists(self.osis._sqlalchemy_engine):
+            self.token_table.create(self.osis._sqlalchemy_engine)
+
         config = q.tools.inifile.open(q.system.fs.joinPaths(q.dirs.pyAppsDir, p.api.appname, "cfg", "auth.cfg"))
         self.config = config.getFileAsDict()
 
@@ -63,17 +76,17 @@ class OAuthService(object):
             token = oauth2.Token(str(uuid.uuid4()), str(uuid.uuid4()))
             token.set_verifier('')
 
-            self.saveToArakoon(token)
+            self.saveToken(token)
 
-            q.logger.log('OAuth token generated, and saved to Arakoon cluster', 3)
+            q.logger.log('OAuth token generated, and saved', 3)
             return token.to_string()
         except oauth2.Error, err:
             q.logger.log('Exception while generating token %s' % str(err), 4)
             raise Warning('Exception while generating token %s' % str(err))
 
-    def saveToArakoon(self, token):
+    def saveToken(self, token):
         """
-        Save  the generated OAuth token to the pyapps Arakoon cluster in the form: key='token_$(token_key)', value='token_secret'
+        Save the generated OAuth token to OSIS in the form: key='token_$(token_key)', value='token_secret'
         @param token: tokenkey, and tokensecret
         @type user name: string
 
@@ -93,6 +106,8 @@ class OAuthService(object):
             tokensecret = parts[1].split('=')[1]
         validhours = float(self.config["oauth"]["hoursvalid"])
         validuntil = (datetime.now() + timedelta(hours=validhours)).strftime("%s")
-        q.logger.log("Saving to Arakoon tokenkey: token_$(%s), tokensecret:%s" % (tokenkey, tokensecret), 3)
-        self.arakoon_client.set(key='token_$(%s)' % tokenkey, value=str({ 'validuntil': validuntil, \
-            'tokensecret':tokensecret }))
+        q.logger.log("Saving to OSIS tokenkey: token_$(%s), tokensecret:%s" % (tokenkey, tokensecret), 3)
+
+        value = str({ 'validuntil': validuntil, 'tokensecret': tokensecret })
+        insert = self.token_table.insert().values(key='token_$(%s)' % tokenkey, value=value)
+        self.osis.runSqlAlchemyQuery(insert)

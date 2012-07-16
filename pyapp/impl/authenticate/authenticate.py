@@ -7,6 +7,7 @@ import urllib2
 import ast
 import time
 from datetime import datetime, timedelta
+from alkira import oauthservice
 
 class HelperServer(oauth.Server):
     def __init__(self, q, p, config):
@@ -19,12 +20,18 @@ class HelperServer(oauth.Server):
         self.access_token = None
         self.consumer = None
         self.config = config
+        self.osis = self.p.application.getOsisConnection(self.p.api.appname)
+        self.table = self.osis.findTable(oauthservice.TABLE_SCHEMA, oauthservice.TABLE_NAME)
 
     def getTokenAttributesFromStore(self, tokenKey):
-        client = self.q.clients.arakoon.getPoolClient(self.p.api.appname)
-        if not client.exists(key=tokenKey):
+        select = self.table.select().where(self.table.c.key == tokenKey)
+        data = self.osis.runSqlAlchemyQuery(select).fetchone()
+        if not data:
             return False
-        return client.get(tokenKey)
+        tokenAttributes = dict(data)["value"]
+        if not tokenAttributes:
+            return False
+        return tokenAttributes
 
     def checkAccessToken(self, oauthRequest, url):
         try:
@@ -37,10 +44,12 @@ class HelperServer(oauth.Server):
         return
 
     def renewToken(self, tokenKey, token):
-        client = self.q.clients.arakoon.getPoolClient(self.p.api.appname)
         validhours = float(self.config["oauth"]["hoursvalid"])
         validuntil = (datetime.now() +timedelta(hours=validhours)).strftime("%s")
-        client.set(key=tokenKey, value=str({'validuntil': validuntil, 'tokensecret': token['tokensecret'] }))
+
+        value = str({'validuntil': validuntil, 'tokensecret': token['tokensecret'] })
+        update = self.table.update().where(self.table.c.key == tokenKey).values(value=value)
+        self.osis.runSqlAlchemyQuery(update)
 
 def _getHeaders(request, q):
     headers = dict()
@@ -79,7 +88,7 @@ def main(q, i, p, params, tags):
         if tokenAttributes:
             tokenAttributes = ast.literal_eval(tokenAttributes)
         if not tokenAttributes:
-            q.logger.log("The token key does not exist in the Arakoon store", 4)
+            q.logger.log("The token key does not exist in the OSIS store", 4)
             params["result"] = False
         else:
             q.logger.log("token_attributes: " + str(tokenAttributes), 5)
@@ -89,7 +98,7 @@ def main(q, i, p, params, tags):
             validuntil = float(tokenAttributes['validuntil'])
             now = time.time()
             if now > validuntil:
-                q.logger.log("The token existing in the Arakoon store is expired", 4)
+                q.logger.log("The token existing in the OSIS store is expired", 4)
                 params["result"] = False
             else:
                 #check if we need to renew
@@ -97,7 +106,7 @@ def main(q, i, p, params, tags):
                 renewaltime = validuntil - \
                     timedelta(hours=validhours * 0.75).seconds
                 if now > renewaltime:
-                    q.logger.log("Renewing the token in the Arakoon store", 3)
+                    q.logger.log("Renewing the token in the OSIS store", 3)
                     helperServer.renewToken(tokenkey, tokenAttributes)
 
                 helperServer.consumer = oauth.Consumer(oAuthHeaders['oauth_consumer_key'], '')

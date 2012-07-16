@@ -2,6 +2,7 @@
 from pylabs import q, p
 from osis.store import OsisConnection
 from pg import escape_string
+from . import oauthservice
 
 import os
 import urllib
@@ -74,11 +75,12 @@ class Alkira:
         httpMethod = "POST"
 
         if oauthInfo and "token" in oauthInfo and "username" in oauthInfo:
-            arakoon = q.clients.arakoon.getPoolClient(self.api.appname)
-            if arakoon.exists(key=oauthInfo["token"]):
-                tokenAttributes = arakoon.get(oauthInfo["token"])
-                if tokenAttributes:
-                    tokenAttributes = ast.literal_eval(tokenAttributes)
+            osis = p.application.getOsisConnection(self.api.appname)
+            table = osis.findTable(oauthservice.TABLE_SCHEMA, oauthservice.TABLE_NAME)
+            select = table.select().where(table.c.key == oauthInfo["token"])
+            tokenAttributes = dict(osis.runSqlAlchemyQuery(select).fetchone())["value"]
+            if tokenAttributes:
+                tokenAttributes = ast.literal_eval(tokenAttributes)
                 if tokenAttributes:
                     #remove the appname from the call ass the appserver doesn't get this in his request
                     oauthUrl = url[len("/%s" % self.api.appname):]

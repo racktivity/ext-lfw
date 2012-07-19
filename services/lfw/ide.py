@@ -1,10 +1,8 @@
-#pylint: disable=E1101
 from pylabs import q, p
-from alkira import Alkira, getOsisViewsMap
+from alkira import Alkira
 import os
 import hashlib
 from osis.store.OsisDB import OsisDB
-from osis.store import OsisConnection
 import itertools
 
 GUIDMAP = [8, 4, 4, 4, 12]
@@ -30,7 +28,6 @@ class ide(object):
         self.tasklets = tasklets
         self.alkira = Alkira(p.api)
         self.connection = OsisDB().getConnection(p.api.appname)
-        self.osisViewsMap = getOsisViewsMap()
 
     @staticmethod
     def getAuthorizedFunctions():
@@ -110,10 +107,8 @@ class ide(object):
     def _updateFileIndex(self, id, content): #pylint: disable=W0622
         guid = self._IDtoGUID(id)
         name = q.system.fs.getBaseName(id)
-        tableName = OsisConnection.getTableName('ui', '_index')
-        self.connection.viewSave("ui", "_index", tableName, guid, guid, {'name': name,
-                                                                         'content': content,
-                                                                         'url': 'ide://%s' % id})
+        self.connection.viewSave("ui", "_index", '_index', guid, guid, { 'name': name, 'content': content,
+            'url': 'ide://%s' % id })
 
     def _updateDirIndex(self, id): #pylint: disable=W0622
         project, relativepath = self._resolveID(id)
@@ -126,8 +121,9 @@ class ide(object):
 
     def _deleteIndex(self, id): #pylint: disable=W0622
         url = "ide://%s" % id
-        _indexTable = self.osisViewsMap['_index']['table']
-        self.connection.runQuery("delete from %s where url LIKE '%s%%'" % (_indexTable, url))
+        index = self.connection.findTable("ui", "_index")
+        delete = index.delete().where(index.c.url.like('%s%%' % url))
+        self.connection.runSqlAlchemyQuery(delete)
 
     def _touchTasklets(self, project, relativepath):
         fullpath = q.system.fs.joinPaths(self._getProjectPath(project), relativepath)

@@ -10,13 +10,15 @@ class page(model.RootObjectModel):
     category = model.String(thrift_id=3)
     #@doc GUID of the parent page
     parent = model.GUID(thrift_id=4)
-    #@doc tags related to the page    
+    #@doc tags related to the page
     tags = model.String(thrift_id=5)
     #@doc actual page content
     content = model.String(thrift_id=6)
-    #@doc order of the page    
+    #@doc order of the page
     order = model.Integer(thrift_id=7)
     #@doc title of the page
     title = model.String(thrift_id=8)
     #@doc file type (python, javascript, markup, etc...)
     pagetype = model.String(thrift_id=10)
+    #@doc description for the page
+    description = model.String(thrift_id=11)

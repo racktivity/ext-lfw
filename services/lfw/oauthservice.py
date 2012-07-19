@@ -34,10 +34,11 @@ class OAuthService(object):
     def __init__(self):
         self.osis = p.application.getOsisConnection(p.api.appname)
 
-        self.token_table = sqlalchemy.Table(TABLE_NAME, self.osis._sqlalchemy_metadata,
+        self.token_table = sqlalchemy.Table(self.osis._getTableName(TABLE_SCHEMA, TABLE_NAME),
+            self.osis._sqlalchemy_metadata,
             sqlalchemy.Column("key", sqlalchemy.String(60), primary_key=True, nullable=False),
             sqlalchemy.Column("value", sqlalchemy.String(100)),
-            schema=TABLE_SCHEMA
+            schema=self.osis._getSchemeName(TABLE_SCHEMA, TABLE_NAME)
         )
 
         if not self.token_table.exists(self.osis._sqlalchemy_engine):

@@ -1,7 +1,5 @@
-from osis.store import OsisConnection
 
 def main(q, i, p, params, tags):
-    spaceTable = OsisConnection.getTableName(domain = 'ui', objType = 'space')
     filterObject = p.api.model.ui.space.getFilterObject()
     exact_properties = params['exact_properties'] or ()
 
@@ -9,7 +7,7 @@ def main(q, i, p, params, tags):
     for property_name, value in params.iteritems():
         if property_name in properties and not value in (None, ''):
             exact = property_name in exact_properties
-            filterObject.add('spaceTable', property_name, value, exactMatch=exact)
+            filterObject.add('space', property_name, value, exactMatch=exact)
 
     result = p.api.model.ui.space.find(filterObject)
     params['result'] = result

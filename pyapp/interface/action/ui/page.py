@@ -2,8 +2,10 @@ class page:
     """
     Page object actions
     """
+    def __init__(self):
+        pass
 
-    def create(self, name, space, category, parent="", tags="", content="", order=None, title="", pagetype="", jobguid="", executionparams=None):
+    def create(self, name, space, category, parent="", tags="", content="", order=None, title="", pagetype="", description="", jobguid="", executionparams=None):
         """
         Create a new page object.
 
@@ -32,6 +34,9 @@ class page:
 
         @param title:            title of the page
         @type title:             string
+
+        @param description:      description of the page
+        @type description:       string
 
         @param jobguid:          guid of the job if available else empty string
         @type jobguid:           guid
@@ -119,7 +124,7 @@ class page:
         @raise e:                      In case an error occurred, exception is raised
         """
 
-    def getObject(self, rootobjectguid, jobguid="",executionparams=None):
+    def getObject(self, rootobjectguid, jobguid="", executionparams=None):
         """
         Gets the rootobject.
 
@@ -142,7 +147,7 @@ class page:
         @warning:                Only usable using the python client.
         """
 
-    def delete(self, pageguid, jobguid="",executionparams=None):
+    def delete(self, pageguid, jobguid="", executionparams=None):
         """
         Delete the page object with the guid specified.
 
@@ -167,7 +172,7 @@ class page:
         @raise e:                        In case an error occurred, exception is raised
         """
 
-    def update(self, pageguid, name, space, category, parent="", tags="", content="", order=None, title="", jobguid="", executionparams=dict()):
+    def update(self, pageguid, name, space, category, parent="", tags="", content="", order=None, title="", description="", jobguid="", executionparams=dict()):
         """
         Create a new page object.
 
@@ -199,6 +204,9 @@ class page:
 
         @param title:            title of the page
         @type title:             string
+
+        @param description:      description of the page
+        @type description:       string
 
         @param jobguid:          guid of the job if available else empty string
         @type jobguid:           guid

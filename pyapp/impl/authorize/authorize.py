@@ -4,9 +4,12 @@ __priority__ = 3
 
 import copy, xmlrpclib, httplib
 from osis.store.OsisDB import OsisDB
-from osis.store import OsisConnection
 
-from racktivity.authorization import RacktivityAuthorizationCrossChecker
+# For now we depend on racktivity library but support not having it as well
+try:
+    from racktivity.authorization import RacktivityAuthorizationCrossChecker
+except ImportError:
+    RacktivityAuthorizationCrossChecker = None
 
 class TimeoutHTTPConnection(httplib.HTTPConnection):
     def connect(self):
@@ -70,13 +73,15 @@ def getAllArguments(params):
     arguments = copy.copy(params["kwargs"])
 
     #add default args
-    args, _, _, defaultArgs = getattr(params["service"], params["methodname"]).argspec
+    method = getattr(params["service"], params["methodname"])
+    if hasattr(method, "argspec"):
+        args, _, _, defaultArgs = method.argspec
 
-    if defaultArgs:
-        for i in xrange(0, len(defaultArgs)):
-            argName = args[-i - 1]
-            if not argName in arguments:
-                arguments[argName] = defaultArgs[i]
+        if defaultArgs:
+            for i in xrange(0, len(defaultArgs)):
+                argName = args[-i - 1]
+                if not argName in arguments:
+                    arguments[argName] = defaultArgs[i]
 
     return arguments
 
@@ -93,7 +98,6 @@ def getParamValue(arguments, paramName):
 
 def main(q, i, p, params, tags): #pylint: disable=W0613
     request = params["request"]
-    userTable = OsisConnection.getTableName(domain = 'ui', objType = 'user')
     if not request.username:
         params["result"] = False
     else:
@@ -113,8 +117,8 @@ def main(q, i, p, params, tags): #pylint: disable=W0613
 
             conn = OsisDB().getConnection(p.api.appname)
             searchfilter = conn.getFilterObject()
-            searchfilter.add(userTable, "login", request.username, True)
-            users = conn.objectsFindAsView("ui", "user", searchfilter, userTable)
+            searchfilter.add("user", "login", request.username, True)
+            users = conn.objectsFindAsView("ui", "user", searchfilter, "user")
 
             if users and len(users) == 1:
                 user = users[0]
@@ -160,7 +164,7 @@ def main(q, i, p, params, tags): #pylint: disable=W0613
                     appserver = TimeoutServerProxy(appserverUrl, 2)
                     params["result"] = appserver.ui.auth.isAuthorised(groups, funcName, context)
 
-                    if not params["result"]:
+                    if not params["result"] and RacktivityAuthorizationCrossChecker is not None:
                         ## Check if we can crosscheck with another wizard
                         authCrossChecker = RacktivityAuthorizationCrossChecker()
                         oldWizard = context.get('wizard')

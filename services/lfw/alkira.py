@@ -1,7 +1,4 @@
-#pylint: disable=E1101
 from pylabs import q, p
-from osis.store import OsisConnection
-from pg import escape_string
 from . import oauthservice
 
 import os
@@ -14,36 +11,11 @@ import oauth2
 import json
 import ast
 import time
+import sqlalchemy
 
 # HACK - to be removed
 # Used for locking access to create page function in order to prevent creation of duplicate pages
-from racktivity import locklib
-
-#
-# This piece of code is used to associate the rootobject with the right osis view
-#
-osisViewsMap = {
-    '_index'       : { 'tableName': '', 'schemeName': '', 'table': '' },
-    'authoriserule': { 'tableName': '', 'schemeName': '', 'table': '' },
-    'bookmark'     : { 'tableName': '', 'schemeName': '', 'table': '' },
-    'config'       : { 'tableName': '', 'schemeName': '', 'table': '' },
-    'group'        : { 'tableName': '', 'schemeName': '', 'table': '' },
-    'page'         : { 'tableName': '', 'schemeName': '', 'table': '' },
-    'project'      : { 'tableName': '', 'schemeName': '', 'table': '' },
-    'space'        : { 'tableName': '', 'schemeName': '', 'table': '' },
-    'user'         : { 'tableName': '', 'schemeName': '', 'table': '' }
-}
-
-def getOsisViewsMap():
-    if not osisViewsMap['page']['table']:
-        for objType, info in osisViewsMap.iteritems():
-            info['tableName'] = OsisConnection.getTableName(domain='ui', objType=objType)
-            info['schemeName'] = OsisConnection.getSchemeName(domain='ui', objType=objType)
-            info['table'] = OsisConnection.getTable(domain='ui', objType=objType)
-
-    return osisViewsMap
-
-
+import locklib
 
 ADMINSPACE = "Admin"
 IDESPACE = "IDE"
@@ -58,8 +30,8 @@ class Alkira:
         self.KNOWN_TYPES = ["py", "md", "html", "txt"]
 
         self.connection = api.model.ui
+        self.osis = p.application.getOsisConnection(api.appname)
         self.api = api
-        self.osisViewsMap = getOsisViewsMap()
 
     def _callAuthService(self, method, oauthInfo, **args):
         data = {}
@@ -75,10 +47,9 @@ class Alkira:
         httpMethod = "POST"
 
         if oauthInfo and "token" in oauthInfo and "username" in oauthInfo:
-            osis = p.application.getOsisConnection(self.api.appname)
-            table = osis.findTable(oauthservice.TABLE_SCHEMA, oauthservice.TABLE_NAME)
+            table = self.osis.findTable(oauthservice.TABLE_SCHEMA, oauthservice.TABLE_NAME)
             select = table.select().where(table.c.key == oauthInfo["token"])
-            tokenAttributes = dict(osis.runSqlAlchemyQuery(select).fetchone())["value"]
+            tokenAttributes = dict(self.osis.runSqlAlchemyQuery(select).fetchone())["value"]
             if tokenAttributes:
                 tokenAttributes = ast.literal_eval(tokenAttributes)
                 if tokenAttributes:
@@ -112,10 +83,9 @@ class Alkira:
 
     def _getPageInfo(self, space, name):
         page_filter = self.connection.page.getFilterObject()
-        pageTable = self.osisViewsMap['page']['tableName']
-        page_filter.add(pageTable, 'name', name, True)
-        page_filter.add(pageTable, 'space', space, True)
-        page_info = self.connection.page.findAsView(page_filter, pageTable)
+        page_filter.add('page', 'name', name, True)
+        page_filter.add('page', 'space', space, True)
+        page_info = self.connection.page.findAsView(page_filter, 'page')
         return page_info
 
     def _getSpaceGuid(self, space):
@@ -144,18 +114,16 @@ class Alkira:
 
     def _getSpaceInfo(self, name=None):
         _filter = self.connection.space.getFilterObject()
-        spaceTable = self.osisViewsMap['space']['tableName']
         if name:
-            _filter.add(spaceTable, 'name', name, True)
-        space = self.connection.space.findAsView(_filter, spaceTable)
+            _filter.add('space', 'name', name, True)
+        space = self.connection.space.findAsView(_filter, 'space')
         return space
 
     def _getProjectInfo(self, name=None):
         _filter = self.connection.project.getFilterObject()
-        projectTable = self.osisViewsMap['project']['tableName']
         if name:
-            _filter.add(projectTable, 'name', name, True)
-        project = self.connection.project.findAsView(_filter, projectTable)
+            _filter.add('project', 'name', name, True)
+        project = self.connection.project.findAsView(_filter, 'project')
         return project
 
     def _getParentGUIDS(self, guid_list):
@@ -244,12 +212,13 @@ class Alkira:
         return ret
 
     def countPages(self, space=None):
-        where = ''
+        page = self.osis.findTable("ui", "page")
+        select = sqlalchemy.select([ sqlalchemy.func.count(page.c.guid) ])
         if space:
             space = self._getSpaceGuid(space)
-            where = "where space='%s'" % space
+            select.where(page.c.space == space)
 
-        return self.connection.page.query("SELECT count(guid) from %s %s;" % (self.osisViewsMap['page']['table'], where))[0]['count']
+        return self.osis.runSqlAlchemyQuery(select).fetch_one()[0]
 
     def _splitSearchString(self, text):
         wordList = list()
@@ -270,9 +239,10 @@ class Alkira:
     def search(self, text=None, tags=None, title=None, query=None, qtype=None):
         CONTENT_MAX_LENGTH = 100
 
-        sql_select = '"index"."name", "index".url, "index".content, "index".description'
-        sql_from = '%s as "index"' % self.osisViewsMap['_index']['table']
-        sql_where = list()
+        index = self.osis.findTable("ui", "_index")
+
+        columns = [ index.c.name, index.c.url, index.c.content, index.c.description ]
+        where = list()
 
         # new way of handling search request brings type to determine
         # how to search
@@ -291,13 +261,12 @@ class Alkira:
             query = urllib.unquote_plus(query).lower()
             wordList = self._splitSearchString(query)
             for word in wordList:
-                word = escape_string(word)
                 # Each word should be found in at least one of those three db fields:
-                sql_where.append("""(lower("index".content) LIKE \'%%%s%%\'
-                                    OR lower("index".tags) LIKE \'%%%s%%\'
-                                    OR lower("index".name) LIKE \'%%%s%%\')
-                                 """ % (word, word, word))
-
+                where.append(sqlalchemy.or_(
+                    index.c.content.ilike('%%%s%%' % word),
+                    index.c.tags.ilike('%%%s%%' % word),
+                    index.c.name.ilike('%%%s%%' % word)
+                ))
         else:
             # here we go with extended search that also can work as old-style search (no type)
             text = str(text)
@@ -306,20 +275,21 @@ class Alkira:
 
             if tags:
                 tags = urllib.unquote_plus(tags)
-                tags = escape_string(tags.strip(', '))
-                sql_where.append('lower("index".tags) LIKE \'%%%s%%\'' %  tags.lower())
+                tags = tags.strip(', ')
+                where.append(index.c.tags.ilike('%%%s%%' % tags.lower()))
 
             if text:
-                sql_where.append('lower("index".content) LIKE \'%%%s%%\'' % text.lower())
+                where.append(index.c.content.ilike('%%%s%%' % text.lower()))
             if title:
-                sql_where.append('lower("index".name) LIKE \'%%%s%%\'' % title.lower())
+                where.append(index.c.name.ilike('%%%s%%' % title.lower()))
 
-        query = 'SELECT %s FROM %s WHERE %s' % (sql_select, sql_from, ' AND '.join(sql_where))
-
-        result = self.connection._index.query(query) #pylint: disable=W0212
+        select = sqlalchemy.select(columns, whereclause=sqlalchemy.and_(*where))
+        qr = self.osis.runSqlAlchemyQuery(select)
 
         # If description is present then use it, otherwise use page content:
-        for item in result:
+        result = []
+        for item in qr:
+            item = dict(item)
             if item['description'] != None:
                 item['content'] = item['description']
             elif item['content'] != None:
@@ -328,6 +298,7 @@ class Alkira:
                 if len(item['content']) > CONTENT_MAX_LENGTH:
                     item['content'] = item['content'][:CONTENT_MAX_LENGTH] + '...'
             del item['description']
+            result.append(item)
 
         return result
 
@@ -384,10 +355,9 @@ class Alkira:
         _filter = self.connection.page.getFilterObject()
         if space:
             space = self._getSpaceGuid(space)
-            pageTable = self.osisViewsMap['page']['tableName']
-            _filter.add(pageTable, 'space', space, True)
+            _filter.add('page', 'space', space, True)
 
-        return self.connection.page.findAsView(_filter, pageTable)
+        return self.connection.page.findAsView(_filter, 'page')
 
     def listChildPages(self, space, name = None):
         """
@@ -400,17 +370,16 @@ class Alkira:
         @param name: The name of the parent page.
         """
         space = self._getSpaceGuid(space)
-        pageTable = self.osisViewsMap['page']['tableName']
         filterObj = self.connection.page.getFilterObject()
-        filterObj.add(pageTable, 'space', space, True)
+        filterObj.add('page', 'space', space, True)
         #Get page guid
         if name:
             guid = self._getPageInfo(space, name)[0]["guid"]
-            filterObj.add(pageTable, 'parent', guid, True)
+            filterObj.add('page', 'parent', guid, True)
         else:
-            filterObj.add(pageTable, 'parent', None, True)
+            filterObj.add('page', 'parent', None, True)
 
-        query = self.connection.page.findAsView(filterObj, pageTable)
+        query = self.connection.page.findAsView(filterObj, 'page')
         return list(name["name"] for name in query)
 
     def spaceExists(self, name):
@@ -456,7 +425,6 @@ class Alkira:
         exact_properties = exact_properties or ()
 
         space = self._getSpaceGuid(space) if space else ''
-        pageTable = self.osisViewsMap['page']['tableName']
         frame = inspect.currentframe()
         _, _, _, values = inspect.getargvalues(frame)
 
@@ -464,12 +432,11 @@ class Alkira:
         for property_name, value in values.iteritems():
             if property_name in properties and not value in (None, ''):
                 exact = property_name in exact_properties
-                filterObject.add(pageTable, property_name, value, exactMatch=exact)
+                filterObject.add('page', property_name, value, exactMatch=exact)
 
         return self.connection.page.find(filterObject)
 
     def userFind(self, name='', exact_properties=None): #pylint: disable=W0613
-        pageTable = self.osisViewsMap['page']['tableName']
         filterObject = self.connection.user.getFilterObject()
         exact_properties = exact_properties or ()
 
@@ -480,7 +447,7 @@ class Alkira:
         for property_name, value in values.iteritems():
             if property_name in properties and not value in (None, ''):
                 exact = property_name in exact_properties
-                filterObject.add(pageTable, property_name, value, exactMatch=exact)
+                filterObject.add('page', property_name, value, exactMatch=exact)
 
         return self.connection.user.find(filterObject)
 
@@ -668,9 +635,8 @@ class Alkira:
 
     def _deletePage(self, space, page):
         def deleterecursive(guid):
-            pageTable = self.osisViewsMap['page']['tableName']
             _filter = self.connection.page.getFilterObject()
-            _filter.add(pageTable, "parent", guid, True)
+            _filter.add('page', "parent", guid, True)
 
             for chguid in self.connection.page.find(_filter):
                 deleterecursive(chguid)
@@ -1019,20 +985,19 @@ class Alkira:
         return page
 
     def findMacroConfig(self, space="", page="", macro="", configId=None, username=None, exact_properties=None):
-        configTable = self.osisViewsMap['config']['tableName']
         configFilter = self.connection.config.getFilterObject()
         exact_properties = exact_properties or ()
         if space:
             space = self._getSpaceGuid(space)
-            configFilter.add(configTable, 'space', space, 'space' in exact_properties)
+            configFilter.add('config', 'space', space, 'space' in exact_properties)
             if page:
-                configFilter.add(configTable, 'page', self._getPageInfo(space, page)[0]['guid'],
+                configFilter.add('config', 'page', self._getPageInfo(space, page)[0]['guid'],
                     'page' in exact_properties)
-        configFilter.add(configTable, 'macro', macro, 'macro' in exact_properties)
-        configFilter.add(configTable, 'username', username, 'username' in exact_properties)
+        configFilter.add('config', 'macro', macro, 'macro' in exact_properties)
+        configFilter.add('config', 'username', username, 'username' in exact_properties)
         if configId:
-            configFilter.add(configTable, 'configid', configId, 'configid' in exact_properties)
-        return self.connection.config.findAsView(configFilter, configTable)
+            configFilter.add('config', 'configid', configId, 'configid' in exact_properties)
+        return self.connection.config.findAsView(configFilter, 'config')
 
     def getMacroConfig(self, space, page, macro, configId=None, username=None):
         username = username.lower() if username else None
@@ -1245,29 +1210,27 @@ class Alkira:
         return True
 
     def getitems(self, prop, space=None, term=None):
-        pageTable = self.osisViewsMap['page']['table']
-        SQL_PAGES = 'SELECT DISTINCT %(pageTable)s.%(prop)s FROM %(pageTable)s %(space_criteria)s'
-        SQL_PAGES_FILTER = 'SELECT DISTINCT %(pageTable)s.%(prop)s FROM %(pageTable)s WHERE %(pageTable)s.%(prop)s LIKE \'%(term)s%%\'  %(space_criteria)s'
-        SQL_PAGE_TAGS = 'SELECT DISTINCT %(pageTable)s.%(prop)s FROM %(pageTable)s WHERE %(pageTable)s.space=\'%(space)s\''
-        SQL_PAGE_TAGS_FILTER = 'SELECT DISTINCT %(pageTable)s.%(prop)s FROM %(pageTable)s WHERE %(pageTable)s.space=\'%(space)s\' AND %(pageTable)s.%(prop)s LIKE \'%%%(term)s%%\''
+        page = self.osis.findTable("ui", "page")
 
-        if space:
-            space = self.getSpace(space)
+        space = self.getSpace(space)
+
         t = term.split(', ')[-1] if term else ''
 
-        d = {'prop': prop, 'space': space.guid, 'term': t, 'pageTable' : pageTable}
-        if prop in ('tags',):
-            sql = SQL_PAGE_TAGS_FILTER % d if t else SQL_PAGE_TAGS % d
-        else:
-            if t:
-                d['space_criteria'] = 'AND %s.space = \'%s\'' % (self.osisViewsMap['page']['tableName'], space.guid if space else '')
-                sql = SQL_PAGES_FILTER % d
-            else:
-                d['space_criteria'] = 'WHERE %s.space = \'%s\'' % (self.osisViewsMap['page']['tableName'], space.guid if space else '')
-                sql = SQL_PAGES % d
+        columns = [ getattr(page.c, prop) ]
+        where = []
 
-        qr = self.connection.page.query(sql)
-        result = map(lambda _: _[prop], qr) #pylint: disable=W0141
+        where.append(page.c.space == space.guid)
+
+        if t:
+            where.append(getattr(page.c, prop).like('%%%s%%' % t))
+
+        select = sqlalchemy.select(columns, whereclause=sqlalchemy.and_(*where), distinct=True)
+
+        qr = self.osis.runSqlAlchemyQuery(select)
+        result = []
+        for row in qr:
+            result.append(row[0])
+
         return result
 
     def syncPortal(self, path=None, space=None, page=None, cleanup=None):
@@ -1438,11 +1401,10 @@ class Alkira:
             alkiraTree(folder_paths)
 
     def _getUserInfo(self, login=None):
-        userTable = self.osisViewsMap['user']['tableName']
         searchfilter = self.connection.user.getFilterObject()
         if login:
-            searchfilter.add(userTable, 'login', login, True)
-        user = self.connection.user.findAsView(searchfilter, userTable)
+            searchfilter.add('user', 'login', login, True)
+        user = self.connection.user.findAsView(searchfilter, 'user')
         return user
 
     def listUsers(self, login=None):
@@ -1486,10 +1448,9 @@ class Alkira:
         return self.connection.user.get(user_info[0]['guid'])
 
     def getUserGroups(self, name):
-        userTable = self.osisViewsMap['user']['tableName']
         searchfilter = self.connection.user.getFilterObject()
-        searchfilter.add(userTable, 'login', name, True)
-        user = self.connection.user.findAsView(searchfilter, userTable)
+        searchfilter.add('user', 'login', name, True)
+        user = self.connection.user.findAsView(searchfilter, 'user')
         if user and len(user) == 1:
             return filter(None, user[0]["groupguids"].split(";")) #pylint: disable=W0141
 
@@ -1504,11 +1465,10 @@ class Alkira:
         return self._callAuthService("createUsergroup", oauthInfo, usergroupinfo=groupInfo)
 
     def _getGroupInfo(self, name=None):
-        groupTable = self.osisViewsMap['group']['tableName']
         searchfilter = self.connection.group.getFilterObject()
         if name:
-            searchfilter.add(groupTable, 'name', name, True)
-        group = self.connection.group.findAsView(searchfilter, groupTable)
+            searchfilter.add('group', 'name', name, True)
+        group = self.connection.group.findAsView(searchfilter, 'group')
         return group
 
     def deleteGroup(self, groupguid, oauthInfo=None):
@@ -1534,15 +1494,14 @@ class Alkira:
         return self._callAuthService("authorise", oauthInfo, groups=groupguids, functionname=function, context=context)
 
     def _getRuleInfo(self, groupguid=None, function=None, context=None):
-        authoriseruleTable = self.osisViewsMap['authoriserule']['tableName']
         searchfilter = self.connection.authoriserule.getFilterObject()
         if groupguid:
-            searchfilter.add(authoriseruleTable, 'groupguids', ";" + groupguid + ";", False)
+            searchfilter.add('authoriserule', 'groupguids', ";" + groupguid + ";", False)
         if function:
-            searchfilter.add(authoriseruleTable, 'function', function, True)
+            searchfilter.add('authoriserule', 'function', function, True)
         if context:
-            searchfilter.add(authoriseruleTable, 'context', context, True)
-        rule = self.connection.authoriserule.findAsView(searchfilter, authoriseruleTable)
+            searchfilter.add('authoriserule', 'context', context, True)
+        rule = self.connection.authoriserule.findAsView(searchfilter, 'authoriserule')
         return rule
 
     def revokeRule(self, groupguids, function, context, oauthInfo=None):
@@ -1637,9 +1596,8 @@ class Alkira:
         self.connection.bookmark.delete(bookmarkguid)
 
     def listBookmarks(self):
-        bookmarkTable = self.osisViewsMap['bookmark']['tableName']
         _filter = self.connection.bookmark.getFilterObject()
-        bookmarks = self.connection.bookmark.findAsView(_filter, bookmarkTable)
+        bookmarks = self.connection.bookmark.findAsView(_filter, 'bookmark')
 
         def byOrder(x, y):
             return cmp(x["order"], y["order"])

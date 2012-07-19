@@ -1,1 +1,1 @@
-from .alkira import Alkira, getOsisViewsMap, ADMINSPACE, IDESPACE
+from .alkira import Alkira, ADMINSPACE, IDESPACE

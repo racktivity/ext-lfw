@@ -1,10 +1,11 @@
-#pylint: disable=E1101
 from osis.store.OsisDB import OsisDB
 from pylabs import p, q
-from racktivity import authorization
+try:
+    from racktivity import authorization
+except ImportError:
+    authorization = None
 import json
 from alkira.serialize import json_print_dict
-from alkira.alkira import getOsisViewsMap
 
 PUBLIC_GROUP = "Public Group"
 ADMIN_GROUP = "Admins"
@@ -20,7 +21,6 @@ class AuthBackend(object):
         self.publicGroupGuid = None
         self.anonymousUserGuid = None
         self.userGroupGuid = None
-        self.osisViewsMap = getOsisViewsMap()
 
     def _initCheck(self):
         if self.initChecked:
@@ -59,8 +59,7 @@ class AuthBackend(object):
 
     def _getGroup(self, name):
         searchfilter = self.osis.getFilterObject()
-        groupTable = self.osisViewsMap['group']['tableName']
-        searchfilter.add(groupTable, "name", name, True)
+        searchfilter.add('group', "name", name, True)
         return self.osis.objectsFind("ui", "group", searchfilter)
 
     def _groupExists(self, name):
@@ -68,8 +67,7 @@ class AuthBackend(object):
 
     def _getUsers(self, login):
         searchfilter = self.osis.getFilterObject()
-        userTable = self.osisViewsMap['user']['tableName']
-        searchfilter.add(userTable, "login", login, True)
+        searchfilter.add('user', "login", login, True)
         return self.osis.objectsFind("ui", "user", searchfilter)
 
     def _userExists(self, login):
@@ -77,10 +75,9 @@ class AuthBackend(object):
 
     def _getRules(self, group, functionname, context):
         searchfilter = self.osis.getFilterObject()
-        authoriseruleTable = self.osisViewsMap['authoriserule']['tableName']
-        searchfilter.add(authoriseruleTable, "groupguids", ";" + group + ";", False)
-        searchfilter.add(authoriseruleTable, "function", functionname, True)
-        searchfilter.add(authoriseruleTable, "context", json_print_dict(context), True)
+        searchfilter.add('authoriserule', "groupguids", ";" + group + ";", False)
+        searchfilter.add('authoriserule', "function", functionname, True)
+        searchfilter.add('authoriserule', "context", json_print_dict(context), True)
         return self.osis.objectsFind("ui", "authoriserule", searchfilter)
 
     def _ruleExists(self, group, functionname, context):
@@ -107,8 +104,7 @@ class AuthBackend(object):
 
         #make sure users don't reference the group anymore
         searchfilter = self.osis.getFilterObject()
-        userTable = self.osisViewsMap['user']['tableName']
-        searchfilter.add(userTable, "groupguids", ";" + usergroupid + ";", False)
+        searchfilter.add('user', "groupguids", ";" + usergroupid + ";", False)
         userguids = self.osis.objectsFind("ui", "user", searchfilter)
         for userguid in userguids:
             user = p.api.model.ui.user.get(userguid)
@@ -117,8 +113,7 @@ class AuthBackend(object):
 
         #make sure rules don't reference the group anymore
         searchfilter = self.osis.getFilterObject()
-        authoriseruleTable = self.osisViewsMap['authoriserule']['tableName']
-        searchfilter.add(authoriseruleTable, "groupguids", ";" + usergroupid + ";", False)
+        searchfilter.add('authoriserule', "groupguids", ";" + usergroupid + ";", False)
         ruleguids = self.osis.objectsFind("ui", "authoriserule", searchfilter)
         for ruleguid in ruleguids:
             rule = p.api.model.ui.authoriserule.get(ruleguid)
@@ -221,10 +216,9 @@ class AuthBackend(object):
             groups = [ groups ]
         def doSearch(groupguid, functionname, context):
             searchfilter = self.osis.getFilterObject()
-            authoriseruleTable = self.osisViewsMap['authoriserule']['tableName']
-            searchfilter.add(authoriseruleTable, "groupguids", ";" + groupguid + ";", False)
-            searchfilter.add(authoriseruleTable, "function", functionname, True)
-            rules = self.osis.objectsFindAsView("ui", "authoriserule", searchfilter, authoriseruleTable)
+            searchfilter.add('authoriserule', "groupguids", ";" + groupguid + ";", False)
+            searchfilter.add('authoriserule', "function", functionname, True)
+            rules = self.osis.objectsFindAsView("ui", "authoriserule", searchfilter, 'authoriserule')
             # No rules found
             if not rules:
                 q.logger.log("No rules found for group %s" % (str(groups)), 3)
@@ -235,10 +229,11 @@ class AuthBackend(object):
                 # Remove the '_rulegroup' and '_forceinheritance' items from the saved context.
                 # This is only used to map stored rules to rulegroups in the UI
                 # And yes, I know it's dirty
-                if authorization.RacktivityAuthorization.RULE_GROUP_PARAM in ruleContext:
-                    ruleContext.pop(authorization.RacktivityAuthorization.RULE_GROUP_PARAM)
-                if authorization.RacktivityAuthorization.FORCE_INHERITANCE_PARAM in ruleContext:
-                    ruleContext.pop(authorization.RacktivityAuthorization.FORCE_INHERITANCE_PARAM)
+                if authorization:
+                    if authorization.RacktivityAuthorization.RULE_GROUP_PARAM in ruleContext:
+                        ruleContext.pop(authorization.RacktivityAuthorization.RULE_GROUP_PARAM)
+                    if authorization.RacktivityAuthorization.FORCE_INHERITANCE_PARAM in ruleContext:
+                        ruleContext.pop(authorization.RacktivityAuthorization.FORCE_INHERITANCE_PARAM)
 
                 ruleMatch = True
                 contextKeys = set(context.keys())

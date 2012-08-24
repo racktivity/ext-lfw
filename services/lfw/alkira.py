@@ -1,13 +1,17 @@
 from pylabs import q, p
+from . import oauthservice
 
 import os
 import urllib
 import inspect
 import re
 import functools
+import httplib
+import oauth2
+import json
+import ast
 import time
 import sqlalchemy
-from .authservice import AuthService
 
 # HACK - to be removed
 # Used for locking access to create page function in order to prevent creation of duplicate pages
@@ -28,16 +32,54 @@ class Alkira:
         self.connection = api.model.ui
         self.osis = p.application.getOsisConnection(api.appname)
         self.api = api
-        self.authService = None
 
-    def _callAuthService(self, method, oauthInfo=None, **args): #pylint: disable=W0613
-        if self.authService is None:
-            if not hasattr(p.api, "model") and hasattr(self.api, "model"):
-                p.api = self.api
-            self.authService = AuthService()
+    def _callAuthService(self, method, oauthInfo, **args):
+        data = {}
+        #only pass arguments that has value
+        for k, v in args.iteritems():
+            if v != None:
+                data[k] = json.dumps(v)
 
-        func = getattr(self.authService, method)
-        return func(**args)
+        headers = {'Content-Type': "application/x-www-form-urlencoded"}
+
+        url = '/%(appname)s/appserver/rest/ui/auth/%(method)s' % {'appname': self.api.appname, 'method': method}
+
+        httpMethod = "POST"
+
+        if oauthInfo and "token" in oauthInfo and "username" in oauthInfo:
+            table = self.osis.findTable(oauthservice.TABLE_SCHEMA, oauthservice.TABLE_NAME)
+            select = table.select().where(table.c.key == oauthInfo["token"])
+            tokenAttributes = dict(self.osis.runSqlAlchemyQuery(select).fetchone())["value"]
+            if tokenAttributes:
+                tokenAttributes = ast.literal_eval(tokenAttributes)
+                if tokenAttributes:
+                    #remove the appname from the call ass the appserver doesn't get this in his request
+                    oauthUrl = url[len("/%s" % self.api.appname):]
+
+                    consumer = oauth2.Consumer(oauthInfo["username"], "")
+                    token = oauth2.Token(oauthInfo["token"], tokenAttributes["tokensecret"])
+                    req = oauth2.Request.from_consumer_and_token(consumer, token, http_method=httpMethod,
+                        http_url="http://alkira%s" % oauthUrl, parameters=data)
+                    req.sign_request(oauth2.SignatureMethod_HMAC_SHA1(), consumer, token)
+                    oauthHeaders = req.to_header(realm="alkira")
+                    headers.update(oauthHeaders)
+
+        data = urllib.urlencode(data)
+        con = httplib.HTTPConnection("localhost", 80)
+        try:
+            con.request(httpMethod, url, body=data, headers=headers)
+            res = con.getresponse()
+            result = res.read()
+            try:
+                body = json.loads(result)
+            except ValueError:
+                body = result
+            if res.status == 200:
+                return body
+            else:
+                raise Exception(body['exception'] if 'exception' in body else res.reason, res.status)
+        finally:
+            con.close()
 
     def _getPageInfo(self, space, name):
         page_filter = self.connection.page.getFilterObject()
@@ -1521,6 +1563,7 @@ class Alkira:
         from lfw import LFWService #pylint: disable=F0401
         assignRules(LFWService.getAuthorizedFunctions())
 
+        from authservice import AuthService #pylint: disable=F0401
         assignRules(AuthService.getAuthorizedFunctions())
 
         from ide import ide #pylint: disable=F0401

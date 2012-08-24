@@ -32,6 +32,8 @@ class Alkira:
 
     def _callAuthService(self, method, oauthInfo=None, **args): #pylint: disable=W0613
         if self.authService is None:
+            if not hasattr(p.api, "model") and hasattr(self.api, "model"):
+                p.api = self.api
             self.authService = AuthService()
 
         func = getattr(self.authService, method)

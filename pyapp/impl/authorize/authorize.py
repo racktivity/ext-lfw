@@ -68,8 +68,8 @@ def getParamValue(arguments, paramName):
 authService = None
 
 def main(q, i, p, params, tags): #pylint: disable=W0613
+    global authService #pylint: disable=W0603
     if authService is None:
-        global authService #pylint: disable=W0603
         authService = AuthService()
 
     request = params["request"]

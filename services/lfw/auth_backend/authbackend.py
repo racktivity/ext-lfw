@@ -123,7 +123,7 @@ class AuthBackend(object):
         results[isAuthorisedHash] = value
 
         #save main authorization dict
-        self._cache.set(self._cacheHash, results)
+        self._cache.set(self._cacheHash, results, cache.maxduration)
 
     def _clearCache(self):
         if not self._cache:
@@ -275,13 +275,13 @@ class AuthBackend(object):
     def isAuthorised(self, groups, functionname, context):
         q.logger.log("Checking if group %s is authorized for function '%s' with context '%s' " % (str(groups), functionname, str(context)), 3)
 
-        cachedResult = self._getCachedIsAuhtorised(groups, functionname, context)
-        if cachedResult:
-            #return cached result
-            return cachedResult
-
         if not isinstance(groups, list):
             groups = [ groups ]
+
+        cachedResult = self._getCachedIsAuhtorised(groups, functionname, context)
+        if cachedResult is not None:
+            #return cached result
+            return cachedResult
 
         def doSearch(groupguid, functionname, context):
             searchfilter = self.osis.getFilterObject()

@@ -4,6 +4,10 @@ try:
     from racktivity import authorization
 except ImportError:
     authorization = None
+try:
+    from racktivity.cache import cache
+except ImportError:
+    cache = None
 import json
 from alkira.serialize import json_print_dict
 
@@ -11,6 +15,14 @@ PUBLIC_GROUP = "Public Group"
 ADMIN_GROUP = "Admins"
 ANON_USER = "anonymous"
 USER_GROUP = "Users"
+
+def ensure_groups(func):
+
+    def wrapper(*args, **kwargs):
+        args[0]._initCheck() #pylint: disable=W0212
+        return func(*args, **kwargs)
+
+    return wrapper
 
 class AuthBackend(object):
     def __init__(self):
@@ -21,6 +33,8 @@ class AuthBackend(object):
         self.publicGroupGuid = None
         self.anonymousUserGuid = None
         self.userGroupGuid = None
+        self._cache = cache.getApi() if cache else None
+        self._cacheHash = cache.calculateHash({ "__name__": "authorization_authbackend" }) if cache else None
 
     def _initCheck(self):
         if self.initChecked:
@@ -83,12 +97,47 @@ class AuthBackend(object):
     def _ruleExists(self, group, functionname, context):
         return bool(self._getRules(group, functionname, context))
 
+    def _getCachedIsAuhtorised(self, groups, functionname, context):
+        if not self._cache:
+            return None
+
+        #get main authorization dict
+        results = self._cache.get(self._cacheHash) or {}
+
+        #calculate hash for isAuthorised
+        isAuthorisedHash = cache.calculateHash({ "groups": groups, "functionname": functionname, "context": context })
+        if isAuthorisedHash in results: #get the cached result
+            return results[isAuthorisedHash]
+
+        return None
+
+    def _setCachedIsAuthorized(self, groups, functionname, context, value):
+        if not self._cache:
+            return
+
+        #get main authorization dict
+        results = self._cache.get(self._cacheHash) or {}
+
+        #calculate hash for isAuthorised
+        isAuthorisedHash = cache.calculateHash({ "groups": groups, "functionname": functionname, "context": context })
+        results[isAuthorisedHash] = value
+
+        #save main authorization dict
+        self._cache.set(self._cacheHash, results)
+
+    def _clearCache(self):
+        if not self._cache:
+            return
+
+        #clear main authorization dict
+        self._cache.flushByKeys([ self._cacheHash ])
+
+    @ensure_groups
     def verifyUserIdentity(self, login, password): #pylint: disable=W0613
-        self._initCheck()
         q.errorconditionhandler.raiseError("Not implemented")
 
+    @ensure_groups
     def createUsergroup(self, usergroupinfo):
-        self._initCheck()
         if self._groupExists(usergroupinfo["name"]):
             q.errorconditionhandler.raiseError("Group %s already exists." % usergroupinfo["name"])
         else:
@@ -97,8 +146,8 @@ class AuthBackend(object):
             p.api.model.ui.group.save(group)
             return group.guid
 
+    @ensure_groups
     def deleteUsergroup(self, usergroupid):
-        self._initCheck()
         if usergroupid in (self.publicGroupGuid, self.adminGroupGuid):
             q.errorconditionhandler.raiseError("Unable to delete %s." % PUBLIC_GROUP)
 
@@ -124,10 +173,14 @@ class AuthBackend(object):
                 p.api.model.ui.authoriserule.save(rule)
 
         p.api.model.ui.group.delete(usergroupid)
+
+        #clear authorization cache
+        self._clearCache()
+
         return True
 
+    @ensure_groups
     def createUser(self, userinfo):
-        self._initCheck()
         if self._userExists(userinfo["login"]):
             q.errorconditionhandler.raiseError("User %s already exists." % userinfo["login"])
         else:
@@ -142,24 +195,24 @@ class AuthBackend(object):
             p.api.model.ui.user.save(user)
             return user.guid
 
+    @ensure_groups
     def deleteUser(self, userid):
-        self._initCheck()
         if userid == self.anonymousUserGuid:
             q.errorconditionhandler.raiseError("Unable to delete %s." % ANON_USER)
         login = p.api.model.ui.user.get(userid).login
         p.api.model.ui.user.delete(userid)
         return login
 
+    @ensure_groups
     def updateUser(self, userid, userinfo):
-        self._initCheck()
         user = p.api.model.ui.user.get(userid)
         if "name" in userinfo:
             user.name = userinfo["name"]
         p.api.model.ui.user.save(user)
         return user.login
 
+    @ensure_groups
     def addUserToGroup(self, userid, usergroupid):
-        self._initCheck()
         user = p.api.model.ui.user.get(userid)
         if usergroupid in user.groups:
             q.errorconditionhandler.raiseError("User is already in that group.")
@@ -168,8 +221,8 @@ class AuthBackend(object):
         p.api.model.ui.user.save(user)
         return True
 
+    @ensure_groups
     def deleteUserFromGroup(self, userid, usergroupid):
-        self._initCheck()
         user = p.api.model.ui.user.get(userid)
         if not usergroupid in user.groups:
             q.errorconditionhandler.raiseError("User is not in that group.")
@@ -178,8 +231,8 @@ class AuthBackend(object):
         p.api.model.ui.user.save(user)
         return True
 
+    @ensure_groups
     def authorise(self, groups, functionname, context):
-        self._initCheck()
         if not isinstance(groups, list):
             groups = [ groups ]
         for group in groups:
@@ -191,10 +244,14 @@ class AuthBackend(object):
         rule.function = functionname
         rule.context = context
         p.api.model.ui.authoriserule.save(rule)
+
+        #clear authorization cache
+        self._clearCache()
+
         return rule.guid
 
+    @ensure_groups
     def unAuthorise(self, groups, functionname, context):
-        self._initCheck()
         if not isinstance(groups, list):
             groups = [ groups ]
         found = False
@@ -203,17 +260,29 @@ class AuthBackend(object):
             for rule in rules:
                 p.api.model.ui.authoriserule.delete(rule)
                 found = True
+
+        if found:
+            #clear authorization cache
+            self._clearCache()
+
         return found
 
+    @ensure_groups
     def listAuthorisation(self, groups=None, functionname=None, context=None): #pylint: disable=W0613
-        self._initCheck()
         q.errorconditionhandler.raiseError("Not implemented")
 
+    @ensure_groups
     def isAuthorised(self, groups, functionname, context):
         q.logger.log("Checking if group %s is authorized for function '%s' with context '%s' " % (str(groups), functionname, str(context)), 3)
-        self._initCheck()
+
+        cachedResult = self._getCachedIsAuhtorised(groups, functionname, context)
+        if cachedResult:
+            #return cached result
+            return cachedResult
+
         if not isinstance(groups, list):
             groups = [ groups ]
+
         def doSearch(groupguid, functionname, context):
             searchfilter = self.osis.getFilterObject()
             searchfilter.add('authoriserule', "groupguids", ";" + groupguid + ";", False)
@@ -270,11 +339,15 @@ class AuthBackend(object):
                         return True
             return False
 
+        result = False
         for groupguid in groups:
             if not groupguid:
                 continue
 
             if doSearch(groupguid, functionname, context):
-                return True
+                result = True
+                break
 
-        return False
+        #store result in cache
+        self._setCachedIsAuthorized(groups, functionname, context, result)
+        return result

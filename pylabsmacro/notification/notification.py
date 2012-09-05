@@ -22,7 +22,7 @@ def main(q, i, p, params, tags): #pylint: disable=W0613
     where = [ spaceTable.c.name == spacename, pageTable.c.name == pagename ]
     select = sqlalchemy.select([ pageTable.c.guid ], whereclause=sqlalchemy.and_(*where), from_obj=join)
 
-    result = alk.osis.runSqlAlchemyQuery(select).fetch_one()
+    result = alk.osis.runSqlAlchemyQuery(select).fetchone()
     if result:
         pageguid = result[0]
         while time.time() < start + MAXTIME:

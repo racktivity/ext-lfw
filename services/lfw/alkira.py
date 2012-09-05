@@ -176,7 +176,7 @@ class Alkira:
             space = self._getSpaceGuid(space)
             select.where(page.c.space == space)
 
-        return self.osis.runSqlAlchemyQuery(select).fetch_one()[0]
+        return self.osis.runSqlAlchemyQuery(select).fetchone()[0]
 
     def _splitSearchString(self, text):
         wordList = list()

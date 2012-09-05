@@ -53,7 +53,7 @@ def main(q, i, p, params, tags): #pylint: disable=W0613
         else:
             parentselect = sqlalchemy.select([ page.c.guid ], distinct=True, from_obj=join,
                 whereclause=[ space.c.name.in_(spaceNames), page.c.name == _id ], order_by=order)
-            result = service.alkira.osis.runSqlAlchemyQuery(parentselect).fetch_one()
+            result = service.alkira.osis.runSqlAlchemyQuery(parentselect).fetchone()
             where.append(page.c.parent == result[0])
 
     select = sqlalchemy.select(columns, distinct=True, from_obj=join, whereclause=sqlalchemy.and_(*where), order_by=order)

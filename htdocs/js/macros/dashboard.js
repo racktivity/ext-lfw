@@ -1,5 +1,5 @@
 //@metadata ignore=true
-
+/*global JSWizards*/
 $(function() { //global function wrapper
 
 var LFW_DASHBOARDS = [];
@@ -218,7 +218,9 @@ $(function() {
                     className: 'negative'
                 }
             ],
-            close: function() { $(this).remove(); }
+            close: function() {
+                $(this).dialog("destroy").remove();
+            }
         });
     };
 
@@ -485,16 +487,12 @@ $(function() {
         // Disable selection of the headers so we are sure we can always drag them
         this.jq.find(".portlet-header").disableSelection();
 
-        // Configure options
-        this.jqOptions = this.jq.find(".dashboard-options");
-        this._fillOptions();
-
         // Make the widget store work
         this.jq.find(".dashboard-header .ui-icon-plusthick").click($.proxy(this.showWidgetStore, this));
 
         // Make configure work
         var that = this;
-        this.jq.find(".dashboard-header .ui-icon-wrench").click(function() { that.jqOptions.dialog("open"); });
+        this.jq.find(".dashboard-header .ui-icon-wrench").click($.proxy(this.showOptions, this));
 
         // Sort the columns by order first
         this._columns.sort(function(col1, col2) {
@@ -514,100 +512,87 @@ $(function() {
 
     // Show the widget store
     Dashboard.prototype.showWidgetStore = function() {
-        // Create the widget store if needed
-        var widgetStore = $("#widgetStore"),
-            that = this,
+        // Create the widget store
+        var that = this,
             search;
 
-        if (widgetStore.length === 0) { // Add it
-            $("body").append("<div id='widgetStore' title='Widget Store'>" +
-                "<div class='column-left'><input type='text' class='search' /><ul class='types'></ul></div>" +
-                "<div class='column-right'></div>" +
-                "</div>");
+        $("body").append("<div id='widgetStore' title='Widget Store'>" +
+            "<div class='column-left'><input type='text' class='search' /><ul class='types'></ul></div>" +
+            "<div class='column-right'></div>" +
+            "</div>");
 
-            widgetStore = $("#widgetStore");
-            widgetStore.dialog({
-                autoOpen: false,
-                modal: true,
-                resizable: false,
-                draggable: false,
-                minHeight: "auto",
-                width: 860,
-                buttons: {}
+        var widgetStore = $("#widgetStore"),
+            display = widgetStore.find(".column-right");
+
+        // Make the quick search work
+        search = widgetStore.find(".search");
+        search.keyup(function(event) {
+            function contains(string, keywords) {
+                var lower = string.toLowerCase(),
+                    i;
+                for (i = 0; i < keywords.length; ++i) {
+                    if (lower.indexOf(keywords[i]) === -1) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            var types = search.val().split(" "),
+                widgets = [],
+                i, type;
+
+            // Ensure lowercase on the types
+            for (i = 0; i < types.length; ++i) {
+                types[i] = types[i].toLowerCase();
+            }
+
+            // Search names
+            for (i = 0; i < LFW_DASHBOARD.widgetTypes.length; ++i) {
+                type = LFW_DASHBOARD.widgetTypes[i];
+
+                // Search name
+                if (contains(type.label || type.name, types)) {
+                    widgets.push(type);
+                }
+            }
+
+            // Show results
+            display.empty();
+            for (i = 0; i < widgets.length; ++i) {
+                type = widgets[i];
+                display.append("<div id='widget-" + type.name + "' class='widgettype'>" +
+                    (type.image ? "<img class='add' src='" + type.image + "' />" : "<img src='img/pixel.gif' />") +
+                    "<button class='add'><span class='ui-button-text'>Pick me</span></button>" +
+                    "<h3>" + (type.label || type.name) + "</h3><p>" + (type.description || "No description") +
+                    "<br /><a href=\"" + type.documentationUrl + "\" target=\"doc\">Documentation</a></p></div>");
+            }
+
+            // Make em clickable
+            display.find(".add").click(function() {
+                type = $(this).parent().attr("id").replace("widget-", "");
+
+                // Get the column with the least amount of widgets
+                var column = that.columns[0];
+                for (i = 0; i < that.columns.length; ++i) {
+                    if (that.columns[i].widgets.length < column.widgets.length) {
+                        column = that.columns[i];
+                    }
+                }
+
+                var wizard = LFW_DASHBOARD.widgetTypesByName[type].wizard || "general";
+
+                function add(object) { // Add the widget
+                    object = $.parseJSON(object);
+                    column.addWidget(undefined, object.title, type, undefined, false, object.body, object.params);
+                }
+                JSWizards.launch("appserver/rest/ui/wizard", "widgets", wizard, "", add);
+
+                widgetStore.dialog("close");
             });
 
-            var display = widgetStore.find(".column-right");
-
-            // Make the quick search work
-            search = widgetStore.find(".search");
-            search.keyup(function(event) {
-                function contains(string, keywords) {
-                    var lower = string.toLowerCase(),
-                        i;
-                    for (i = 0; i < keywords.length; ++i) {
-                        if (lower.indexOf(keywords[i]) === -1) {
-                            return false;
-                        }
-                    }
-                    return true;
-                }
-
-                var types = search.val().split(" "),
-                    widgets = [],
-                    i, type;
-
-                // Ensure lowercase on the types
-                for (i = 0; i < types.length; ++i) {
-                    types[i] = types[i].toLowerCase();
-                }
-
-                // Search names
-                for (i = 0; i < LFW_DASHBOARD.widgetTypes.length; ++i) {
-                    type = LFW_DASHBOARD.widgetTypes[i];
-
-                    // Search name
-                    if (contains(type.label || type.name, types)) {
-                        widgets.push(type);
-                    }
-                }
-
-                // Show results
-                display.empty();
-                for (i = 0; i < widgets.length; ++i) {
-                    type = widgets[i];
-                    display.append("<div id='widget-" + type.name + "' class='widgettype'>" +
-                        (type.image ? "<img class='add' src='" + type.image + "' />" : "<img src='img/pixel.gif' />") +
-                        "<button class='add'><span class='ui-button-text'>Pick me</span></button>" +
-                        "<h3>" + (type.label || type.name) + "</h3><p>" + (type.description || "No description") +
-                        "<br /><a href=\"" + type.documentationUrl + "\" target=\"doc\">Documentation</a></p></div>");
-                }
-
-                // Make em clickable
-                display.find(".add").click(function() {
-                    type = $(this).parent().attr("id").replace("widget-", "");
-
-                    // Get the column with the least amount of widgets
-                    var column = that.columns[0];
-                    for (i = 0; i < that.columns.length; ++i) {
-                        if (that.columns[i].widgets.length < column.widgets.length) {
-                            column = that.columns[i];
-                        }
-                    }
-
-                    var wizard = LFW_DASHBOARD.widgetTypesByName[type].wizard || "general";
-
-                    function add(object) { // Add the widget
-                        object = $.parseJSON(object);
-                        column.addWidget(undefined, object.title, type, undefined, false, object.body, object.params);
-                    }
-                    JSWizards.launch("appserver/rest/ui/wizard", "widgets", wizard, "", add);
-
-                    widgetStore.dialog("close");
-                });
-
-                display.find(".widgettype").hover(function() { $(this).toggleClass("ui-state-hover"); });
-            });
-        }
+            display.find(".widgettype").hover(function() { $(this).toggleClass("ui-state-hover"); });
+        });
 
         // Update types
         search = widgetStore.find(".search");
@@ -630,27 +615,52 @@ $(function() {
         // Show the widget center
         search.val("");
         search.keyup();
-        widgetStore.dialog("open");
+
+        widgetStore.dialog({
+            modal: true,
+            resizable: false,
+            draggable: false,
+            minHeight: "auto",
+            width: 860,
+            buttons: {},
+            close: function() {
+                $(this).dialog("destroy").remove();
+            }
+        });
     };
 
     // Show the options
-    Dashboard.prototype._fillOptions = function() {
-        var titleElem = this.jqOptions.find(".options-title"),
-            columnElem = this.jqOptions.find(".options-columns"),
+    Dashboard.prototype.showOptions = function() {
+        this.jq.append('<div class="dashboard-options" title="Dashboard options">' +
+                '<table class="options-table">' +
+                    '<tr>' +
+                        '<td class="options-textnode">Title:</td>' +
+                        '<td align="left"><input type="text" class="options-title" value="' + this.opts.config.title +
+                            '" /></td>' +
+                    '</tr>' +
+                    '<tr>' +
+                        '<td class="options-textnode">Number of columns:</td>' +
+                        '<td align="left">' +
+                            '<select class="options-columns" value="' + this._columns.length + '">' +
+                                '<option value="1">1</option>' +
+                                '<option value="2">2</option>' +
+                                '<option value="3">3</option>' +
+                            '</select>' +
+                        '</td>' +
+                    '</tr>' +
+                '</table>' +
+            '</div>');
+
+        var jqOptions = this.jq.find(".dashboard-options"),
+            titleElem = jqOptions.find(".options-title"),
+            columnElem = jqOptions.find(".options-columns"),
             that = this;
 
-        titleElem.val(this.opts.config.title);
-        columnElem.val(this._columns.length);
-
         function cancel() {
-            that.jqOptions.dialog("close");
-            titleElem.val(that.opts.config.title);
-            columnElem.val(that._columns.length);
+            jqOptions.dialog("close");
         }
 
         function ok() {
-            that.jqOptions.dialog("close");
-
             that.opts.config.title = titleElem.val();
 
             that.jq.find(".dashboard-header .title").text(that.opts.config.title);
@@ -696,11 +706,12 @@ $(function() {
 
             // Make it persistent
             that.saveConfig();
+
+            jqOptions.dialog("close");
         }
 
         // Make the dialog work
-        this.jqOptions.dialog({
-            autoOpen: false,
+        jqOptions.dialog({
             modal: true,
             resizable: false,
             draggable: false,
@@ -709,6 +720,9 @@ $(function() {
             buttons: {
                 "Cancel": cancel,
                 "Ok": ok
+            },
+            close: function() {
+                $(this).dialog("destroy").remove();
             }
         });
     };
@@ -805,14 +819,6 @@ var render = function(options) {
     $.template('plugin.dashboard.main',
         '<div class="bogus">' +
             '<div class="dashboard ui-widget ui-widget-content ui-helper-clearfix ui-corner-all" id="${id}">' +
-                '<div class="dashboard-options" title="Dashboard options">' +
-                    '<table class="options-table">' +
-                        '<tr><td class="options-textnode">Title:</td>' +
-                        '<td align="left"><input type="text" class="options-title" value="" /></td></tr>' +
-                        '<tr><td class="options-textnode">Number of columns:</td>' +
-                        '<td align="left"><select class="options-columns"><option value="1">1</option>' +
-                            '<option value="2">2</option><option value="3">3</option></select></td></tr>' +
-                    '</table></div>' +
                 '<div class="dashboard-header ui-widget-header ui-corner-all">' +
                     '<span class="ui-icon ui-icon-plusthick" /><span class="ui-icon ui-icon-wrench" />' +
                         '<pan class="title">${title}</span></div>' +

@@ -148,7 +148,9 @@ class AuthBackend(object):
 
     @ensure_groups
     def deleteUsergroup(self, usergroupid):
-        if usergroupid in (self.publicGroupGuid, self.adminGroupGuid):
+        if usergroupid == self.adminGroupGuid:
+            q.errorconditionhandler.raiseError("Unable to delete %s." % ADMIN_GROUP)
+        if usergroupid == self.publicGroupGuid:
             q.errorconditionhandler.raiseError("Unable to delete %s." % PUBLIC_GROUP)
 
         #make sure users don't reference the group anymore
@@ -254,6 +256,10 @@ class AuthBackend(object):
     def unAuthorise(self, groups, functionname, context):
         if not isinstance(groups, list):
             groups = [ groups ]
+
+        if self.adminGroupGuid in groups:
+            q.errorconditionhandler.raiseError("Removing authorization from the \"%s\" group is not allowed." % ADMIN_GROUP)
+
         found = False
         for group in groups:
             rules = self._getRules(group, functionname, context)

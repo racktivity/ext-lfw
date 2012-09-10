@@ -29,6 +29,17 @@ class Alkira:
         self.osis = p.application.getOsisConnection(api.appname)
         self.api = api
         self.authService = None
+        self._adminGroupGuid = None
+
+    @property
+    def adminGroupGuid(self):
+        if not self._adminGroupGuid:
+            import sys #pylint: disable=W0404
+            sys.path.insert(0, os.path.join(os.path.dirname(__file__), "auth_backend"))
+            authbackend = __import__("authbackend", level=1)
+
+            self._adminGroupGuid = self._getGroupInfo(getattr(authbackend, "ADMIN_GROUP"))[0]["guid"]
+        return self._adminGroupGuid
 
     def _callAuthService(self, method, oauthInfo=None, **args): #pylint: disable=W0613
         if self.authService is None:
@@ -1433,6 +1444,9 @@ class Alkira:
         return self._callAuthService("deleteUsergroup", oauthInfo, usergroupid=groupguid)
 
     def updateGroup(self, groupguid, name):
+        if groupguid == self.adminGroupGuid:
+            return False
+
         group = self.connection.group.get(groupguid)
         group.name = name
         self.connection.group.save(group)

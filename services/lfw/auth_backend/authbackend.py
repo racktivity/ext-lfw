@@ -305,7 +305,7 @@ class AuthBackend(object):
                 # This is only used to map stored rules to rulegroups in the UI
                 # And yes, I know it's dirty
                 if authorization:
-                    if authorization.RacktivityAuthorization.RULE_GROUP_PARAM in ruleContext:
+                    if authorization.RacktivityAuthorization.RULE_GROUP_PARAM in ruleContext and authorization.RacktivityAuthorization.RULE_GROUP_PARAM not in context:
                         ruleContext.pop(authorization.RacktivityAuthorization.RULE_GROUP_PARAM)
                     if authorization.RacktivityAuthorization.FORCE_INHERITANCE_PARAM in ruleContext:
                         ruleContext.pop(authorization.RacktivityAuthorization.FORCE_INHERITANCE_PARAM)

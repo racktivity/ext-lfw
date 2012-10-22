@@ -641,7 +641,7 @@ $(function() {
                     '<tr>' +
                         '<td class="options-textnode">Number of columns:</td>' +
                         '<td align="left">' +
-                            '<select class="options-columns" value="' + this._columns.length + '">' +
+                            '<select class="options-columns">' +
                                 '<option value="1">1</option>' +
                                 '<option value="2">2</option>' +
                                 '<option value="3">3</option>' +
@@ -650,6 +650,9 @@ $(function() {
                     '</tr>' +
                 '</table>' +
             '</div>');
+        
+        //set number of columns on edit dashboard form
+        $(".options-columns").val(this._columns.length);
 
         var jqOptions = this.jq.find(".dashboard-options"),
             titleElem = jqOptions.find(".options-title"),

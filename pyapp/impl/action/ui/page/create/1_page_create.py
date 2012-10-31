@@ -16,8 +16,10 @@ def main(q, i, p, params, tags):
                       category=params['category'],
                       parent=parent,
                       description=params['description'])
-
-    params['result'] = page.guid
+    if page:
+        params['result'] = page.guid
+    else:
+        params['result'] = None
 
 def match(q, i, p, params, tags):
     return True

@@ -6,12 +6,6 @@ import copy
 from osis.store.OsisDB import OsisDB
 from alkira.authservice import AuthService
 
-# For now we depend on racktivity library but support not having it as well
-try:
-    from racktivity.authorization import RacktivityAuthorizationCrossChecker
-except ImportError:
-    RacktivityAuthorizationCrossChecker = None
-
 def getConfig(q, p):
     if not getConfig.config:
         getConfig.config = q.tools.inifile.open(q.system.fs.joinPaths(q.dirs.pyAppsDir, p.api.appname, "cfg", \
@@ -135,16 +129,11 @@ def main(q, i, p, params, tags): #pylint: disable=W0613
                 if funcName:
                     params["result"] = authService.isAuthorised(groups, funcName, context)
 
-                    if not params["result"] and RacktivityAuthorizationCrossChecker is not None:
-                        ## Check if we can crosscheck with another wizard
-                        authCrossChecker = RacktivityAuthorizationCrossChecker()
-                        oldWizard = context.get('wizard')
-                        if oldWizard and oldWizard in authCrossChecker.AUTHORIZATION_CROSSCHECK_MAP:
-                            newWizard, crosscheckFunction = authCrossChecker.AUTHORIZATION_CROSSCHECK_MAP[oldWizard]
-                            newContext = crosscheckFunction(newWizard, context)
-                            if newContext:
-                                q.logger.log("Rechecking authorization for user %s with new context %s" % (request.username, str(newContext)), 3)
-                                params["result"] = authService.isAuthorised(groups, funcName, newContext)
+                    if not params["result"] and 'localAuthorize' in params:
+                        newContext = params['localAuthorize'].redefine(funcName, context)
+                        if newContext:
+                            q.logger.log("Rechecking authorization for user %s with new context %s" % (request.username, str(newContext)), 3)
+                            params["result"] = authService.isAuthorised(groups, funcName, newContext)
 
     #set the http response to 405 when we failed
     if params["result"] == False:

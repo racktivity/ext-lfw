@@ -641,7 +641,7 @@ $(function() {
                     '<tr>' +
                         '<td class="options-textnode">Number of columns:</td>' +
                         '<td align="left">' +
-                            '<select class="options-columns" value="' + this._columns.length + '">' +
+                            '<select class="options-columns">' +
                                 '<option value="1">1</option>' +
                                 '<option value="2">2</option>' +
                                 '<option value="3">3</option>' +
@@ -650,6 +650,9 @@ $(function() {
                     '</tr>' +
                 '</table>' +
             '</div>');
+        
+        //set number of columns on edit dashboard form
+        $(".options-columns").val(this._columns.length);
 
         var jqOptions = this.jq.find(".dashboard-options"),
             titleElem = jqOptions.find(".options-title"),
@@ -666,42 +669,45 @@ $(function() {
             that.jq.find(".dashboard-header .title").text(that.opts.config.title);
 
             var columnCount = parseInt(columnElem.val(), 10);
-            var width, i;
-            if (columnCount > that._columns.length) { // Add columns
-                // Change the width of the current columns
-                width = that.jq.width() / columnCount;
-                for (i = 0; i < that.columns.length; ++i) {
-                    that.columns[i].setWidth(width);
-                }
+            var width, i, j, column;
+            
+            var orderedByRows = [], 
+                distrWidgets = [[],[],[]];
 
-                // Add new columns
-                while (that._columns.length !== columnCount) {
-                    that._columns.push({ order: that._columns.length, widgets: [] });
-                    that.columns.push(new LFW_DASHBOARD.Column(that, that._columns[that._columns.length - 1], width));
+            var maxWidgets = -1;
+            //get max number of widgets in a column
+            for (i = 0; i < that._columns.length; ++i) {
+                if (that._columns[i].widgets.length > maxWidgets) {
+                    maxWidgets = that._columns[i].widgets.length;
                 }
-            } else if (columnCount < that._columns.length) { // Remove columns
-                // Remove columns
-                var widgets = [], column;
-                while (that._columns.length !== columnCount) {
-                    column = that._columns.pop();
-                    widgets = widgets.concat(column.widgets);
-                    column = that.columns.pop();
-                    column.jq.remove();
-                }
+            }
 
-                // Change the width of the columns that are left over
-                width = that.jq.width() / columnCount;
-                for (i = 0; i < that.columns.length; ++i) {
-                    that.columns[i].setWidth(width);
+            //get widgets ordered by row
+            for (i = 0; i < maxWidgets; ++i) {
+                for (j = 0; j < that._columns.length; ++j) {
+                    if (typeof(that._columns[j].widgets[i]) !== "undefined") {
+                        orderedByRows.push(that._columns[j].widgets[i]);
+                    }
                 }
+            }
 
-                // Add all the widgets to the last column
-                column = that.columns[that.columns.length - 1];
-                for (i = 0; i < widgets.length; ++i) {
-                    var widget = widgets[i];
-                    column.addWidget(undefined, widget.title, widget.widgettype, undefined, widget.collapsed,
-                        widget.config, widget.params);
-                }
+            //remove all columns from the dashboard
+            while (that._columns.length) {
+                that._columns.pop();
+                column = that.columns.pop();
+                column.jq.remove();
+            }
+
+            //distribute the widgets among all columns
+            for (i = 0; i < orderedByRows.length; ++i) {
+                distrWidgets[i % columnCount].push(orderedByRows[i]);
+            }
+
+            width = that.jq.width() / columnCount;
+            //add columns and widgets
+            for (i = 0; i < columnCount; ++i) {
+                that._columns.push({ order: i, widgets: distrWidgets[i] });
+                that.columns.push(new LFW_DASHBOARD.Column(that, that._columns[i], width));
             }
 
             // Make it persistent

@@ -31,6 +31,11 @@ class Alkira:
         self.authService = None
         self._adminGroupGuid = None
 
+        # Get the pylabs user and group
+        mainConfig = q.config.getConfig('main').get('main', {})
+        self.pylabs_user = mainConfig.get('user')
+        self.pylabs_group = mainConfig.get('group')
+
     @property
     def adminGroupGuid(self):
         if not self._adminGroupGuid:
@@ -59,7 +64,7 @@ class Alkira:
 
     def _getSpaceGuid(self, space):
         if isinstance(space, basestring):
-            if q.basetype.guid.check(space): #pylint: disable=E1103
+            if q.basetype.guid.check(space):  #pylint: disable=E1101
                 return space
             else:
                 spaces = self._getSpaceInfo(space)
@@ -71,7 +76,7 @@ class Alkira:
 
     def _getProjectGuid(self, project):
         if isinstance(project, basestring):
-            if q.basetype.guid.check(project): #pylint: disable=E1103
+            if q.basetype.guid.check(project):  #pylint: disable=E1101
                 return project
             else:
                 projects = self._getProjectInfo(project)
@@ -252,7 +257,7 @@ class Alkira:
             if title:
                 where.append(index.c.name.ilike('%%%s%%' % title.lower()))
 
-        select = sqlalchemy.select(columns, whereclause=sqlalchemy.and_(*where))
+        select = sqlalchemy.select(columns, whereclause=sqlalchemy.and_(*where))  #pylint:disable=W0142
         qr = self.osis.runSqlAlchemyQuery(select)
 
         # If description is present then use it, otherwise use page content:
@@ -554,9 +559,13 @@ class Alkira:
                         self._moveDir(olddir, _dir)
 
                 _write(_file, page.content)
+                if self.pylabs_user and self.pylabs_group:
+                    q.system.unix.chown(_file, self.pylabs_user, self.pylabs_group)
             else:
                 if not _isdir(_dir):
                     q.system.fs.createDir(_dir)
+                    if self.pylabs_user and self.pylabs_group:
+                        q.system.unix.chown(_dir, self.pylabs_user, self.pylabs_group)
 
             upper = _dir
 
@@ -571,9 +580,6 @@ class Alkira:
 
         crumbs = self._breadcrumbs(page)
         _join = q.system.fs.joinPaths
-        _isfile = q.system.fs.isFile
-        _isdir = q.system.fs.isDir
-        _write = q.system.fs.writeFile
 
         _dir = self._getDir(space)
         for level in crumbs:
@@ -655,7 +661,10 @@ class Alkira:
         if name == ADMINSPACE:
             return
 
-        q.system.fs.createDir(self._getDir(name))
+        dirname = self._getDir(name)
+        q.system.fs.createDir(dirname)
+        if self.pylabs_user and self.pylabs_group:
+            q.system.unix.chown(dirname, self.pylabs_user, self.pylabs_group)
 
         #create a space page under the default admin space
         spacefile = 's_' + name
@@ -1193,7 +1202,7 @@ class Alkira:
         if t:
             where.append(getattr(page.c, prop).like('%%%s%%' % t))
 
-        select = sqlalchemy.select(columns, whereclause=sqlalchemy.and_(*where), distinct=True)
+        select = sqlalchemy.select(columns, whereclause=sqlalchemy.and_(*where), distinct=True)  #pylint:disable=W0142
 
         qr = self.osis.runSqlAlchemyQuery(select)
         result = []

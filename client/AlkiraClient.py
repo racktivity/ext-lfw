@@ -1,11 +1,12 @@
-from pylabs import q, p
-
 import urllib
 import httplib
 import json
 import oauth2
 
 class AlkiraClient:
+    def __init__(self):
+        pass
+        
     def getClient(self, hostname, appname, port=80):
         """
         Gets a client object.
@@ -178,14 +179,13 @@ class Client:
     def getPage(self, space, name):
         return self.__call("getPage", space=space, name=name)
 
-    def createPage(self, space, name, content, parent=None, order=None, title=None, tags="", category='portal', pagetype="md"):
-        return self.__call("createPage", space=space, name=name, content=content,
-                           parent=parent, order=order, title=title, tags=tags, category=category, pagetype=pagetype)
+    def createPage(self, space, name, content, parent=None, order=None, title=None, tags="", category='portal', pagetype="md", description=None):
+        return self.__call("createPage", space=space, name=name, content=content, parent=parent, order=order,
+            title=title, tags=tags, category=category, pagetype=pagetype, description=description)
 
-    def updatePage(self, space, name, content, newname=None, parent=None, order=None, title=None, tags="", category=None, pagetype=None):
-        return self.__call("updatePage", space=space, name=name, content=content,
-                           newname=newname, parent=parent, order=order, title=title,
-                           tags=tags, category=category, pagetype=pagetype)
+    def updatePage(self, space, name, content, newname=None, parent=None, order=None, title=None, tags="", category=None, pagetype=None, description=None):
+        return self.__call("updatePage", space=space, name=name, content=content, newname=newname, parent=parent,
+            order=order, title=title, tags=tags, category=category, pagetype=pagetype, description=description)
 
     def deletePage(self, space, name):
         return self.__call("deletePage", space=space, name=name)
@@ -209,4 +209,3 @@ class Client:
 
     def updateMacroConfig(self, space, page, macro, config, configId=None):
         return self.__call("updateMacroConfig", space=space, page=page, macro=macro, config=config, configId=configId)
-

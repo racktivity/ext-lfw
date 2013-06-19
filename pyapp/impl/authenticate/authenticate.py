@@ -11,6 +11,7 @@ from alkira import oauthservice
 
 REALM = "alkira"
 
+
 class HelperServer(oauth.Server):
     def __init__(self, q, p, config):
         oauth.Server.__init__(self)
@@ -47,18 +48,20 @@ class HelperServer(oauth.Server):
 
     def renewToken(self, tokenKey, token):
         validhours = float(self.config["oauth"]["hoursvalid"])
-        validuntil = (datetime.now() +timedelta(hours=validhours)).strftime("%s")
+        validuntil = (datetime.now() + timedelta(hours=validhours)).strftime("%s")
 
-        value = str({'validuntil': validuntil, 'tokensecret': token['tokensecret'] })
+        value = str({'validuntil': validuntil, 'tokensecret': token['tokensecret']})
         update = self.table.update().where(self.table.c.key == tokenKey).values(value=value)
         self.osis.runSqlAlchemyQuery(update)
 
+
 def _getHeaders(request, q):
     headers = dict()
-    for header in request._request.requestHeaders.getAllRawHeaders(): #pylint: disable=W0212
+    for header in request._request.requestHeaders.getAllRawHeaders():  # pylint: disable=W0212
         headers[header[0]] = header[1][0]
-    q.logger.log("HEADERS "+ str(headers), 5)
+    q.logger.log("HEADERS " + str(headers), 5)
     return headers
+
 
 def _getAuthHeaders(headers, q):
     authHeader = headers["Authorization"]
@@ -68,20 +71,22 @@ def _getAuthHeaders(headers, q):
         key = key.strip()
         value = value.strip('"')
         oAuthHeaders[key] = urllib2.unquote(value)
-    q.logger.log("OAUTH HEADERS "+ str(oAuthHeaders), 5)
+    q.logger.log("OAUTH HEADERS " + str(oAuthHeaders), 5)
     return oAuthHeaders
+
 
 def getConfig(q, p):
     if not getConfig.config:
-        getConfig.config = q.tools.inifile.open(q.system.fs.joinPaths(q.dirs.pyAppsDir, p.api.appname, "cfg", \
-            "auth.cfg")).getFileAsDict()
+        getConfig.config = q.tools.inifile.open(q.system.fs.joinPaths(
+            q.dirs.pyAppsDir, p.api.appname, "cfg", "auth.cfg")).getFileAsDict()
     return getConfig.config
 getConfig.config = None
 
-def main(q, i, p, params, tags): #pylint: disable=W0613
+
+def main(q, i, p, params, tags):  # pylint: disable=W0613
     request = params["request"]
     headers = _getHeaders(request, q)
-    parameters = request._request.args #pylint: disable=W0212
+    parameters = request._request.args  # pylint: disable=W0212
 
     #convert our params dict to a normal dict
     for key, value in parameters.iteritems():
@@ -93,8 +98,8 @@ def main(q, i, p, params, tags): #pylint: disable=W0613
         if isinstance(value, list):
             parameters[key] = value[0] if value else ""
 
-    inHeaders = headers.has_key('Authorization') and headers['Authorization'].find('OAuth realm="%s"' % REALM) >= 0
-    inParameters = parameters.has_key("realm") and parameters["realm"] == REALM
+    inHeaders = 'Authorization' in headers and headers['Authorization'].find('OAuth realm="%s"' % REALM) >= 0
+    inParameters = "realm" in parameters and parameters["realm"] == REALM
 
     if inHeaders or inParameters:
         config = getConfig(q, p)
@@ -104,7 +109,7 @@ def main(q, i, p, params, tags): #pylint: disable=W0613
         if inHeaders:
             oauthInfo = _getAuthHeaders(headers, q)
         else:
-            parameters.pop("realm") #remove realm as we don't want it in our list
+            parameters.pop("realm")  # remove realm as we don't want it in our list
             oauthInfo = parameters
 
         tokenkey = oauthInfo['oauth_token']
@@ -137,7 +142,7 @@ def main(q, i, p, params, tags): #pylint: disable=W0613
                 helperServer.access_token = oauth.Token(tokenkey, tokensecret)
 
                 ## <dirty hack> because of reverse proxy in client
-                path = request._request.path #pylint: disable=W0212
+                path = urllib2.unquote(request._request.path)  # pylint: disable=W0212
 
                 # Take the substring of path, starting from the first '/' (ignoring the first character)
                 index = path.find("/", 1)
@@ -146,7 +151,9 @@ def main(q, i, p, params, tags): #pylint: disable=W0613
                 httpUrl = "http://%s%s" % (REALM, path)
                 ## </dirty hack>
 
-                oauthRequest = oauth.Request.from_request(request._request.method, httpUrl, headers=headers, #pylint: disable=W0212
+                oauthRequest = oauth.Request.from_request(
+                    # pylint: disable=W0212
+                    request._request.method, httpUrl, headers=headers,
                     parameters=parameters)
                 params["result"] = helperServer.checkAccessToken(oauthRequest, httpUrl)
 
@@ -157,5 +164,5 @@ def main(q, i, p, params, tags): #pylint: disable=W0613
         params["result"] = True
 
     #set the http response to 403 when we failed
-    if params["result"] == False:
-        request._request.setResponseCode(403) #pylint: disable=W0212
+    if params["result"] is False:
+        request._request.setResponseCode(403)  # pylint: disable=W0212

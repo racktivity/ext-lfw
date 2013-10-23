@@ -35,4 +35,4 @@ def release_lock(*args):
 def is_locked(*args):
     fileName = '_'.join(args) + '.lock'
     lockPath = os.path.join(LOCK_DIR_PATH, fileName)
-    return os.path.isfile(lockPath):
+    return os.path.isfile(lockPath)

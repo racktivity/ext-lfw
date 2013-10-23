@@ -1,31 +1,38 @@
+import os
+
 from pylabs import q
 
-LOCK_DIR_PATH = q.system.fs.joinPaths(q.dirs.varDir, 'lock', 'dcpm')
+LOCK_DIR_PATH = os.path.join(q.dirs.varDir, 'lock')
 
-if not q.system.fs.isDir(LOCK_DIR_PATH):
-    q.system.fs.createDir(LOCK_DIR_PATH)
 
-class isLockedException(Exception):
+if not os.path.isdir(LOCK_DIR_PATH):
+    os.mkdir(LOCK_DIR_PATH)
+
+
+class IsLockedException(Exception):
     pass
 
-def aquire_lock(exceptionText, *args):
+
+def acquire_lock(exceptionText, *args):
     fileName = '_'.join(args) + '.lock'
-    lockPath = q.system.fs.joinPaths(LOCK_DIR_PATH, fileName)
-    if q.system.fs.isFile(lockPath):
-        raise isLockedException("%s: %s" % (exceptionText, lockPath))
-    q.system.fs.createEmptyFile(lockPath)
+    lockPath = os.path.join(LOCK_DIR_PATH, fileName)
+    try:
+        f = os.open(lockPath, os.O_CREAT | os.O_EXCL)
+        os.close(f)
+    except OSError:
+        raise IsLockedException("%s: %s" % (exceptionText, lockPath))
+
 
 def release_lock(*args):
     fileName = '_'.join(args) + '.lock'
-    lockPath = q.system.fs.joinPaths(LOCK_DIR_PATH, fileName)
-    if q.system.fs.isFile(lockPath):
-        q.system.fs.removeFile(lockPath)
+    lockPath = os.path.join(LOCK_DIR_PATH, fileName)
+    try:
+        os.unlink(lockPath)
+    except OSError:  # if not present, ignore
+        pass
+
 
 def is_locked(*args):
     fileName = '_'.join(args) + '.lock'
-    lockPath = q.system.fs.joinPaths(LOCK_DIR_PATH, fileName)
-    if q.system.fs.isFile(lockPath):
-        return True
-    return False
-
-     
+    lockPath = os.path.join(LOCK_DIR_PATH, fileName)
+    return os.path.isfile(lockPath):

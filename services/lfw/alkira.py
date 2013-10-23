@@ -806,8 +806,8 @@ class Alkira:
         lock = '%s_%s' % (space, name)
         exceptionText = "The page is already about to be created."
         try:
-            locklib.aquire_lock(exceptionText, lock)
-        except locklib.isLockedException:
+            locklib.acquire_lock(exceptionText, lock)
+        except locklib.IsLockedException:
             q.logger.log(exceptionText)
             return
 
@@ -942,8 +942,8 @@ class Alkira:
         lock = '%s_%s' % (space, old_name)
         exceptionText = "The page is already about to be updated."
         try:
-            locklib.aquire_lock(exceptionText, lock)
-        except locklib.isLockedException:
+            locklib.acquire_lock(exceptionText, lock)
+        except locklib.IsLockedException:
             q.logger.log(exceptionText)
             return
 

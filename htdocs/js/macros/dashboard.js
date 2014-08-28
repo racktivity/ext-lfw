@@ -159,7 +159,6 @@ $(function() {
         });
         // if refresh param is set, prepare refresh callback
         var params = $.evalJSON(object.params);
-        console.log(object.params);
         if (params.refresh) {
             console.log('refresh param set to ' + params.refresh);
             var rSec = params.refresh * 1000;
@@ -233,7 +232,11 @@ $(function() {
             object = $.parseJSON(object);
             that.options.title = object.title;
             that.options.config = object.body;
-            that.options.params = $.toJSON(object.params);
+            var escapedParams = {};
+            $.each(object.params, function(key, value) {
+                escapedParams[key] = encodeURI(value);
+            });
+            that.options.params = $.toJSON(escapedParams);
 
             that.jq.find(".portlet-header .title").text(that.options.title);
             var data = $.tmpl('plugin.dashboard.widgetcontent', that.options);
@@ -584,7 +587,11 @@ $(function() {
 
                 function add(object) { // Add the widget
                     object = $.parseJSON(object);
-                    column.addWidget(undefined, object.title, type, undefined, false, object.body, object.params);
+                    var escapedParams = {};
+                    $.each(object.params, function(key, value) {
+                        escapedParams[key] = encodeURI(value);
+                    });
+                    column.addWidget(undefined, object.title, type, undefined, false, object.body, escapedParams);
                 }
                 JSWizards.launch("appserver/rest/ui/wizard", "widgets", wizard, "", add);
 
@@ -650,7 +657,7 @@ $(function() {
                     '</tr>' +
                 '</table>' +
             '</div>');
-        
+
         //set number of columns on edit dashboard form
         $(".options-columns").val(this._columns.length);
 
@@ -670,8 +677,8 @@ $(function() {
 
             var columnCount = parseInt(columnElem.val(), 10);
             var width, i, j, column;
-            
-            var orderedByRows = [], 
+
+            var orderedByRows = [],
                 distrWidgets = [[],[],[]];
 
             var maxWidgets = -1;

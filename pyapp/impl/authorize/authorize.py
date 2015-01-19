@@ -51,7 +51,11 @@ def getAllArguments(params):
 def getParamValue(arguments, paramName):
     if paramName in arguments:
         arg = arguments[paramName]
-        return arg if arg is not None else ""
+        if arg is not None:
+            if "," in arg:
+                return arg.split(",")
+            return arg
+        return ""
     elif not paramName:
         return ""
     elif paramName[0] == '@':

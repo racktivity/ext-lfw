@@ -568,7 +568,7 @@ $(function() {
                     (type.image ? "<img class='add' src='" + type.image + "' />" : "<img src='img/pixel.gif' />") +
                     "<button class='add'><span class='ui-button-text'>Pick me</span></button>" +
                     "<h3>" + (type.label || type.name) + "</h3><p>" + (type.description || "No description") +
-                    "<br /><a href=\"" + type.documentationUrl + "\" target=\"doc\">Documentation</a></p></div>");
+                    "</p></div>");
             }
 
             // Make em clickable

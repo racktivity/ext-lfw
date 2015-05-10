@@ -5,24 +5,13 @@ from datetime import datetime, timedelta
 TABLE_NAME = "oauth_token"
 TABLE_SCHEMA = "ui"
 
-class TimeoutHTTPConnection(httplib.HTTPConnection):
-    def connect(self):
-        httplib.HTTPConnection.connect(self)
-        self.sock.settimeout(self.timeout)
-
-class TimeoutHTTP(httplib.HTTP):
-    _connection_class = TimeoutHTTPConnection
-    def set_timeout(self, timeout):
-        self._conn.timeout = timeout
-
 class TimeoutTransport(xmlrpclib.Transport):
     def __init__(self, timeout=10, *args, **kwargs):
         xmlrpclib.Transport.__init__(self, *args, **kwargs)
         self.timeout = timeout
 
     def make_connection(self, host):
-        conn = TimeoutHTTP(host)
-        conn.set_timeout(self.timeout)
+        conn = httplib.HTTPConnection(host, timeout=self.timeout)
         return conn
 
 class TimeoutServerProxy(xmlrpclib.ServerProxy):

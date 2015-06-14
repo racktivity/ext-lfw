@@ -2,7 +2,6 @@ import uuid, oauth2, httplib, xmlrpclib, sqlalchemy, urllib, requests
 import json, base64
 from pylabs import q, p
 from datetime import datetime, timedelta
-from . import session
 
 
 TABLE_NAME = "oauth_token"

@@ -14,7 +14,7 @@ $(function() {
         "<div><label for='username'>User name:</label><input name='username' id='username' placeholder='username' " +
         "class='input.text' /></div><div><label for='password'>Password:</label><input type='password' " +
         "name='password' id='password' placeholder='password' class='input.text' /></div><div><input type='submit' " +
-        "name='login' id='login' value='Login' /></div></form></div>");
+        "name='login' id='login' value='Login' /></div></form> or <a class='oauth' data-provider='github'>Github</a></div>");
 
     function clearUserInfo() {
         localStorage.removeItem(OAUTH_TOKEN);
@@ -165,15 +165,20 @@ $(function() {
     }
 
     //Token generation function
-    function makeOAuthRequest(username, password) {
+    function makeOAuthRequest(username, password, provider) {
         var url = LFW_CONFIG.uris.oauthservice;
 
         var message = {
             action: url,
             method: "GET",
-            parameters: {'user': username, 'password': password}
+            parameters: {'user': username,
+                         'password': password,
+                         'provider': provider
+            }
         };
+
         url = url + '?' + OAuth.formEncode(message.parameters);
+
         jQuery.ajax({
             type: "GET",
             url: url,
@@ -182,7 +187,7 @@ $(function() {
                 $.alerterror(xhr, text, exc, options);
             },
             success: function(data) {
-                Auth.parseOAuthToken(data, username);
+                Auth.parseOAuthToken(data);
             }
         });
     }
@@ -196,6 +201,11 @@ $(function() {
         $("#loginDialog").find("input").attr("disabled", true);
         makeOAuthRequest($('#username').val(), $('#password').val());
 
+    });
+
+    $('#loginDialog').find('.oauth').click(function(e){
+        var provider = $(this).data('provider');
+        makeOAuthRequest(null, null, provider);
     });
 
     Auth.getFromLocalStorage = function(key) {
@@ -212,23 +222,46 @@ $(function() {
         return item.value;
     };
 
-    Auth.parseOAuthToken = function(token, username, noreload) {
+    function getParams() {
+        var params = {};
+        var search = location.search.substr(1)
+        $.each(search.split('&'), function(i, pair) {
+            var parts = pair.split('=', 2);
+            params[decodeURIComponent(parts[0])] = decodeURIComponent(parts[1]);
+        });
+
+        return params;
+    }
+
+    Auth.parseOAuthToken = function(token, noreload) {
         if (token.error) {
             $.alert(token.message, {title: 'Invalid login'});
             $("#loginDialog").find("input").attr("disabled", false);
             return;
         }
 
-        addToLocalStorage(OAUTH_TOKEN, token);
-        showLogoutLink();
-        $("#loginInfo #loggeduser").html(username);
-        addToLocalStorage(USER_NAME, username);
-        $("#loginDialog").dialog("close")
-                         .find("input").attr("disabled", false);
-        if (!noreload) {
-            location.reload();
+        if (token.action === 'redirect') {
+            //TODO: redirect to provider.
+            window.location = token.url;
+        } else if (token.action === 'login') {
+            var username = token.user;
+            addToLocalStorage(OAUTH_TOKEN, token.token);
+            showLogoutLink();
+            $("#loginInfo #loggeduser").html(username);
+            addToLocalStorage(USER_NAME, username);
+            $("#loginDialog").dialog("close")
+                             .find("input").attr("disabled", false);
+            if (!noreload) {
+                location = location.origin + location.pathname;
+            }
         }
     };
+
+    var urlParams = getParams();
+    if ('l' in urlParams) {
+        var data = JSON.parse(atob(urlParams.l));
+        Auth.parseOAuthToken(data);
+    }
 
     displayUser();
 });

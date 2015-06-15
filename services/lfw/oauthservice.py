@@ -93,11 +93,12 @@ class OAuthService(object):
 
         #TODO: set real hostname
         #TODO: store state for validation
-        state = str(uuid.uuid4())
+        state = '%s:%s' % (provider, str(uuid.uuid4()))
         params = {
             'client_id': client_id,
             'redirect_uri': self.baseuri + '/appserver/rest/ui/oauth/next',
-            'state': state
+            'state': state,
+            'response_type': 'code'
         }
 
         redirect_url = url + '?' + urllib.urlencode(
@@ -110,10 +111,32 @@ class OAuthService(object):
         }
 
     @q.manage.applicationserver.expose
-    def next(self, code, state, applicationserver_request=None):
-        # get token
-        #TODO: validate state, also get provider name from state
-        provider = self.providers['github']
+    def next(self, code=None, state=None, error=None,
+             error_description=None, applicationserver_request=None):
+        # Get token
+
+        def sendresponse(msg):
+            msgdump = base64.encodestring(json.dumps(msg))
+            applicationserver_request._request.redirect(
+                self.baseuri + '?l=%s' % urllib.quote(msgdump, safe='')
+            )
+
+        if error is not None:
+            sendresponse({
+                    'error': error,
+                    'error_description': error_description
+                })
+            return
+
+        if code is None or state is None:
+            sendresponse({
+                'error': 'invalid_response',
+                'error_description': 'Got invalid response from provider'
+            })
+
+        provider_name = state.partition(':')[0]
+        # TODO: validate state, also get provider name from state
+        provider = self.providers[provider_name]
 
         #1- get token.
         url = provider['token_url']
@@ -126,12 +149,6 @@ class OAuthService(object):
             'client_secret': provider['client_secret'],
             'code': code
         }
-
-        def sendresponse(msg):
-            msgdump = base64.encodestring(json.dumps(msg))
-            applicationserver_request._request.redirect(
-                self.baseuri + '?l=%s' % urllib.quote(msgdump, safe='')
-            )
 
         response = requests.post(url, data=params, headers=headers)
         if not response.ok:

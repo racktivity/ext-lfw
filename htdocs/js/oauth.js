@@ -11,7 +11,7 @@ $(function() {
 
     $('body').append("<div id='loginDialog' style='display:none;'>" +
         "<form name='login-form' id='login-form' method='get'>" +
-        "<div><label for='username'>User name:</label><input name='username' id='username' placeholder='username' " +
+        "<div><label for='username'>User name:</label><input type='text' name='username' id='username' placeholder='username' " +
         "class='input.text' /></div><div><label for='password'>Password:</label><input type='password' " +
         "name='password' id='password' placeholder='password' class='input.text' /></div><div><input type='submit' " +
         "name='login' id='login' value='Login' /></div></form> or <a class='oauth' data-provider='github'>Github</a></div>");

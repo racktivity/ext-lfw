@@ -183,7 +183,6 @@ class OAuthService(object):
 
         sendresponse(access)
 
-
     def getTokenLocal(self, user, password):
         valid = TimeoutServerProxy(self.xmlrpcUrl).ui.auth.verifyUserIdentity(user, password)
 
@@ -211,6 +210,18 @@ class OAuthService(object):
         except oauth2.Error, err:
             q.logger.log('Exception while generating token %s' % str(err), 4)
             raise Warning('Exception while generating token %s' % str(err))
+
+    @q.manage.applicationserver.expose
+    def logout(self, provider=None):
+        if provider not in self.providers:
+            return
+
+        provider = self.providers[provider]
+        if 'logout_url' in provider:
+            url = provider['logout_url']
+            return url + '?' + urllib.urlencode({
+                'redirect_uri': self.baseuri
+            })
 
     def saveToken(self, token):
         """

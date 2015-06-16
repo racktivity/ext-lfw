@@ -57,11 +57,19 @@ class OAuthService(object):
             oauthcfg = q.tools.inifile.open(oauth2_cfg_path)
             self.baseuri = oauthcfg.getSectionAsDict('main')['baseuri']
 
-            for section in oauthcfg.getSections():
+            sections = oauthcfg.getSections()
+            for section in sections:
                 if not section.startswith('provider.'):
                     continue
                 provider_name = section.split('.', 1)[1]
-                self.providers[provider_name] = oauthcfg.getSectionAsDict(section)
+                provider = oauthcfg.getSectionAsDict(section)
+                provider['args'] = {}
+
+                self.providers[provider_name] = provider
+
+                args_section = '%s.args' % provider_name
+                if args_section in sections:
+                    self.providers[provider_name]['args'].update(oauthcfg.getSectionAsDict(args_section))
 
 
     @q.manage.applicationserver.expose
@@ -98,8 +106,9 @@ class OAuthService(object):
             'client_id': client_id,
             'redirect_uri': self.baseuri + '/appserver/rest/ui/oauth/next',
             'state': state,
-            'response_type': 'code'
         }
+
+        params.update(provider_cfg['args'])
 
         redirect_url = url + '?' + urllib.urlencode(
             params
